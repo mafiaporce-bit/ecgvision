@@ -286,6 +286,20 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .lesson:first-child{border-top:0;padding-top:0}
 .lesson .meta{font-size:.78rem;color:var(--soft)}
 .lesson .del{margin-top:6px;min-height:36px;padding:0 12px;font-size:.85rem}
+
+.head{background:linear-gradient(160deg,var(--h1),var(--h2))!important;color:#fff;border:0!important}
+.head .k{color:rgba(255,255,255,.8)!important}
+.head .r{color:#fff}
+.head p{color:rgba(255,255,255,.92)}
+.head .pill{background:rgba(255,255,255,.18);color:#fff}
+.head .pill.low{background:#FFF1D9;color:#7A4700}
+.stemi.not_met{background:linear-gradient(160deg,var(--h1),var(--h2))!important;color:#fff!important;border:0!important}
+.rep{background:var(--field);border-radius:24px;padding:10px}
+
+.dbl{margin-top:12px;background:var(--field);border-radius:12px;padding:10px 12px}
+.conf-d{margin-top:8px}
+.conf-d summary{cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.85)}
+.conf-d ul{margin:6px 0 0;padding-left:1.2em;font-size:.82rem;color:rgba(255,255,255,.92)}
 </style>
 </head>
 <body>
@@ -352,6 +366,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     </div>
     <div class="lbl" style="margin:14px 0 4px">Complaint, vitals and history (optional)</div>
     <textarea id="notes" placeholder="e.g. Chest pain 40 min, diaphoretic, BP 92/60, SpO2 95%, known pacemaker"></textarea>
+    <label class="chk dbl"><input type="checkbox" id="dblChk"><span><b>Double-check</b>: two independent reads compared lead by lead. Higher confidence, about twice the cost.</span></label>
     <div class="actions">
       <button class="btn" id="analyzeBtn" disabled>Analyze ECG</button>
       <button class="btn ghost" id="stopBtn" hidden>Stop</button>
@@ -538,7 +553,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 <script>
 (function(){
   const $=id=>document.getElementById(id);
-  let refreshHook=null;
+  let refreshHook=null,reEvalHook=null;
   const root=document.documentElement;
   const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
   function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1800);}
@@ -567,7 +582,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     $("sexVal").textContent=x||"Select";$("sexVal").classList.toggle("empty",!x);
     $("sexIc").innerHTML=x==="Male"?MALE:x==="Female"?FEMALE:"";
     document.querySelectorAll(".sexopt").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sex===x?"true":"false"));
-    updThr();gate();
+    updThr();gate();if(reEvalHook)reEvalHook();
   }
   function patientOK(){return !!($("age").value&&$("sex").value);}
   function gate(){const ok=patientOK();$("drop").classList.toggle("locked",!ok);$("camInput").disabled=!ok;$("fileInput").disabled=!ok;if(!ok)$("analyzeBtn").disabled=true;else if(refreshHook)refreshHook();}
@@ -815,7 +830,13 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   drop.addEventListener("drop",e=>{if(e.dataTransfer?.files?.length)addFiles(e.dataTransfer.files);});
 
   refreshHook=refresh;gate();
+  reEvalHook=()=>{if(!lastReport||busy||!patientOK())return;
+    lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport._conf=computeConfidence(lastReport);
+    const y=window.scrollY;render(lastReport);window.scrollTo({top:y});
+    setStatus("Decision updated for the new age/sex using the same measurements. No new read needed.");};
   $("samePtChk").onchange=()=>{refresh();if($("samePtChk").checked&&patientOK())setStatus("Ready. Tap Analyze ECG.");};
+  try{$("dblChk").checked=store.get("eqg-dbl")==="1";}catch(e){}
+  $("dblChk").onchange=()=>store.set("eqg-dbl",$("dblChk").checked?"1":"0");
   function unavailable(m){$("unavail").textContent=m;$("unavail").hidden=false;refresh();}
   (async()=>{
     const inClaude=!!(window.claude&&typeof window.claude.use==="function");
@@ -838,7 +859,7 @@ MULTIPLE IMAGES: if they are pages of one 12-lead, combine them so every lead is
 
 ${zoom?"IMAGES: image 1 is the full photo. Images 2 and 3 are ZOOMED crops of the LEFT half and RIGHT half of that same photo (not other patients, not other tracings). Use the zoomed crops to read small waveforms such as T waves; use image 1 to confirm which lead is which.\n\n":""}YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
 
-PATIENT: age ${age||"not given"}, sex ${sex||"not given"}. This patient's V2-V3 threshold is ${thr||"unknown"}; all other leads 1 mm.${notes?"\nCOMPLAINT/VITALS: "+notes:""}
+MEASURE BLIND: you are deliberately NOT told the patient's age, sex, symptoms or STEMI thresholds, so that your measurements are not influenced by them. Do not mention thresholds or whether anything "meets" criteria; just measure. The app applies the thresholds itself.
 
 HOW TO MEASURE (follow exactly, lead by lead):
 0. Identify every lead by its GRID POSITION before measuring. Most printouts are 4 columns x 3 rows: column 1 = I, II, III (top to bottom); column 2 = aVR, aVL, aVF; column 3 = V1, V2, V3; column 4 = V4, V5, V6; a long rhythm strip may run underneath. LIFEPAK and several other monitors print a vertical lead-change marker bar immediately before each label, so "| I" is lead I (NOT II), "| II" is lead II and "| III" is lead III. Never count vertical strokes to name a lead; use the grid position. Photos may show only some pages (e.g. corpuls pages 5-7) or be cut off at the edges.
@@ -890,6 +911,46 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
   // The monitor measures the axes from the electrical signal itself, which is more reliable
   // than reading small T waves from a photo. When a P-QRS-T axis line is printed, use the
   // T axis to set clear-cut limb-lead T polarity (hexaxial projection).
+  // Printed STJ Level values are measured by the monitor from the signal itself.
+  function applyMonitorSTJ(d){
+    const stj=(d.printed||{}).stj;if(!stj||typeof stj!=="object"||!d.leads)return;
+    const cal=Number(d.calibration&&d.calibration.mm_per_mv);const f=(cal>=3&&cal<=25)?10/cal:1;const used=[];
+    LEADS.forEach(k=>{const raw=stj[k];if(raw===undefined||raw===null||raw==="")return;const v=parseFloat(String(raw).replace(",","."));if(!isFinite(v)||Math.abs(v)>10)return;
+      const o=d.leads[k]||(d.leads[k]={present:true});const cur=typeof o.j_mm==="number"?o.j_mm*f:null;
+      if(cur===null||Math.abs(cur-v)>0.5)used.push(k+" "+(v>0?"+":"")+v);
+      o.present=true;o.j_mm=v/f;o.note=((o.note?S(o.note)+"; ":"")+"J from printed STJ "+v+" mm").slice(0,160);});
+    d._stjUsed=used;
+  }
+  // Double-check: merge two independent reads; disagreements lower confidence and are shown.
+  function mergeReads(a,b){
+    const m=JSON.parse(JSON.stringify(a));m._double=true;m._disagree=[];
+    LEADS.forEach(k=>{const x=(a.leads||{})[k]||{},y=(b.leads||{})[k]||{};const o=m.leads[k]||(m.leads[k]={});
+      const xj=typeof x.j_mm==="number"?x.j_mm:null,yj=typeof y.j_mm==="number"?y.j_mm:null;
+      if(xj!==null&&yj!==null){o.j_mm=Math.round((xj+yj))/2;if(Math.abs(xj-yj)>0.5)m._disagree.push(k+" J "+xj+" vs "+yj);}
+      else if(xj===null&&yj!==null){o.j_mm=yj;o.present=y.present;}
+      const xt=S(x.t).toLowerCase(),yt=S(y.t).toLowerCase();
+      if(xt&&yt&&xt!==yt&&!((xt==="flat"||yt==="flat")&&(xt==="upright"||yt==="upright"))){m._disagree.push(k+" T "+xt+" vs "+yt);o.t="unclear";o.note=((o.note?S(o.note)+"; ":"")+"reads disagree on T").slice(0,160);}});
+    const pa=a.printed||{},pb=b.printed||{};m.printed=Object.assign({},pb,pa);
+    if(!m.printed.axes&&pb.axes)m.printed.axes=pb.axes;if((!pa.stj||!Object.keys(pa.stj).length)&&pb.stj)m.printed.stj=pb.stj;
+    m.omi_patterns=[...new Set([...(a.omi_patterns||[]),...(b.omi_patterns||[])])];
+    const ca=(a.conduction||{}),cb=(b.conduction||{});m.conduction=Object.assign({},ca,{lvh:!!(ca.lvh||cb.lvh),bbb:S(ca.bbb)!=="none"?ca.bbb:(cb.bbb||"none")});
+    return m;
+  }
+  // Confidence computed by the app from checkable facts, not the AI's self-rating.
+  function computeConfidence(d){
+    let sc=100;const why=[];const st=d.stemi||{};
+    const miss=(st.missing||[]);if(miss.length){sc-=35;why.push("Leads not in photo: "+miss.join(", "));}else why.push("All 12 leads visible");
+    const cal=Number(d.calibration&&d.calibration.mm_per_mv);if(!(cal>=3&&cal<=25)){sc-=10;why.push("Calibration pulse not measured");}
+    if(d.quality&&d.quality.adequate===false){sc-=20;why.push("Image quality limited");}
+    if(/Borderline|Possible|suspected/i.test(S(st.criterion))){sc-=20;why.push("Values near the threshold");}
+    const self=S(d.primary&&d.primary.confidence).toLowerCase();if(self==="low"){sc-=15;why.push("AI unsure of its own read");}else if(self==="moderate")sc-=5;
+    if(d._stjUsed!==undefined&&(d.printed||{}).stj&&Object.keys(d.printed.stj).length){sc+=10;why.push("J-points from the monitor's STJ measurement");}
+    if(d._axisNote){why.push("Limb-lead T waves set from the monitor's T axis");}
+    if(d._double){if(d._disagree.length){sc-=Math.min(30,8*d._disagree.length);why.push("Two reads disagreed: "+d._disagree.slice(0,4).join("; "));}else{sc+=10;why.push("Two independent reads agreed on every lead");}}
+    else why.push("Single read (turn on Double-check for more certainty)");
+    sc=Math.max(5,Math.min(95,sc));
+    return {score:sc,level:sc>=80?"High":sc>=55?"Moderate":"Low",why};
+  }
   function applyMonitorAxis(d){
     const ax=S((d.printed||{}).axes).match(/-?\d+(\.\d+)?/g);
     if(!ax||ax.length<3||!d.leads)return;
@@ -992,9 +1053,15 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     let started=false;
     try{
       const zz=await withZoom(files.slice(0,maxCount));
-      const data=await sample.json(buildPrompt(zz.zoom),{images:zz.imgs,modelTier:"complex",signal:ctl.signal,cache:false,onText:()=>{if(!started){started=true;phase="Writing the report";tick();}}});
+      const dbl=$("dblChk").checked;
+      if(dbl&&isNetlify&&!store.get("eqg-code")){const c0=await askCode();if(!c0)throw{code:"cancelled"};}
+      if(dbl){phase="Running two independent reads";tick();}
+      const one=()=>sample.json(buildPrompt(zz.zoom),{images:zz.imgs,modelTier:"complex",signal:ctl.signal,cache:false,onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
+      let data;
+      if(dbl){const [r1,r2]=await Promise.all([one(),one()]);data=mergeReads(r1,r2);}else data=await one();
+      applyMonitorSTJ(data);
       applyMonitorAxis(data);
-      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport=data;render(data);clearInterval(timer);setStatus("Report ready in "+Math.round((Date.now()-t0)/1000)+" s. Confirm against your own reading before acting.");
+      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);lastReport=data;render(data);clearInterval(timer);setStatus("Report ready in "+Math.round((Date.now()-t0)/1000)+" s. Confirm against your own reading before acting.");
     }catch(e){
       clearInterval(timer);
       const c=e&&e.code;
@@ -1065,14 +1132,16 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       if(/^(M|MALE)$/.test(ps)&&es==="Female")mm.push("sex M (you entered Female)");if(/^(F|FEMALE)$/.test(ps)&&es==="Male")mm.push("sex F (you entered Male)");
       if(mm.length)st.warnings=["Printout shows "+mm.join(" and ")+". The V2–V3 threshold depends on age and sex. Check the patient details and analyze again."].concat(st.warnings||[]);}
     if(d._axisNote)st.warnings=(st.warnings||[]).concat([d._axisNote]);
+    if(d._stjUsed&&d._stjUsed.length)st.warnings=(st.warnings||[]).concat(["J-points taken from the monitor's printed STJ measurement where the photo read differed: "+d._stjUsed.join(", ")+"."]);
     (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
     if((st.checks||[]).length){const u=el("ul","why");st.checks.forEach(c=>{const li=el("li");li.appendChild(el("div","claim",(c.ok===true?"✅ ":c.ok===false?"✖ ":"⚠️ ")+c.t));u.appendChild(li);});report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
 
     const p=d.primary||{};const h=el("div","card head");
     h.appendChild(el("p","k","Primary interpretation"));h.appendChild(el("div","r",S(p.rhythm)||"Interpretation unavailable"));
     if(p.summary)h.appendChild(el("p",null,S(p.summary)));
-    const cf=S(p.confidence).toLowerCase();if(cf)h.appendChild(el("span","pill"+(cf==="low"?" low":""),"Confidence: "+cf));
-    report.appendChild(h);
+    const cc=d._conf;if(cc){h.appendChild(el("span","pill"+(cc.level==="Low"?" low":""),"Confidence: "+cc.level+" ("+cc.score+"%)"));
+      const det=document.createElement("details");det.className="conf-d";const sm=document.createElement("summary");sm.textContent="Why this confidence?";det.appendChild(sm);det.appendChild(list(cc.why));h.appendChild(det);}
+    report.insertBefore(h,report.firstChild);
 
     const a=d.alert||{};const lv=["critical","caution"].includes(a.level)?a.level:"none";
     const al=el("div","alert"+(lv==="critical"?"":" "+lv));al.appendChild(el("h3",null,S(a.headline)||(lv==="none"?"No critical EMS alert":"Caution")));

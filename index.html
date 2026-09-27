@@ -852,15 +852,18 @@ HOW TO MEASURE (follow exactly, lead by lead):
 8. Q waves: none, q (small) or QS.
 9. Leads not visible in the photo (for example, when only part of the printout is photographed) must be reported with "present": false and j_mm null. Never guess a lead you cannot see.
 10. Only list reciprocal change, tombstone morphology, or any finding if your own measurements show it. The headline and summary MUST agree with your j_mm values: do not write "STEMI" unless contiguous leads meet the patient's threshold.
-11. Monitor printout: if the paper shows the monitor's own data (HR, PR, QRS, QT/QTc, axes, an "STJ Level" table, or interpretation statements such as "LVH with secondary repolarization abnormality"), copy it exactly into "printed". It is the monitor's opinion, not a diagnosis. If your J-point for a lead differs from the printed STJ value by more than 0.5 mm, look at that lead again; when the photo is unclear, use the printed value and say so in that lead's note.
-12. FINAL CHECK before answering: go through all 12 leads again in grid order and confirm (a) the label matches the grid position, (b) the J-point value, (c) the T-wave polarity. Fix any mismatch.
+11. Monitor printout: copy any printed data (HR, PR, QRS, QT/QTc, axes, age, sex, "STJ Level" numbers, interpretation statements) exactly into "printed". A printed STJ number may be used for a lead's J-point ONLY when that lead's waveform in the photo is unreadable. NEVER use the printed interpretation text (e.g. "inferior/lateral ST-T abnormality", "LVH with repolarization abnormality") to decide what any lead looks like: machine statements are often wrong and describe lead groups loosely. Every lead's J-point and T wave must come from looking at that lead's own waveform, never from the printed words.
+12. For each lead, look at EVERY beat in that lead's segment (usually 3-4 beats) and report what most beats show. First write in "t_seen" where the T wave goes after the QRS (for example "dips below baseline after each QRS" or "small hump above baseline"), then set "t" from that description.
+13. FINAL CHECK before answering: go through all 12 leads again in grid order and confirm (a) the label matches the grid position (column 1 = I, II, III), (b) the J-point value, (c) the T-wave polarity matches your t_seen. Fix any mismatch. Do not copy a pattern from one lead to its neighbours; each lead is judged on its own.
 
 ALSO ASSESS: rate (R-R method), rhythm, P waves, PR, QRS width in ms, bundle branch block (RBBB, LBBB, paced, LAFB, bifascicular), LVH voltage, QTc if estimable, axis if limb leads visible.
 Posterior (V7-V9) or right-sided (V3R, V4R) leads: measure them only if they are printed and labelled.
 
 OMI PATTERNS (name one only if every component is present in your measurements): Wellens A (biphasic T V2-V3), Wellens B (deep symmetric T inversion V2-V3), hyperacute T, de Winter (upsloping 1-3 mm ST depression at J-point with tall symmetric T in precordial leads), Aslanger (any STE III + ST depression in V4-V6 with positive T + ST in V1 higher than V2), South African flag (STE I, aVL, V2 + ST depression III), new bifascicular block (RBBB + LAFB), posterior OMI (maximal ST depression V1-V4), terminal QRS distortion (no S wave AND no J wave in V2 or V3, with STE), modified Sgarbossa-Smith (LBBB/paced only), precordial swirl (STE V1-V2 with ST depression V5-V6), northern OMI (STE aVR and aVL with negative T + ST depression inferior and lateral).
 
-FIELD CONSIDERATIONS: brief, per the service Clinical Guidelines, Medication Formulary and UMOC/medical control, consistent with standard ACLS. Do not recommend STEMI activation yourself; the app does that.
+FIELD CONSIDERATIONS: at most 3 short items, ONLY for the rhythm itself (e.g. symptomatic bradycardia, unstable tachycardia, VF/VT). Do NOT list STEMI pathway steps, aspirin, nitrates or UMOC calls; the app adds those from the service protocol.
+
+KEEP IT SHORT (the crew is waiting): every string 12 words or fewer. t_seen 8 words or fewer. Lead "note" only for abnormal leads, otherwise "". evidence at most 4 items, differential at most 3, quality.limitations at most 3, alert.details at most 3. Leave "parameters" notes empty unless essential.
 
 Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 {"is_ecg":true,
@@ -874,9 +877,9 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 "parameters":{"rate":{"value":"","note":""},"regularity":{"value":"","note":""},"p_waves":{"value":"","note":""},"pr":{"value":"","note":""},"qrs":{"value":"","note":""},"qt":{"value":"","note":""},"axis":{"value":"","note":""}},
 "conduction":{"qrs_ms":90,"bbb":"none|RBBB|LBBB|paced|LAFB|bifascicular|IVCD","lvh":false},
 "layout":"e.g. 3x4 + rhythm strip; labels confirmed by grid position",
-"leads":{"I":{"present":true,"j_mm":0,"st_shape":"isoelectric","t":"upright|inverted|biphasic|hyperacute|flat","t_mm":2,"q":"none","note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
+"leads":{"I":{"present":true,"t_seen":"where the T wave goes after the QRS, in words","j_mm":0,"st_shape":"isoelectric","t":"upright|inverted|biphasic|hyperacute|flat","t_mm":2,"q":"none","note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
 "extra_leads":{"V7":null,"V8":null,"V9":null,"V3R":null,"V4R":null},
-"printed":{"interpretation":[],"stj":{},"hr":"","pr":"","qrs":"","qtc":"","axes":""},
+"printed":{"interpretation":[],"stj":{},"hr":"","pr":"","qrs":"","qtc":"","axes":"","age":"","sex":""},
 "omi_patterns":[],
 "evidence":[{"claim":"a measured observation","leads":["V2"]}],
 "alert":{"level":"critical|caution|none","headline":"","details":[]},
@@ -955,12 +958,14 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
   analyzeBtn.onclick=async()=>{
     if(!sample||!files.length||busy)return;
     busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();
-    setStatus("Reading all 12 leads against the STEMI protocol. Usually 20–60 seconds.",{pulse:true});
+    const t0=Date.now();let phase="Reading all 12 leads";
+    const tick=()=>setStatus(phase+"… "+Math.round((Date.now()-t0)/1000)+" s",{pulse:true});tick();const timer=setInterval(tick,1000);
     let started=false;
     try{
-      const data=await sample.json(buildPrompt(),{images:files.slice(0,maxCount),modelTier:"complex",signal:ctl.signal,cache:false,onText:()=>{if(!started){started=true;setStatus("Writing the report…",{pulse:true});}}});
-      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport=data;render(data);setStatus("Report ready. Confirm against your own reading before acting.");
+      const data=await sample.json(buildPrompt(),{images:files.slice(0,maxCount),modelTier:"complex",signal:ctl.signal,cache:false,onText:()=>{if(!started){started=true;phase="Writing the report";tick();}}});
+      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport=data;render(data);clearInterval(timer);setStatus("Report ready in "+Math.round((Date.now()-t0)/1000)+" s. Confirm against your own reading before acting.");
     }catch(e){
+      clearInterval(timer);
       const c=e&&e.code;
       const m={timeout:"The connection was cut off before the report finished. Check your signal and tap Analyze ECG again.",bad_code:"Access code incorrect. Tap Analyze ECG to enter it again.",no_key:"The server has no API key. Add ANTHROPIC_API_KEY in Netlify site settings.",no_function:"The analysis server isn't deployed yet (netlify/edge-functions/read.js). Check the files on GitHub.",network:"No connection to the analysis server. Check signal and try again.",server:"The analysis server returned an error. Try again.",cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
       setStatus(((c==="upstream"||c==="server")&&e.message)?e.message:(m[c]||"The analysis was interrupted. Check your connection and analyze again."),{err:c!=="cancelled"});
@@ -1024,6 +1029,16 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     else box.appendChild(el("p",null,"Manage per working diagnosis. Transport to the nearest appropriate facility."));
     report.appendChild(box);
     if(d.same_patient==="unconfirmed"&&files.length>1)st.warnings=(st.warnings||[]).concat(["No patient identifiers printed on the photos. You confirmed they are from one patient."]);
+    {const pr=d.printed||{},pa=parseInt(pr.age,10),ps=S(pr.sex).trim().toUpperCase(),ea=parseInt($("age").value,10),es=$("sex").value;
+      const mm=[];if(pa>0&&ea>0&&Math.abs(pa-ea)>1)mm.push("age "+pa+" (you entered "+ea+")");
+      if(/^(M|MALE)$/.test(ps)&&es==="Female")mm.push("sex M (you entered Female)");if(/^(F|FEMALE)$/.test(ps)&&es==="Male")mm.push("sex F (you entered Male)");
+      if(mm.length)st.warnings=["Printout shows "+mm.join(" and ")+". The V2–V3 threshold depends on age and sex. Check the patient details and analyze again."].concat(st.warnings||[]);}
+    // Cross-check limb-lead T waves against the monitor's printed T axis (hexaxial geometry).
+    {const ax=S((d.printed||{}).axes).match(/-?\d+(\.\d+)?/g);
+      if(ax&&ax.length>=3){const tAx=parseFloat(ax[2]);const ANG={I:0,II:60,III:120,aVR:-150,aVL:-30,aVF:90};const bad=[];
+        Object.entries(ANG).forEach(([k,a])=>{const c=Math.cos((tAx-a)*Math.PI/180);const t=S(d.leads&&d.leads[k]&&d.leads[k].t).toLowerCase();
+          if(c<=-0.4&&t==="upright")bad.push(k+" (expected inverted)");if(c>=0.4&&t==="inverted")bad.push(k+" (expected upright)");});
+        if(bad.length)st.warnings=(st.warnings||[]).concat(["The monitor's printed T axis ("+tAx+"°) disagrees with the app's T-wave read in: "+bad.join(", ")+". Check these leads on the paper."]);}}
     (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
     if((st.checks||[]).length){const u=el("ul","why");st.checks.forEach(c=>{const li=el("li");li.appendChild(el("div","claim",(c.ok===true?"✅ ":c.ok===false?"✖ ":"⚠️ ")+c.t));u.appendChild(li);});report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
 
@@ -1062,7 +1077,14 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     [["rate","Rate"],["regularity","Regularity"],["p_waves","P waves"],["pr","PR"],["qrs","QRS"],["qt","QT / QTc"],["axis","Axis"]].forEach(([k,l])=>{const v=P[k];if(!v)return;const c=el("div","param");c.appendChild(el("div","pk",l));c.appendChild(el("div","pv",S(typeof v==="object"?v.value:v)||"—"));if(typeof v==="object"&&v.note)c.appendChild(el("div","pn",S(v.note)));g.appendChild(c);});
     report.appendChild(card("Measured parameters",g));
 
-    const fc=arr(d.field);report.appendChild(card("Field considerations",fc.length?list(fc):el("p",null,"Follow the Clinical Guidelines and Medication Formulary.")));
+    const PROTO={
+      met:["Defib pads on; continuous monitoring.","Call UMOC 02 504 8555: \"STEMI Pathway Activation\", nearest approved PPCI facility, exact location. Stay on the call.","Give CASMEET on the conference call; depart scene as soon as possible.","Treat per Clinical Guidelines and Medication Formulary (antiplatelet, nitrate if SBP allows and no RV infarct / PDE-5 use, oxygen only if SpO₂ low).","Upload ECG and vitals; complete the STEMI Pathway tabs in SPMS.","Repeat 12-lead with any change; I-MIST-AMBO handover on arrival."],
+      consult:["Call UMOC 02 504 8555 for a conference call with the receiving facility.","Repeat the 12-lead every 10–15 minutes or with any change in symptoms.","Record V7–V9 / V3R–V4R if posterior or right-ventricular involvement is suspected.","Manage per working diagnosis and Clinical Guidelines while awaiting advice."],
+      not_met:["Manage per working diagnosis and Clinical Guidelines.","Repeat the 12-lead if symptoms change or persist.","Transport to the nearest appropriate receiving facility."]};
+    const fdec=(d.stemi&&d.stemi.decision)||"consult";
+    const fw=el("div");fw.appendChild(list(PROTO[fdec]||PROTO.consult));
+    const fc=arr(d.field).slice(0,3);if(fc.length){fw.appendChild(el("p","lbl","Rhythm-specific"));fw.appendChild(list(fc));}
+    report.appendChild(card("Field actions (service protocol)",fw));
     const df=arr(d.differential);if(df.length)report.appendChild(card("Differential",list(df)));
     const q=d.quality||{};const qc=el("div");qc.appendChild(el("p",null,S(q.summary)||"No quality notes."));const lm=arr(q.limitations);if(lm.length)qc.appendChild(list(lm));
     report.appendChild(card("Image quality and limits",qc));

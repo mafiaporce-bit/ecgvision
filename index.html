@@ -628,17 +628,25 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
       sh.querySelector("[data-close]").onclick=()=>done(null);
     });
   }
-  function shrink(file){
+  function shrink(file,M,Q){
     return new Promise((res,rej)=>{
       const u=URL.createObjectURL(file),img=new Image();
-      img.onload=()=>{const M=1800,sc=Math.min(1,M/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
-        c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res({media_type:"image/jpeg",data:c.toDataURL("image/jpeg",0.88).split(",")[1]});};
+      img.onload=()=>{const sc=Math.min(1,M/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res({media_type:"image/jpeg",data:c.toDataURL("image/jpeg",Q).split(",")[1]});};
       img.onerror=()=>{URL.revokeObjectURL(u);rej({code:"image_rejected"});};img.src=u;
     });
   }
+  // Netlify accepts about 6 MB per request, so shrink until all photos fit in ~4.2 MB.
+  async function shrinkAll(files){
+    const steps=[[1800,0.86],[1600,0.8],[1400,0.75],[1200,0.7],[1000,0.65]];
+    let out=[];
+    for(const [M,Q] of steps){out=[];for(const f of files)out.push(await shrink(f,M,Q));
+      if(out.reduce((n,x)=>n+x.data.length,0)<4200000)return out;}
+    return out;
+  }
   function netlifySample(){return{async json(prompt,{images=[],signal,onText}={}){
     let code=store.get("eqg-code");if(!code){code=await askCode();if(!code)throw{code:"cancelled"};}
-    const imgs=[];for(const f of images)imgs.push(await shrink(f));
+    const imgs=await shrinkAll(images);
     let r;try{r=await fetch("/api/analyze",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({prompt,images:imgs}),signal});}
     catch(e){throw{code:signal&&signal.aborted?"cancelled":"network"};}
     if(r.status===401){store.set("eqg-code","");throw{code:"bad_code"};}

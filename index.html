@@ -605,7 +605,18 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     let r;try{r=await fetch("/api/analyze",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({prompt,images:imgs}),signal});}
     catch(e){throw{code:signal&&signal.aborted?"cancelled":"network"};}
     if(r.status===401){store.set("eqg-code","");throw{code:"bad_code"};}
-    if(!r.ok){let j={};try{j=await r.json();}catch(e){}throw{code:j.error==="no_key"?"no_key":(r.status===429||j.status===429||j.status===529)?"rate_limited":r.status===404?"no_function":"server"};}
+    if(!r.ok){let j={};try{j=await r.json();}catch(e){}
+      if(j.error==="no_key")throw{code:"no_key"};
+      if(r.status===404)throw{code:"no_function"};
+      if(j.error==="upstream"){const d=String(j.detail||"").toLowerCase();let msg;
+        if(j.status===401)msg="API key rejected (401). Re-copy the full sk-ant key into ANTHROPIC_API_KEY in Netlify, then trigger a new deploy.";
+        else if(/credit|billing|balance/.test(d))msg="Not enough API credit. Add credit at platform.claude.com.";
+        else if(j.status===404||/model/.test(d))msg="Model not available on this API key ("+j.status+"). Check CLAUDE_MODEL in Netlify or remove it.";
+        else if(j.status===429||j.status===529)msg="The AI service is busy. Wait a minute and try again.";
+        else if(j.status===413||/too large|size/.test(d))msg="Photo too large. Retake it a little further away.";
+        else msg="AI service error "+j.status+": "+String(j.detail||"").replace(/[{}"]/g," ").slice(0,160);
+        throw{code:"upstream",message:msg};}
+      throw{code:"server",message:"Server error "+r.status+(j.error?" ("+j.error+")":"")+". Try again."};}
     const reader=r.body.getReader(),dec=new TextDecoder();let buf="",text="";
     for(;;){let chunk;try{chunk=await reader.read();}catch(e){throw{code:signal&&signal.aborted?"cancelled":"network"};}
       if(chunk.done)break;buf+=dec.decode(chunk.value,{stream:true});let i;
@@ -785,7 +796,7 @@ Reply with ONLY this JSON (short field-readable strings, no markdown). "leads" M
     }catch(e){
       const c=e&&e.code;
       const m={bad_code:"Access code incorrect. Tap Analyze ECG to enter it again.",no_key:"The server has no API key. Add ANTHROPIC_API_KEY in Netlify site settings.",no_function:"The analysis server isn't deployed. Deploy from GitHub, not drag and drop.",network:"No connection to the analysis server. Check signal and try again.",server:"The analysis server returned an error. Try again.",cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
-      setStatus(m[c]||"The analysis was interrupted. Check your connection and analyze again.",{err:c!=="cancelled"});
+      setStatus(((c==="upstream"||c==="server")&&e.message)?e.message:(m[c]||"The analysis was interrupted. Check your connection and analyze again."),{err:c!=="cancelled"});
       if(c==="images_unavailable")imagesOK=false;
     }finally{busy=false;ctl=null;stopBtn.hidden=true;refresh();}
   };

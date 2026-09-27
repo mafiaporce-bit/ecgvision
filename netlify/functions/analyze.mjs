@@ -5,7 +5,7 @@ export default async (req) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
   const code = process.env.APP_ACCESS_CODE;
   if (!code || req.headers.get("x-access-code") !== code) return json({ error: "bad_code" }, 401);
-  const key = process.env.ANTHROPIC_API_KEY;
+  const key = (process.env.ANTHROPIC_API_KEY || "").trim();
   if (!key) return json({ error: "no_key" }, 500);
 
   let body;
@@ -23,7 +23,13 @@ export default async (req) => {
   const up = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: process.env.CLAUDE_MODEL || "claude-sonnet-5", max_tokens: 3500, stream: true, messages: [{ role: "user", content }] }),
+    body: JSON.stringify({
+      model: process.env.CLAUDE_MODEL || "claude-sonnet-5",
+      max_tokens: 16000,
+      output_config: { effort: process.env.CLAUDE_EFFORT || "medium" },
+      stream: true,
+      messages: [{ role: "user", content }],
+    }),
   });
   if (!up.ok) return json({ error: "upstream", status: up.status, detail: (await up.text()).slice(0, 300) }, 502);
   return new Response(up.body, { headers: { "content-type": "text/event-stream", "cache-control": "no-cache" } });

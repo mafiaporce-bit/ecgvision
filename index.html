@@ -300,6 +300,19 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .conf-d{margin-top:8px}
 .conf-d summary{cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.85)}
 .conf-d ul{margin:6px 0 0;padding-left:1.2em;font-size:.82rem;color:rgba(255,255,255,.92)}
+
+.cfig{margin-top:8px}
+.cfig summary{cursor:pointer;font-size:.85rem;color:var(--accent);font-weight:700}
+.cfig .fig{max-width:160px}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:700;padding:6px 0;cursor:pointer;font-size:.88rem}
+.rep .pat .fig{max-width:160px}
+
+.omibox{border-radius:20px;padding:16px;background:#FFE17A;color:#3A2A00;border:2px solid #E0A800}
+.omibox .q{font-size:.85rem;margin:0;opacity:.85}
+.omibox .a{font-size:1.5rem;font-weight:900;margin:2px 0 6px;line-height:1.15}
+.omibox p{margin:4px 0}
+.omibox ul{margin:8px 0 0;padding-left:1.2em}
+.omibox .call{display:flex;align-items:center;justify-content:center;margin-top:12px;background:#3A2A00;color:#FFE17A;font-weight:900;font-size:1.05rem;border-radius:14px;min-height:52px;text-decoration:none;text-align:center;padding:0 10px}
 </style>
 </head>
 <body>
@@ -402,6 +415,12 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     </ul>
   </div>
   <div class="card">
+    <h3><span class="tag">OMI</span>OMI patterns (service rule)</h3>
+    <p>If any of the <b>12 OMI patterns</b> on workbook page 4 is seen, the result shows a <b>yellow "OMI pattern seen"</b> alert under the STEMI decision, with a button to call UMOC. It does <b>not</b> activate automatically: UMOC decides on activation.</p>
+    <p style="margin:0">Patterns that LVH or a bundle branch block could explain, or that aren't confirmed in every required lead, are listed as <b>possible</b>.</p>
+    <button class="linkbtn" type="button" data-go="omi">See all 12 patterns →</button>
+  </div>
+  <div class="card">
     <h3>Criteria not fully met?</h3>
     <p style="margin:0">If the presentation suggests benefit from PPCI or a cardiology opinion, call UMOC. UMOC sets up a conference call with the receiving facility for an individual assessment.</p>
     <a class="hotline" style="margin:12px 0 0" href="tel:+97125048555" target="_blank" rel="noopener" data-call>Call UMOC 02 504 8555</a>
@@ -424,6 +443,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
 <!-- OMI -->
 <section id="page-omi" class="ref float" hidden>
+  <div class="card" style="margin-bottom:12px;background:#FFE17A;color:#3A2A00;border:2px solid #E0A800"><p style="margin:0"><b>Service rule:</b> if any of these patterns is seen, the app shows a yellow alert. Call UMOC 02 504 8555 to discuss STEMI PPCI activation.</p></div>
   <div class="card" id="omiList"></div>
 </section>
 
@@ -612,6 +632,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     current=p;window.scrollTo({top:0});if(p==="learning")loadLearning();
   }
   function go(p){if(p===current)return;hist.push(current);show(p);}
+  window.goPage=p=>go(p);
   function back(){show(hist.pop()||"analyze");}
   document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{
     if(b.closest("nav.bottom")){hist.length=0;if(b.dataset.go!=="analyze")hist.push("analyze");show(b.dataset.go);}else go(b.dataset.go);
@@ -782,6 +803,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   const FIGS={
     stemi:[{label:"J-point STE",qrs:R(8,2),st:2,t:4,note:"Measure ST at the J-point"}],
     post:[{label:"V1–V3",qrs:rS(3,5),st:-2,t:2.5,note:"ST depression, upright T"},{label:"V7–V9",qrs:R(5,2),st:0.8,t:2,note:"STE ≥0.5 mm"}],
+    wellens:[{label:"Wellens A · V2–V3",qrs:[[3,-0.8],[3,8],[4,-4],[3,0]],st:0.5,bi:true,t:2,note:"Biphasic T"},{label:"Wellens B · V2–V3",qrs:[[3,-0.8],[3,8],[4,-4],[3,0]],st:0.5,t:-3.5,tw:30,note:"Deep T inversion"}],
     lcx:[{label:"V7–V9, V3R, V4R",qrs:R(5,2),st:1.5,t:2.5,note:"ST elevation"}],
     lm:[{label:"≥6 leads",qrs:R(8,2),st:-1.5,t:2,note:"STD ≥1 mm"},{label:"aVR / V1",qrs:[[3,-6],[3,1],[3,0]],st:1.5,t:-1,note:"ST elevation"}],
     lbbbv:[{label:"V1",qrs:[[4,-5],[5,-3],[5,-8],[6,0]],st:1.5,t:3,note:"Deep wide QS, discordant ST"},{label:"V6",qrs:[[4,6],[4,4.5],[4,8],[6,0]],st:-1,t:-2,note:"Broad notched R"}],
@@ -870,7 +892,7 @@ HOW TO MEASURE (follow exactly, lead by lead):
 5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. This is very common in young men and in early repolarisation. Report the real J-point value.
 6. ST shape: isoelectric, concave (smiley), straight, convex (frowny/tombstone), horizontal, upsloping or downsloping. Only call it convex or tombstone if the ST segment clearly bows upward above the line from J-point to T peak.
 7. T wave polarity for EVERY lead, judged against the baseline: upright (above), inverted (below), biphasic (both), hyperacute (broad, bulky, disproportionately tall for the QRS) or flat. Report its height in small boxes (negative if inverted). In I, II, aVL, aVF and V4-V6 the T wave is normally upright; if it dips below the baseline there, it is INVERTED and must be reported. aVR normally has an inverted T.
-8. Q waves: none, q (small) or QS.
+8. Q waves: none, q (small) or QS. QRS polarity: "qrs" = positive (mainly upright), negative (mainly downward) or isoelectric, and "qrs_mm" = height of the main deflection in small boxes (R height if positive, S depth if negative). In V2 and V3 also report "s_wave" (true if an S wave follows the R) and "j_wave" (true if there is a notch or slur at the J-point).
 9. Leads not visible in the photo (for example, when only part of the printout is photographed) must be reported with "present": false and j_mm null. Never guess a lead you cannot see.
 10. Only list reciprocal change, tombstone morphology, or any finding if your own measurements show it. The headline and summary MUST agree with your j_mm values: do not write "STEMI" unless contiguous leads meet the patient's threshold.
 11. Monitor printout: copy any printed data (HR, PR, QRS, QT/QTc, axes, age, sex, "STJ Level" numbers, interpretation statements) exactly into "printed". A printed STJ number may be used for a lead's J-point ONLY when that lead's waveform in the photo is unreadable. NEVER use the printed interpretation text (e.g. "inferior/lateral ST-T abnormality", "LVH with repolarization abnormality") to decide what any lead looks like: machine statements are often wrong and describe lead groups loosely. Every lead's J-point and T wave must come from looking at that lead's own waveform, never from the printed words.
@@ -880,7 +902,7 @@ HOW TO MEASURE (follow exactly, lead by lead):
 ALSO ASSESS: rate (R-R method), rhythm, P waves, PR, QRS width in ms, bundle branch block (RBBB, LBBB, paced, LAFB, bifascicular), LVH voltage, QTc if estimable, axis if limb leads visible.
 Posterior (V7-V9) or right-sided (V3R, V4R) leads: measure them only if they are printed and labelled.
 
-OMI PATTERNS (name one only if every component is present in your measurements): Wellens A (biphasic T V2-V3), Wellens B (deep symmetric T inversion V2-V3), hyperacute T, de Winter (upsloping 1-3 mm ST depression at J-point with tall symmetric T in precordial leads), Aslanger (any STE III + ST depression in V4-V6 with positive T + ST in V1 higher than V2), South African flag (STE I, aVL, V2 + ST depression III), new bifascicular block (RBBB + LAFB), posterior OMI (maximal ST depression V1-V4), terminal QRS distortion (no S wave AND no J wave in V2 or V3, with STE), modified Sgarbossa-Smith (LBBB/paced only), precordial swirl (STE V1-V2 with ST depression V5-V6), northern OMI (STE aVR and aVL with negative T + ST depression inferior and lateral).
+OMI PATTERNS (name one only if every component is present in your measurements): Wellens A (biphasic T, up then down, in V2 AND V3), Wellens B (deep symmetric T inversion in V2 AND V3; may extend V1-V6); for either, the ST segment is isoelectric or elevated less than 1 mm and there are no QS waves in V2-V3, hyperacute T, de Winter (upsloping 1-3 mm ST depression at J-point with tall symmetric T in precordial leads), Aslanger (any STE III + ST depression in V4-V6 with positive T + ST in V1 higher than V2), South African flag (STE I, aVL, V2 + ST depression III), new bifascicular block (RBBB + LAFB), posterior OMI (maximal ST depression V1-V4), terminal QRS distortion (no S wave AND no J wave in V2 or V3, with STE), modified Sgarbossa-Smith (LBBB/paced only), precordial swirl (STE V1-V2 with ST depression V5-V6), northern OMI (STE aVR and aVL with negative T + ST depression inferior and lateral).
 
 FIELD CONSIDERATIONS: at most 3 short items, ONLY for the rhythm itself (e.g. symptomatic bradycardia, unstable tachycardia, VF/VT). Do NOT list STEMI pathway steps, aspirin, nitrates or UMOC calls; the app adds those from the service protocol.
 
@@ -898,7 +920,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 "parameters":{"rate":{"value":"","note":""},"regularity":{"value":"","note":""},"p_waves":{"value":"","note":""},"pr":{"value":"","note":""},"qrs":{"value":"","note":""},"qt":{"value":"","note":""},"axis":{"value":"","note":""}},
 "conduction":{"qrs_ms":90,"bbb":"none|RBBB|LBBB|paced|LAFB|bifascicular|IVCD","lvh":false},
 "layout":"e.g. 3x4 + rhythm strip; labels confirmed by grid position",
-"leads":{"I":{"present":true,"t_seen":"where the T wave goes after the QRS, in words","j_mm":0,"st_shape":"isoelectric","t":"upright|inverted|biphasic|hyperacute|flat","t_mm":2,"q":"none","note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
+"leads":{"I":{"present":true,"t_seen":"where the T wave goes after the QRS, in words","j_mm":0,"st_shape":"isoelectric","t":"upright|inverted|biphasic|hyperacute|flat","t_mm":2,"q":"none","qrs":"positive|negative|isoelectric","qrs_mm":8,"s_wave":true,"j_wave":false,"note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
 "extra_leads":{"V7":null,"V8":null,"V9":null,"V3R":null,"V4R":null},
 "printed":{"interpretation":[],"stj":{},"hr":"","pr":"","qrs":"","qtc":"","axes":"","age":"","sex":""},
 "omi_patterns":[],
@@ -1035,9 +1057,55 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     // (v) / (vi) Bundle branch block
     if(lbbb){up("consult","(v) LBBB / paced rhythm","With high clinical suspicion of ongoing ischaemia, manage as STEMI. Discuss with UMOC.");r.checks.push({ok:null,t:"(v) LBBB / paced: manage as STEMI if high clinical suspicion."});}
     if(rbbb){up("consult","(vi) RBBB","With high clinical suspicion of ongoing ischaemia, manage as STEMI. Discuss with UMOC.");r.checks.push({ok:null,t:"(vi) RBBB: manage as STEMI if high clinical suspicion."});}
-    // OMI patterns
-    const om=arr(d.omi_patterns);
-    if(om.length){up("consult","OMI pattern: "+om.join(", "),"Activation criteria not met, but an occlusion pattern is present. Call UMOC for a conference call.");}
+    // Service rule: any of the 12 OMI patterns (workbook page 4) activates the STEMI PPCI pathway,
+    // when the per-lead measurements confirm it. Look-alikes (LVH, bundle branch block) go to UMOC.
+    {const tv=k=>S(L[k]&&L[k].t).toLowerCase();const qp=k=>S(L[k]&&L[k].qrs).toLowerCase();const qm=k=>Number(L[k]&&L[k].qrs_mm)||0;
+      const has=(k,v)=>J(k)!==null&&v(J(k));const named=n=>arr(d.omi_patterns).some(x=>x.toLowerCase().includes(n));
+      const PRE=["V1","V2","V3","V4","V5","V6"];const pairs=(list,f)=>list.slice(0,-1).some((k,i)=>f(k)&&f(list[i+1]));
+      const cpair=f=>CONTIG.some(([a,b])=>f(a)&&f(b));
+      const R=[]; // {n:name, hit:boolean, why:string, look:boolean(named but not confirmed), block:reason}
+      // Wellens A / B
+      {const inv=k=>tv(k)==="inverted",bi=k=>tv(k)==="biphasic";const pat=(inv("V2")||bi("V2"))&&(inv("V3")||bi("V3"));
+        const stOk=has("V2",x=>x<1)&&has("V3",x=>x<1);const qs=/qs/i.test(S(L.V2&&L.V2.q))||/qs/i.test(S(L.V3&&L.V3.q));
+        const nm=(bi("V2")||bi("V3"))?"Wellens pattern A":"Wellens pattern B";
+        R.push({n:nm,hit:pat&&stOk&&!qs,why:"V2 "+tv("V2")+", V3 "+tv("V3")+" T, ST below 1 mm"+(qs?"; QS present":""),look:named("wellens"),block:rbbb?"RBBB":null});}
+      // De Winter
+      {const dw=k=>has(k,x=>x<=-1&&x>=-3.5)&&(tv(k)==="hyperacute"||tv(k)==="upright")&&/upslop/i.test(S(L[k]&&L[k].st_shape));
+        R.push({n:"De Winter T wave",hit:pairs(PRE,dw),why:"upsloping 1–3 mm ST depression with tall T in "+PRE.filter(dw).join(", "),look:named("winter"),block:rbbb?"RBBB":null});}
+      // Hyperacute T
+      R.push({n:"Hyperacute T wave",hit:cpair(k=>tv(k)==="hyperacute"),why:"hyperacute T in "+LEADS.filter(k=>tv(k)==="hyperacute").join(", "),look:named("hyperacute")||LEADS.some(k=>tv(k)==="hyperacute")});
+      // Aslanger
+      {const v46=["V4","V5","V6"].filter(k=>has(k,x=>x<=-0.5)&&(tv(k)==="upright"||tv(k)==="biphasic"||tv(k)==="hyperacute"));
+        const hit=has("III",x=>x>=0.5)&&v46.length>0&&J("V1")!==null&&J("V2")!==null&&J("V1")>J("V2");
+        R.push({n:"Aslanger pattern",hit,why:"STE III "+J("III")+" mm, ST depression "+v46.join(", ")+", V1 "+J("V1")+" > V2 "+J("V2"),look:named("aslanger")});}
+      // South African flag
+      R.push({n:"South African flag sign",hit:has("I",x=>x>=0.5)&&has("aVL",x=>x>=0.5)&&has("V2",x=>x>=0.5)&&has("III",x=>x<=-0.5),why:"STE I "+J("I")+", aVL "+J("aVL")+", V2 "+J("V2")+" with ST depression III "+J("III"),look:named("african")});
+      // New-onset bifascicular block
+      R.push({n:"New-onset bifascicular block",hit:/bifascicular/i.test(bbb)||(/RBBB/i.test(bbb)&&/LAFB/i.test(bbb)),why:"RBBB with left anterior fascicular block. Confirm it is NEW (no known old ECG with it)",look:named("bifascicular"),noBlock:true});
+      // Posterior OMI
+      {const dep=["V1","V2","V3","V4"].filter(k=>has(k,x=>x<=-1));const minA=Math.min(...["V1","V2","V3","V4"].map(k=>J(k)??0));const minB=Math.min(...LEADS.filter(k=>!["V1","V2","V3","V4","aVR"].includes(k)).map(k=>J(k)??0));
+        R.push({n:"Posterior OMI",hit:dep.length>=2&&minA<=minB,why:"maximal ST depression in "+dep.join(", ")+" ("+minA+" mm)",look:named("posterior omi")});}
+      // Terminal QRS distortion
+      {const tq=k=>L[k]&&L[k].s_wave===false&&L[k].j_wave===false&&has(k,x=>x>=1);
+        R.push({n:"Terminal QRS distortion",hit:tq("V2")||tq("V3"),why:"no S wave and no J wave with STE in "+["V2","V3"].filter(tq).join(", "),look:named("terminal qrs"),block:(lbbb||rbbb)?"bundle branch block":null});}
+      // Modified Sgarbossa (LBBB / paced only)
+      if(lbbb){const c1=LEADS.filter(k=>qp(k)==="positive"&&has(k,x=>x>=1));const c2=["V1","V2","V3"].filter(k=>qp(k)==="negative"&&has(k,x=>x<=-1));
+        const c3=LEADS.filter(k=>qp(k)==="negative"&&qm(k)>0&&has(k,x=>x>=1&&x/qm(k)>=0.25));
+        R.push({n:"Modified Sgarbossa (Smith)",hit:c1.length>0||c2.length>0||c3.length>0,why:[c1.length?"concordant STE "+c1.join(", "):"",c2.length?"concordant STD "+c2.join(", "):"",c3.length?"ST/S ≥25% "+c3.join(", "):""].filter(Boolean).join("; "),look:named("sgarbossa"),noBlock:true});}
+      // Precordial swirl
+      R.push({n:"Precordial swirl",hit:(has("V1",x=>x>=1)||has("V2",x=>x>=1))&&(has("V5",x=>x<=-0.5)||has("V6",x=>x<=-0.5)),why:"STE V1 "+J("V1")+" / V2 "+J("V2")+" with ST depression V5 "+J("V5")+" / V6 "+J("V6"),look:named("swirl"),block:rbbb?"RBBB":null});
+      // Northern OMI
+      {const negT=k=>tv(k)==="inverted";const inf=["II","III","aVF"].filter(k=>has(k,x=>x<=-0.5)&&!negT(k));const lat=["V4","V5","V6"].filter(k=>has(k,x=>x<=-0.5)&&!negT(k));
+        R.push({n:"Northern OMI",hit:has("aVR",x=>x>=0.5)&&has("aVL",x=>x>=0.5)&&negT("aVR")&&negT("aVL")&&inf.length>0&&lat.length>0,why:"STE aVR "+J("aVR")+" & aVL "+J("aVL")+" with negative T, ST depression "+inf.concat(lat).join(", "),look:named("northern")});}
+
+      let any=false;r.omi=[];
+      R.forEach(x=>{
+        const blocker=x.noBlock?null:(lbbb?"LBBB / paced rhythm":lvh?"LVH (strain can mimic this)":x.block);
+        if(x.hit&&!blocker){any=true;r.omi.push({n:x.n,why:x.why,confirmed:true});r.checks.push({ok:null,t:"(OMI) "+x.n+" SEEN: "+x.why+"."});}
+        else if(x.hit||x.look){any=true;const why=x.hit?blocker+" could explain it":"suggested by the AI but not confirmed in every required lead";r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});}
+      });
+      if(!any)r.checks.push({ok:false,t:"(OMI) None of the 12 OMI patterns found in the measurements."});
+    }
     // Incomplete
     const miss=r.missing.filter(k=>k!=="aVR");
     if(miss.length){r.warnings.unshift("Leads not visible in the photo: "+r.missing.join(", ")+". The decision only covers the leads shown. Photograph the full 12-lead.");}
@@ -1126,6 +1194,14 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     if(dec!=="not_met"){const a=el("a","call",dec==="met"?"Call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d":"Call UMOC 02 504 8555 for conference call");a.href="tel:025048555";box.appendChild(a);}
     else box.appendChild(el("p",null,"Manage per working diagnosis. Transport to the nearest appropriate facility."));
     report.appendChild(box);
+    if(st.omi&&st.omi.length){const ob=el("div","omibox");ob.setAttribute("role","alert");
+      const conf=st.omi.filter(x=>x.confirmed);
+      ob.appendChild(el("p","q","OMI pattern seen"));
+      ob.appendChild(el("div","a",conf.length?"Can activate via UMOC":"Possible OMI pattern: discuss with UMOC"));
+      ob.appendChild(el("p",null,"Not an automatic activation. These occlusion patterns from your workbook were found; call UMOC to discuss STEMI PPCI activation."));
+      ob.appendChild(list(st.omi.map(x=>(x.confirmed?"✔ ":"? ")+x.n+": "+x.why)));
+      const a=el("a","call","Call UMOC 02 504 8555 · discuss activation");a.href="tel:+97125048555";a.target="_blank";a.rel="noopener";a.addEventListener("click",()=>toast("Opening dialer: UMOC 02 504 8555"));ob.appendChild(a);
+      report.appendChild(ob);}
     if(d.same_patient==="unconfirmed"&&files.length>1)st.warnings=(st.warnings||[]).concat(["No patient identifiers printed on the photos. You confirmed they are from one patient."]);
     {const pr=d.printed||{},pa=parseInt(pr.age,10),ps=S(pr.sex).trim().toUpperCase(),ea=parseInt($("age").value,10),es=$("sex").value;
       const mm=[];if(pa>0&&ea>0&&Math.abs(pa-ea)>1)mm.push("age "+pa+" (you entered "+ea+")");
@@ -1134,7 +1210,18 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     if(d._axisNote)st.warnings=(st.warnings||[]).concat([d._axisNote]);
     if(d._stjUsed&&d._stjUsed.length)st.warnings=(st.warnings||[]).concat(["J-points taken from the monitor's printed STJ measurement where the photo read differed: "+d._stjUsed.join(", ")+"."]);
     (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
-    if((st.checks||[]).length){const u=el("ul","why");st.checks.forEach(c=>{const li=el("li");li.appendChild(el("div","claim",(c.ok===true?"✅ ":c.ok===false?"✖ ":"⚠️ ")+c.t));u.appendChild(li);});report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
+    if((st.checks||[]).length){const u=el("ul","why");
+      const KEY={"i":"stemi","ii":"post","iii":"lcx","iv":"lm","v":"lbbbv","vi":"rbbbv","W":"wellens"};
+      const PAGE={"i":"criteria","ii":"enhanced","iii":"enhanced","iv":"enhanced","v":"enhanced","vi":"enhanced","W":"criteria"};
+      st.checks.forEach(c=>{const li=el("li");li.appendChild(el("div","claim",(c.ok===true?"✅ ":c.ok===false?"✖ ":"⚠️ ")+c.t));
+        const m=/^\((i|ii|iii|iv|v|vi|W)\)/.exec(c.t);const mo=/^\(OMI\) (?:Possible )?(.+?)(?: SEEN:|:)/.exec(c.t);const oh=mo?OMI.find(x=>x.n===mo[1]):null;
+        if(oh){const det=document.createElement("details");det.className="cfig";det.open=c.ok!==false;const sm=document.createElement("summary");sm.textContent="What "+oh.n+" looks like";det.appendChild(sm);const f=el("div","figs");oh.f.forEach(b=>f.appendChild(fig(b)));det.appendChild(f);det.appendChild(el("p","lbl",oh.d));const go=el("button","linkbtn","All OMI patterns →");go.type="button";go.onclick=()=>window.goPage("omi");det.appendChild(go);li.appendChild(det);}
+        if(m&&FIGS[KEY[m[1]]]){const det=document.createElement("details");det.className="cfig";if(c.ok!==false)det.open=true;
+          const sm=document.createElement("summary");sm.textContent="What criterion ("+m[1]+") looks like";det.appendChild(sm);
+          const f=el("div","figs");FIGS[KEY[m[1]]].forEach(b=>f.appendChild(fig(b)));det.appendChild(f);
+          const go=el("button","linkbtn","Open full criteria →");go.type="button";go.onclick=()=>window.goPage(PAGE[m[1]]);det.appendChild(go);li.appendChild(det);}
+        u.appendChild(li);});
+      report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
 
     const p=d.primary||{};const h=el("div","card head");
     h.appendChild(el("p","k","Primary interpretation"));h.appendChild(el("div","r",S(p.rhythm)||"Interpretation unavailable"));
@@ -1166,7 +1253,11 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       const n=el("p","lbl","The monitor's automatic statement is unconfirmed. Your own reading and UMOC decide.");n.style.marginTop="8px";w.appendChild(n);
       report.appendChild(card("Monitor printout",w));}
 
-    const om=arr(d.omi_patterns);if(om.length){const w=el("div","omi");om.forEach(o=>w.appendChild(el("span",null,o)));report.appendChild(card("OMI patterns present",w));}
+    const om=arr(d.omi_patterns);if(om.length){const w=el("div");const tags=el("div","omi");om.forEach(o=>tags.appendChild(el("span",null,o)));w.appendChild(tags);
+      om.forEach(o=>{const low=o.toLowerCase();const hit=OMI.find(x=>{const n=x.n.toLowerCase();return low.includes(n.split(" (")[0].replace(" t wave","").replace(" pattern",""))||n.includes(low);});
+        if(hit){const b=el("div","pat");b.appendChild(el("b",null,hit.n));const f=el("div","figs");hit.f.forEach(x=>f.appendChild(fig(x)));b.appendChild(f);b.appendChild(el("p",null,hit.d));w.appendChild(b);}});
+      const go=el("button","linkbtn","All OMI patterns →");go.type="button";go.onclick=()=>window.goPage("omi");w.appendChild(go);
+      report.appendChild(card("OMI patterns present",w));}
 
     const P=d.parameters||{};const g=el("div","params");
     [["rate","Rate"],["regularity","Regularity"],["p_waves","P waves"],["pr","PR"],["qrs","QRS"],["qt","QT / QTc"],["axis","Axis"]].forEach(([k,l])=>{const v=P[k];if(!v)return;const c=el("div","param");c.appendChild(el("div","pk",l));c.appendChild(el("div","pv",S(typeof v==="object"?v.value:v)||"—"));if(typeof v==="object"&&v.note)c.appendChild(el("div","pn",S(v.note)));g.appendChild(c);});
@@ -1190,7 +1281,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 
   // Handover
   const v=id=>$(id).value.trim();
-  function ecgLine(){if(!lastReport)return "ECG: not analysed in app";const r=lastReport;let s="ECG: "+S(r.primary?.rhythm);if(r.stemi?.decision==="met")s+=" — STEMI PPCI criteria met ("+S(r.stemi.criterion)+")";else if(r.stemi?.decision==="consult")s+=" — criteria not fully met, occlusion suspected";return s;}
+  function ecgLine(){if(!lastReport)return "ECG: not analysed in app";const r=lastReport;let s="ECG: "+S(r.primary?.rhythm);if(r.stemi?.decision==="met")s+=" — STEMI PPCI criteria met ("+S(r.stemi.criterion)+")";else if(r.stemi?.decision==="consult")s+=" — criteria not fully met, occlusion suspected";if(r.stemi?.omi?.length)s+=". OMI pattern seen: "+r.stemi.omi.map(x=>x.n).join(", ");return s;}
   function vitals(){return [v("h_gcs")&&"AVPU/GCS "+v("h_gcs"),v("h_rr")&&"RR "+v("h_rr"),v("h_hr")&&"HR "+v("h_hr"),v("h_bp")&&"BP "+v("h_bp"),v("h_spo2")&&"SpO2 "+v("h_spo2")+"%",v("h_bgl")&&"BGL "+v("h_bgl")].filter(Boolean).join(", ")||"not recorded";}
   const mode=()=>$("notes").value.trim()||"not recorded";
   function out(t){$("hout").textContent=t;$("hout").hidden=false;$("copyBtn").hidden=false;}

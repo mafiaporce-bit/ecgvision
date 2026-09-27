@@ -148,6 +148,7 @@ textarea{min-height:64px;resize:vertical}
 .lead.ste{background:var(--crit-bg);border-color:var(--crit)}.lead.ste b,.lead.ste span{color:var(--crit)}
 .lead.std{background:var(--warn-bg);border-color:var(--warn)}.lead.std b,.lead.std span{color:var(--warn)}
 .lead.tw{border-color:var(--accent)}
+.lead.sub{border-color:#E7A0A8}
 .lead.unclear{opacity:.55}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:.78rem;color:var(--soft)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
@@ -725,64 +726,113 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
   function buildPrompt(){
     const age=$("age").value.trim(),sex=$("sex").value,notes=$("notes").value.trim().slice(0,1500),thr=threshold();
-    const ctx=[];
-    ctx.push("Age: "+(age||"not given"));
-    ctx.push("Sex: "+(sex||"not given"));
-    ctx.push("V2-V3 STE threshold for this patient: "+(thr||"UNKNOWN (sex not given) - use >=1.5 mm as the safety floor and say so")+"; other leads >=1 mm");
-    if(notes)ctx.push("Complaint/vitals/history: "+notes);
-    return `You are EMS Quick ECG Guide, decision support for an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) are ONE ECG tracing. Apply THIS SERVICE'S PROTOCOL below exactly.
+    return `You are the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) show ONE ECG tracing, usually a photo of printed paper from a corpuls, LIFEPAK or similar monitor.
 
-METHOD (do all of it, lead by lead, before concluding):
-1. Quality: calibration pulse (10 mm/mV, 25 mm/s), lead labels and layout, artifact, baseline wander. Name any lead you cannot read.
-2. Rhythm: rate (R-R method), regularity, P waves and P:QRS, PR (0.12-0.20 s), QRS width (<0.12 s narrow) and morphology (LBBB, RBBB, LAFB, paced, delta), QTc if estimable, axis.
-3. For EACH of the 12 leads: J-point ST deviation in mm vs the PR/TP baseline (positive = elevation), T-wave shape (upright, inverted, biphasic, hyperacute, flat), and anything notable (Q wave, rsR', S-wave/J-wave presence in V2-V3).
-4. Check contiguity: inferior II/III/aVF; lateral I/aVL/V5/V6; septal V1-V2; anterior V3-V4. Look for reciprocal change.
+YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
 
-SERVICE STEMI PPCI CRITERIA (ESC 2023):
-(i) Standard STEMI: new J-point STE in >=2 contiguous leads (incl. V3R/V4R): V2-V3 >=2.5 mm men <40, >=2 mm men >=40, >=1.5 mm women any age; >=1 mm all other leads; not valid with LVH or LBBB.
-(ii) Posterior STEMI: ST depression V1-V3 esp. with positive terminal T, and STE >=0.5 mm in V7-V9.
-(iii) LCx occlusion/RV MI: STE in V7-V9, or V3R and V4R.
-(iv) Multivessel ischaemia/left main: ST depression >=1 mm in >=6 surface leads (inferolateral) with STE in aVR and/or V1, esp. with haemodynamic compromise.
-(v) LBBB/paced: QRS >120 ms, no Q in I/V5/V6, monomorphic R in I/V5/V6, ST-T opposite main QRS deflection -> with high clinical suspicion manage as STEMI.
-(vi) RBBB: QRS >120 ms, rsR' in V1-V3, slurred S in I, aVL, often V5-V6 -> with high clinical suspicion manage as STEMI.
+PATIENT: age ${age||"not given"}, sex ${sex||"not given"}. This patient's V2-V3 threshold is ${thr||"unknown"}; all other leads 1 mm.${notes?"\nCOMPLAINT/VITALS: "+notes:""}
 
-OMI PATTERNS (exact definitions; name one only if every part is present):
-- Wellens A: biphasic T (up then down) in V2-V3.
-- Wellens B: deeply inverted T in V2-V3.
-- Hyperacute T: broad-based, bulky, disproportionately large T in any lead.
-- De Winter: upsloping 1-3 mm ST depression at the J-point with tall positive T (precordial).
-- Aslanger: any STE in III AND ST depression in any of V4-V6 with positive/terminally positive T AND ST in V1 higher than V2.
-- South African flag: STE in I, aVL and V2 with ST depression in III.
-- New-onset bifascicular block: RBBB (rsR' V1-V2, slurred S V5-V6) + LAFB (rS in II, III, aVF; qR in aVL).
-- Posterior OMI: maximal ST depression in V1-V4.
-- Terminal QRS distortion: absence of BOTH S wave and J wave in V2 or V3 (anterior MI vs early repolarisation).
-- Modified Sgarbossa-Smith (LBBB/paced only): concordant STE in any lead; concordant ST depression in V1-V3; or discordant STE with ST/S ratio >=25%.
-- Precordial swirl: STE in V1-V2 with ST depression in V5-V6.
-- Northern OMI: STE in aVR and aVL with negative T, plus ST depression in inferior and lateral leads (II, III, aVF, V4-V6) with positive or biphasic T.
+HOW TO MEASURE (follow exactly, lead by lead):
+1. Calibration: find the 1 mV calibration pulse and count its height in small boxes (normally 10). Report it as calibration.mm_per_mv. Paper speed is printed (normally 25 mm/s).
+2. Baseline: the TP segment (flat line between end of T and next P). Use the PR segment only if TP is not visible.
+3. J-point: the exact point where the QRS ends and the ST segment starts, i.e. where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Measure the vertical distance between the J-point and the baseline in SMALL BOXES as seen on this paper, to the nearest 0.5. Positive = above baseline, negative = below.
+4. NEVER measure at the T-wave, at the peak of the ST hump, or in the middle of the ST segment. A tall T wave is not ST elevation.
+5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. This is very common in young men and in early repolarisation. Report the real J-point value.
+6. ST shape: isoelectric, concave (smiley), straight, convex (frowny/tombstone), horizontal, upsloping or downsloping. Only call it convex or tombstone if the ST segment clearly bows upward above the line from J-point to T peak.
+7. T wave: upright, inverted, biphasic, hyperacute (broad, bulky, disproportionately tall for the QRS) or flat, and its height in small boxes.
+8. Q waves: none, q (small) or QS.
+9. Leads not visible in the photo (for example, when only part of the printout is photographed) must be reported with "present": false and j_mm null. Never guess a lead you cannot see.
+10. Only list reciprocal change, tombstone morphology, or any finding if your own measurements show it. The headline and summary MUST agree with your j_mm values: do not write "STEMI" unless contiguous leads meet the patient's threshold.
 
-DECISION RULES (safety first; missing an occlusion is worse than over-calling):
-- "met": criterion (i)-(iv) clearly fulfilled; or (v)/(vi)/an OMI pattern present with a supportive complaint.
-- "consult": anything borderline or uncertain (STE within about 0.5 mm of threshold, unreadable key leads, OMI pattern without clear symptoms, BBB/paced with symptoms but no Sgarbossa, sex unknown near threshold, photo quality limits the call) -> contact UMOC for conference call. When torn between "met" and "not_met", choose "consult".
-- "not_met": criteria clearly absent AND no OMI pattern.
-- Never state a lead's value you could not see; mark it "unclear". Measurements from a photo are estimates.
+ALSO ASSESS: rate (R-R method), rhythm, P waves, PR, QRS width in ms, bundle branch block (RBBB, LBBB, paced, LAFB, bifascicular), LVH voltage, QTc if estimable, axis if limb leads visible.
+Posterior (V7-V9) or right-sided (V3R, V4R) leads: measure them only if they are printed and labelled.
 
-FIELD CONSIDERATIONS: brief, framed as considerations per the service Clinical Guidelines, Medication Formulary and UMOC/medical control, consistent with standard ACLS (aspirin chewed for ACS unless contraindicated; nitrate only if SBP >90, no PDE-5 inhibitor, no RV infarct; oxygen if SpO2 <90%; pads on for STEMI; synchronized cardioversion for unstable tachycardia; adenosine 6 mg then 12 mg rapid IV for stable regular narrow SVT; atropine 1 mg q3-5 min max 3 mg and pacing for symptomatic bradycardia; defibrillation, epinephrine 1 mg, amiodarone 300/150 mg for VF/pVT). If STEMI met: UMOC hotline 02 504 8555, "STEMI Pathway Activation", CASMEET, depart scene ASAP, SPMS STEMI tabs.
+OMI PATTERNS (name one only if every component is present in your measurements): Wellens A (biphasic T V2-V3), Wellens B (deep symmetric T inversion V2-V3), hyperacute T, de Winter (upsloping 1-3 mm ST depression at J-point with tall symmetric T in precordial leads), Aslanger (any STE III + ST depression in V4-V6 with positive T + ST in V1 higher than V2), South African flag (STE I, aVL, V2 + ST depression III), new bifascicular block (RBBB + LAFB), posterior OMI (maximal ST depression V1-V4), terminal QRS distortion (no S wave AND no J wave in V2 or V3, with STE), modified Sgarbossa-Smith (LBBB/paced only), precordial swirl (STE V1-V2 with ST depression V5-V6), northern OMI (STE aVR and aVL with negative T + ST depression inferior and lateral).
 
-Crew context:
-${ctx.join("\n")}
+FIELD CONSIDERATIONS: brief, per the service Clinical Guidelines, Medication Formulary and UMOC/medical control, consistent with standard ACLS. Do not recommend STEMI activation yourself; the app does that.
 
-Reply with ONLY this JSON (short field-readable strings, no markdown). "leads" MUST contain all 12 keys.
+Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 {"is_ecg":true,
 "quality":{"adequate":true,"summary":"","limitations":[]},
-"primary":{"rhythm":"headline","confidence":"high|moderate|low","summary":""},
+"calibration":{"visible":true,"mm_per_mv":10,"paper_speed":"25 mm/s"},
+"primary":{"rhythm":"rhythm and key measured findings","confidence":"high|moderate|low","summary":""},
 "parameters":{"rate":{"value":"","note":""},"regularity":{"value":"","note":""},"p_waves":{"value":"","note":""},"pr":{"value":"","note":""},"qrs":{"value":"","note":""},"qt":{"value":"","note":""},"axis":{"value":"","note":""}},
-"leads":{"I":{"st":"elevation|depression|none|unclear","mm":"e.g. +1.5 or -1 or 0","t":"upright|inverted|biphasic|hyperacute|flat|unclear","note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
-"stemi":{"decision":"met|consult|not_met","criterion":"e.g. (i) Standard STEMI - anterior","territory":"","reasoning":"cite measured mm vs this patient's threshold"},
-"omi_patterns":["only patterns fully present"],
-"evidence":[{"claim":"each reason behind the headline and decision","leads":["V2","V3"],"criterion":"protocol item it satisfies or rules out"}],
+"conduction":{"qrs_ms":90,"bbb":"none|RBBB|LBBB|paced|LAFB|bifascicular|IVCD","lvh":false},
+"leads":{"I":{"present":true,"j_mm":0,"st_shape":"isoelectric","t":"upright","t_mm":2,"q":"none","note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
+"extra_leads":{"V7":null,"V8":null,"V9":null,"V3R":null,"V4R":null},
+"omi_patterns":[],
+"evidence":[{"claim":"a measured observation","leads":["V2"]}],
 "alert":{"level":"critical|caution|none","headline":"","details":[]},
 "differential":[],
 "field":[]}`;
+  }
+
+  // ---------- Service protocol: ESC 2023 STEMI activation table, applied in code ----------
+  const CONTIG=[["II","III"],["III","aVF"],["II","aVF"],["I","aVL"],["I","V5"],["I","V6"],["aVL","V5"],["aVL","V6"],["V5","V6"],["V1","V2"],["V2","V3"],["V3","V4"],["V4","V5"]];
+  const TERR={II:"inferior",III:"inferior",aVF:"inferior",I:"lateral",aVL:"lateral",V5:"lateral",V6:"lateral",V1:"septal",V2:"septal",V3:"anterior",V4:"anterior"};
+  function evaluate(d,pt){
+    const r={decision:"not_met",criterion:"",territory:"",reasoning:"",checks:[],missing:[],warnings:[]};
+    const cal=Number(d.calibration&&d.calibration.mm_per_mv);
+    const f=(cal>=3&&cal<=25)?10/cal:1;
+    if(!(cal>=3&&cal<=25))r.warnings.push("Calibration pulse not measured; standard 10 mm/mV assumed.");
+    else if(Math.abs(cal-10)>0.6)r.warnings.push("Calibration is "+cal+" mm/mV; values converted to standard 10 mm/mV.");
+    const L=d.leads||{};
+    const J=k=>{const o=L[k];if(!o||o.present===false||typeof o.j_mm!=="number"||!isFinite(o.j_mm))return null;return Math.round(o.j_mm*f*2)/2;};
+    const X=k=>{const o=d.extra_leads&&d.extra_leads[k];if(!o||o.present===false||typeof o.j_mm!=="number")return null;return Math.round(o.j_mm*f*2)/2;};
+    r.J=J;
+    const v23=pt.sex==="Female"?1.5:pt.sex==="Male"?(pt.age>0&&pt.age<40?2.5:2.0):1.5;
+    const thr=k=>(k==="V2"||k==="V3")?v23:1.0;r.thr=thr;
+    LEADS.forEach(k=>{if(J(k)===null)r.missing.push(k);});
+    const meets=k=>J(k)!==null&&J(k)>=thr(k);
+    const near=k=>J(k)!==null&&!meets(k)&&J(k)>=Math.max(0.5,thr(k)-0.5);
+    const c=d.conduction||{};const bbb=String(c.bbb||"none");const lbbb=/LBBB|paced/i.test(bbb);const rbbb=/RBBB|bifascicular/i.test(bbb);const lvh=c.lvh===true;
+    const fmt=k=>k+" "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")";
+    const up=(dec,crit,why)=>{const rank={not_met:0,consult:1,met:2};if(rank[dec]>rank[r.decision]){r.decision=dec;r.criterion=crit;r.reasoning=why;}else if(rank[dec]===rank[r.decision]&&!r.criterion){r.criterion=crit;r.reasoning=why;}};
+
+    // (i) Standard STEMI
+    if(lbbb){r.checks.push({ok:null,t:"(i) Standard STEMI: not applicable with LBBB / paced rhythm."});}
+    else if(lvh){r.checks.push({ok:null,t:"(i) Standard STEMI: not valid with LV hypertrophy. Discuss with UMOC if symptomatic."});up("consult","LVH: standard criteria not valid","LV hypertrophy makes the standard ST thresholds unreliable. If symptoms suggest ischaemia, discuss with UMOC.");}
+    else{
+      const hit=CONTIG.filter(([a,b])=>meets(a)&&meets(b));
+      if(hit.length){
+        const leads=[...new Set(hit.flat())];const terr=[...new Set(leads.map(k=>TERR[k]))].join(" / ");
+        r.territory=terr;r.checks.push({ok:true,t:"(i) Standard STEMI MET: "+leads.map(fmt).join(", ")+"."});
+        up("met","(i) Standard STEMI – "+terr,"J-point elevation meets the threshold in contiguous leads: "+leads.map(fmt).join(", ")+".");
+      }else{
+        const v=k=>k==="V2"||k==="V3";const bl=CONTIG.filter(([a,b])=>(meets(a)&&near(b))||(near(a)&&meets(b))||(near(a)&&near(b)&&v(a)&&v(b)));
+        const ste=LEADS.filter(k=>J(k)!==null&&J(k)>0);
+        r.checks.push({ok:false,t:"(i) Standard STEMI not met."+(ste.length?" Highest J-point: "+ste.sort((a,b)=>J(b)-J(a)).slice(0,3).map(fmt).join(", ")+".":" No J-point elevation measured.")});
+        if(bl.length){const leads=[...new Set(bl.flat())];up("consult","Borderline ST elevation","J-point within 0.5 mm of the threshold in contiguous leads ("+leads.map(fmt).join(", ")+"). Photo measurement can't settle this; check on the monitor and discuss with UMOC.");}
+      }
+    }
+    // (ii) Posterior
+    const pd=["V1","V2","V3"].filter(k=>J(k)!==null&&J(k)<=-1&&!/invert/i.test(String(L[k]&&L[k].t)));
+    const post=["V7","V8","V9"].filter(k=>X(k)!==null&&X(k)>=0.5);
+    if(pd.length>=2&&post.length>=2){up("met","(ii) Posterior STEMI","ST depression in "+pd.join(", ")+" with STE ≥0.5 mm in "+post.join(", ")+".");r.checks.push({ok:true,t:"(ii) Posterior STEMI MET."});}
+    else if(pd.length>=2){up("consult","(ii) Posterior STEMI suspected","ST depression in "+pd.join(", ")+" with upright T. Record V7–V9: STE ≥0.5 mm confirms posterior STEMI.");r.checks.push({ok:null,t:"(ii) Posterior: ST depression "+pd.join(", ")+". V7–V9 needed."});}
+    else r.checks.push({ok:false,t:"(ii) Posterior STEMI: no ST depression pattern in V1–V3."});
+    // (iii) LCx / RV
+    const rv=["V3R","V4R"].filter(k=>X(k)!==null&&X(k)>=1);
+    if(post.length>=2&&!(pd.length>=2)){up("met","(iii) LCx occlusion","STE ≥0.5 mm in "+post.join(", ")+".");r.checks.push({ok:true,t:"(iii) LCx occlusion MET."});}
+    else if(rv.length){up("met","(iii) Right ventricular MI","STE ≥1 mm in "+rv.join(", ")+".");r.checks.push({ok:true,t:"(iii) RV MI MET."});}
+    else r.checks.push({ok:false,t:"(iii) LCx / RV MI: V7–V9 and V3R/V4R not recorded or not elevated."});
+    // (iv) Multivessel / left main
+    const dep=LEADS.filter(k=>k!=="aVR"&&J(k)!==null&&J(k)<=-1);
+    const aVRe=Math.max(J("aVR")??-9,J("V1")??-9);
+    if(dep.length>=6&&aVRe>=1){up("met","(iv) Multivessel ischaemia / left main","ST depression ≥1 mm in "+dep.length+" leads ("+dep.join(", ")+") with ST elevation in aVR/V1.");r.checks.push({ok:true,t:"(iv) Left main / multivessel MET."});}
+    else if(dep.length>=6&&aVRe>=0.5){up("consult","(iv) Possible left main / multivessel","ST depression in "+dep.length+" leads with slight STE in aVR/V1.");r.checks.push({ok:null,t:"(iv) Borderline."});}
+    else r.checks.push({ok:false,t:"(iv) Multivessel / left main: ST depression ≥1 mm in "+dep.length+" of 6 required leads."});
+    // (v) / (vi) Bundle branch block
+    if(lbbb){up("consult","(v) LBBB / paced rhythm","With high clinical suspicion of ongoing ischaemia, manage as STEMI. Discuss with UMOC.");r.checks.push({ok:null,t:"(v) LBBB / paced: manage as STEMI if high clinical suspicion."});}
+    if(rbbb){up("consult","(vi) RBBB","With high clinical suspicion of ongoing ischaemia, manage as STEMI. Discuss with UMOC.");r.checks.push({ok:null,t:"(vi) RBBB: manage as STEMI if high clinical suspicion."});}
+    // OMI patterns
+    const om=arr(d.omi_patterns);
+    if(om.length){up("consult","OMI pattern: "+om.join(", "),"Activation criteria not met, but an occlusion pattern is present. Call UMOC for a conference call.");}
+    // Incomplete
+    const miss=r.missing.filter(k=>k!=="aVR");
+    if(miss.length){r.warnings.unshift("Leads not visible in the photo: "+r.missing.join(", ")+". The decision only covers the leads shown. Photograph the full 12-lead.");}
+    if(r.decision==="not_met"){r.criterion="No activation criterion met";r.reasoning="Measured J-points are below this patient's thresholds and no enhanced criterion applies."+(miss.length?" Limited to the leads visible in the photo.":"");}
+    return r;
   }
 
   analyzeBtn.onclick=async()=>{
@@ -792,7 +842,7 @@ Reply with ONLY this JSON (short field-readable strings, no markdown). "leads" M
     let started=false;
     try{
       const data=await sample.json(buildPrompt(),{images:files.slice(0,maxCount),modelTier:"complex",signal:ctl.signal,cache:false,onText:()=>{if(!started){started=true;setStatus("Writing the report…",{pulse:true});}}});
-      lastReport=data;render(data);setStatus("Report ready. Confirm against your own reading before acting.");
+      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport=data;render(data);setStatus("Report ready. Confirm against your own reading before acting.");
     }catch(e){
       const c=e&&e.code;
       const m={bad_code:"Access code incorrect. Tap Analyze ECG to enter it again.",no_key:"The server has no API key. Add ANTHROPIC_API_KEY in Netlify site settings.",no_function:"The analysis server isn't deployed. Deploy from GitHub, not drag and drop.",network:"No connection to the analysis server. Check signal and try again.",server:"The analysis server returned an error. Try again.",cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
@@ -814,25 +864,29 @@ Reply with ONLY this JSON (short field-readable strings, no markdown). "leads" M
   const list=items=>{const u=el("ul");items.forEach(t=>u.appendChild(el("li",null,t)));return u;};
   const card=(title,content)=>{const c=el("div","card");c.appendChild(el("h3",null,title));c.appendChild(content);return c;};
 
-  function leadMap(L){
+  function leadMap(d){
+    const r=d.stemi||{},J=r.J||(()=>null),thr=r.thr||(()=>1),L=d.leads||{};
     const order=["I","aVR","V1","V4","II","aVL","V2","V5","III","aVF","V3","V6"];
     const wrap=el("div");const g=el("div","leadmap");
     order.forEach(k=>{
-      const d=(L&&L[k])||{};const st=S(d.st).toLowerCase();const t=S(d.t).toLowerCase();
-      let cls="lead";if(st==="elevation")cls+=" ste";else if(st==="depression")cls+=" std";else if(st==="unclear")cls+=" unclear";
-      if(st!=="elevation"&&st!=="depression"&&["inverted","biphasic","hyperacute"].includes(t))cls+=" tw";
-      const box=el("div",cls);box.appendChild(el("b",null,k));
-      let line=st==="elevation"?"STE "+(S(d.mm)||""):st==="depression"?"STD "+(S(d.mm)||""):st==="unclear"?"unclear":"ST normal";
-      box.appendChild(el("span",null,line.trim()));
-      if(t&&t!=="upright"&&t!=="unclear")box.appendChild(el("span",null,"T "+t));
-      if(d.note)box.title=S(d.note);
+      const o=L[k]||{},j=J(k),t=S(o.t).toLowerCase();
+      let cls="lead",line;
+      if(j===null){cls+=" unclear";line="not in photo";}
+      else if(j>=thr(k)){cls+=" ste";line="J +"+j+" mm";}
+      else if(j<=-0.5){cls+=" std";line="J "+j+" mm";}
+      else{line="J "+(j>0?"+":"")+j+" mm";if(j>0)cls+=" sub";}
+      if(j!==null&&["inverted","biphasic","hyperacute"].includes(t))cls+=" tw";
+      const box=el("div",cls);box.appendChild(el("b",null,k));box.appendChild(el("span",null,line));
+      if(j!==null&&(k==="V2"||k==="V3"||j>0))box.appendChild(el("span",null,"needs ≥"+thr(k)));
+      if(j!==null&&t&&t!=="upright")box.appendChild(el("span",null,"T "+t));
+      if(o.note)box.title=S(o.note);
       g.appendChild(box);
     });
     wrap.appendChild(g);
     const lg=el("div","legend");
-    [["var(--crit)","ST elevation"],["var(--warn)","ST depression"],["var(--accent)","Abnormal T wave"],["var(--field-b)","Normal / unclear"]].forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
+    [["var(--crit)","Meets threshold"],["#E7A0A8","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--accent)","Abnormal T wave"],["var(--field-b)","Normal / not in photo"]].forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
     wrap.appendChild(lg);
-    const notes=LEADS.filter(k=>L&&L[k]&&L[k].note).map(k=>k+": "+S(L[k].note));
+    const notes=LEADS.filter(k=>L[k]&&L[k].note).map(k=>k+": "+S(L[k].note));
     if(notes.length){const n=list(notes);n.style.marginTop="10px";n.style.fontSize=".88rem";wrap.appendChild(n);}
     return wrap;
   }
@@ -851,6 +905,8 @@ Reply with ONLY this JSON (short field-readable strings, no markdown). "leads" M
     if(dec!=="not_met"){const a=el("a","call",dec==="met"?"Call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d":"Call UMOC 02 504 8555 for conference call");a.href="tel:025048555";box.appendChild(a);}
     else box.appendChild(el("p",null,"Manage per working diagnosis. Transport to the nearest appropriate facility."));
     report.appendChild(box);
+    (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
+    if((st.checks||[]).length){const u=el("ul","why");st.checks.forEach(c=>{const li=el("li");li.appendChild(el("div","claim",(c.ok===true?"✅ ":c.ok===false?"✖ ":"⚠️ ")+c.t));u.appendChild(li);});report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
 
     const p=d.primary||{};const h=el("div","card head");
     h.appendChild(el("p","k","Primary interpretation"));h.appendChild(el("div","r",S(p.rhythm)||"Interpretation unavailable"));
@@ -870,7 +926,7 @@ Reply with ONLY this JSON (short field-readable strings, no markdown). "leads" M
       report.appendChild(card("Why this reading",u));
     }
 
-    report.appendChild(card("Lead-by-lead read",leadMap(d.leads)));
+    report.appendChild(card("Lead-by-lead read (J-point, standard 10 mm/mV)",leadMap(d)));
 
     const om=arr(d.omi_patterns);if(om.length){const w=el("div","omi");om.forEach(o=>w.appendChild(el("span",null,o)));report.appendChild(card("OMI patterns present",w));}
 

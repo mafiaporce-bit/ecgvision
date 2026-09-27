@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EMS Quick ECG Guide</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<meta name="theme-color" content="#1D4B75">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --h1:#1D4B75; --h2:#3474AE;
+  --bg:#EDF2F7; --card:#FFFFFF; --field:#E5EDF6; --field-b:#CCDAEA;
+  --ink:#172432; --soft:#5A6878; --line:#DCE4EE; --accent:#1F5E98; --on-accent:#FFFFFF;
+  --crit:#C3283A; --crit-bg:#FCE6E9; --warn:#9E5E00; --warn-bg:#FFF1D9; --ok:#1F7A55; --ok-bg:#E1F3EA;
+  --shadow:0 2px 10px rgba(23,36,50,.07);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --h1:#1B3552; --h2:#25486E;
+    --bg:#18212C; --card:#212D3B; --field:#2A394A; --field-b:#37495E;
+    --ink:#DDE6EF; --soft:#9DAABA; --line:#2F3E50; --accent:#86B8E8; --on-accent:#10202F;
+    --crit:#FF8E9A; --crit-bg:#43222A; --warn:#F2C069; --warn-bg:#3B3020; --ok:#7FD3AA; --ok-bg:#1D3A2F;
+    --shadow:none; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --h1:#1B3552; --h2:#25486E;
+  --bg:#18212C; --card:#212D3B; --field:#2A394A; --field-b:#37495E;
+  --ink:#DDE6EF; --soft:#9DAABA; --line:#2F3E50; --accent:#86B8E8; --on-accent:#10202F;
+  --crit:#FF8E9A; --crit-bg:#43222A; --warn:#F2C069; --warn-bg:#3B3020; --ok:#7FD3AA; --ok-bg:#1D3A2F;
+  --shadow:none; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.45;padding-bottom:84px}
+button{font:inherit;color:inherit}
+:focus{outline:none}
+button:focus-visible,a:focus-visible,.btn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+textarea:focus,.in:focus{box-shadow:0 0 0 2px var(--accent)}
+*{-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+
+.hero{background:linear-gradient(160deg,var(--h1),var(--h2));color:#fff;padding:16px 16px 64px;border-radius:0 0 32px 32px}
+.hero.small{padding-bottom:54px}
+.hero-in,.main{max-width:720px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.brand{display:inline-block;border:2px solid #fff;border-radius:12px;padding:4px 12px;font-weight:700;font-size:1.3rem;line-height:1.2}
+.brand small{display:block;font-size:.72rem;font-weight:500;opacity:.9}
+.copy{margin:6px 0 0;font-size:.85rem;font-weight:700}
+.copy i{display:block;font-weight:500;opacity:.9}
+.icons{display:flex;gap:10px;flex-shrink:0}
+.icon-btn{width:50px;height:50px;border-radius:50%;background:#fff;color:#1D4B75;border:0;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.icon-btn svg{width:23px;height:23px}
+.subbar{display:flex;align-items:center;gap:12px}
+.back{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:12px;padding:8px 14px 8px 10px;font-weight:700;cursor:pointer;min-height:44px}
+.back svg{width:20px;height:20px}
+.subbar h1{margin:0;font-size:1.45rem;font-weight:900}
+
+.main{padding:0 14px}
+.float{margin-top:-46px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:380px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.card h2{margin:0 0 10px;font-size:1.2rem;font-weight:700}
+.card h3{margin:0 0 8px;font-size:1.05rem}
+.stack>.card+.card{margin-top:12px}
+.field{display:flex;align-items:center;background:var(--field);border-radius:12px;padding:0 12px;margin:4px 0 10px;min-height:50px}
+.field input,.field select{flex:1;border:0;background:none;font:inherit;font-size:1.15rem;font-weight:700;color:var(--accent);min-width:0;padding:10px 0}
+.field select option{color:#172432}
+.field span{color:var(--soft);font-size:.95rem}
+.lbl{font-size:.88rem;color:var(--soft)}
+.thr{font-size:.82rem;background:var(--field);border-radius:10px;padding:8px 10px}
+.thr b{color:var(--accent)}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:8px 6px;text-align:center}
+.qa button{border:0;background:none;cursor:pointer;padding:4px 2px;font-size:.88rem;line-height:1.2;font-weight:500}
+.qa .ic{width:56px;height:56px;border-radius:50%;background:var(--field);display:grid;place-items:center;margin:0 auto 6px;color:var(--accent)}
+.qa .ic svg{width:25px;height:25px}
+.qa small{display:block;color:var(--soft);font-size:.72rem;margin-top:2px}
+
+.sec-title{display:flex;justify-content:space-between;align-items:baseline;margin:22px 2px 10px}
+.sec-title h2{margin:0;font-size:1.45rem;font-weight:900}
+.sec-title span{color:var(--soft);font-size:.9rem}
+
+.drop{border:2px dashed var(--field-b);border-radius:16px;padding:18px;text-align:center}
+.drop.over{border-color:var(--accent);background:var(--field)}
+.drop p{margin:0 0 12px;color:var(--soft);font-size:.92rem}
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 18px;border-radius:14px;font-weight:700;cursor:pointer;border:2px solid var(--accent);background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.thumb{position:relative;width:110px;height:78px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb button{position:absolute;top:4px;right:4px;border:0;border-radius:8px;background:rgba(0,0,0,.65);color:#fff;font-size:.75rem;padding:2px 7px;cursor:pointer}
+textarea,.in{width:100%;font:inherit;font-size:.95rem;color:var(--ink);background:var(--field);border:0;border-radius:12px;padding:11px 12px}
+textarea{min-height:64px;resize:vertical}
+.actions{display:flex;gap:10px;margin-top:14px}
+.actions .btn{flex:1}
+.status{font-size:.9rem;color:var(--soft);margin:10px 2px 0;min-height:1.3em}
+.status.err{color:var(--crit)}
+.pulse{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--crit);margin-right:8px;vertical-align:middle}
+@media (prefers-reduced-motion:no-preference){.pulse{animation:beat 1s infinite}@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.6)}30%{transform:scale(1)}}}
+.notice{margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--warn-bg);border-left:5px solid var(--warn);font-size:.92rem}
+
+/* Report */
+.rep{display:grid;gap:12px;margin-top:16px}
+.stemi{border-radius:20px;padding:16px;color:#fff}
+.stemi.met{background:#C3283A}.stemi.consult{background:#A86200}.stemi.not_met{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.stemi .q{font-size:.85rem;opacity:.92;margin:0}
+.stemi .a{font-size:1.8rem;font-weight:900;margin:2px 0 4px;line-height:1.1}
+.stemi p{margin:4px 0 0}
+.stemi .call{display:flex;align-items:center;justify-content:center;margin-top:12px;background:#fff;color:#A31E2E;font-weight:900;font-size:1.08rem;border-radius:14px;min-height:54px;text-decoration:none;text-align:center;padding:0 10px}
+.stemi.consult .call{color:#7A4700}
+.head .k{font-size:.85rem;color:var(--soft);margin:0}
+.head .r{font-size:1.45rem;font-weight:900;margin:2px 0 6px;line-height:1.15}
+.head p{margin:0}
+.pill{display:inline-block;margin-top:8px;font-size:.8rem;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--field);color:var(--accent)}
+.pill.low{background:var(--warn-bg);color:var(--warn)}
+.alert{border-radius:20px;padding:14px 16px;border:2px solid var(--crit);background:var(--crit-bg)}
+.alert.caution{border-color:var(--warn);background:var(--warn-bg)}
+.alert.none{border:1px solid var(--line);background:var(--card)}
+.alert h3{margin:0 0 6px;color:var(--crit)}.alert.caution h3{color:var(--warn)}.alert.none h3{color:var(--ok)}
+.params{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.param{background:var(--field);border-radius:12px;padding:9px 11px}
+.param .pk{font-size:.78rem;color:var(--soft)}
+.param .pv{font-weight:700;line-height:1.25}
+.param .pn{font-size:.78rem;color:var(--soft)}
+.rep ul,.ref ul{margin:0;padding-left:1.2em}
+.rep li,.ref li{margin:3px 0}
+.omi{display:flex;flex-wrap:wrap;gap:6px}
+.omi span{background:var(--crit-bg);color:var(--crit);font-weight:700;font-size:.85rem;padding:5px 10px;border-radius:10px}
+
+/* Lead map */
+.leadmap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lead{border-radius:10px;padding:7px 6px;text-align:center;background:var(--field);border:2px solid transparent;min-width:0}
+.lead b{display:block;font-size:.95rem}
+.lead span{display:block;font-size:.72rem;line-height:1.2;color:var(--soft);overflow-wrap:anywhere}
+.lead.ste{background:var(--crit-bg);border-color:var(--crit)}.lead.ste b,.lead.ste span{color:var(--crit)}
+.lead.std{background:var(--warn-bg);border-color:var(--warn)}.lead.std b,.lead.std span{color:var(--warn)}
+.lead.tw{border-color:var(--accent)}
+.lead.unclear{opacity:.55}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:.78rem;color:var(--soft)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.why{list-style:none;padding:0!important;margin:0}
+.why li{padding:10px 0;border-top:1px solid var(--line)}
+.why li:first-child{border-top:0;padding-top:0}
+.why .claim{font-weight:700}
+.why .crit{font-size:.8rem;color:var(--soft);margin-top:2px}
+.ltags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.ltags span{background:var(--field);color:var(--accent);font-weight:700;font-size:.8rem;padding:2px 8px;border-radius:7px}
+
+/* Reference */
+.ref p{margin:0 0 8px}
+.tag{display:inline-block;background:var(--field);color:var(--accent);font-weight:700;border-radius:8px;padding:1px 8px;font-size:.8rem;margin-right:6px}
+.pat{border-top:1px solid var(--line);padding:10px 0}
+.pat:first-of-type{border-top:0;padding-top:0}
+.pat b{display:block}
+.pat .w{font-size:.8rem;color:var(--soft)}
+.steps{counter-reset:s;list-style:none;padding:0!important;margin:0}
+.steps li{counter-increment:s;position:relative;padding:0 0 12px 40px}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:700;font-size:.85rem}
+.hotline{display:flex;align-items:center;justify-content:center;background:#C3283A;color:#fff;border-radius:16px;min-height:58px;font-weight:900;font-size:1.2rem;text-decoration:none;margin-bottom:12px}
+.hg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.hg label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--soft)}
+.out{white-space:pre-wrap;background:var(--field);border-radius:12px;padding:12px;font-size:.92rem;margin-top:10px}
+
+nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:10}
+nav.bottom button{flex:1;max-width:140px;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.8rem;font-weight:500;color:var(--soft);padding:6px 0}
+nav.bottom svg{width:26px;height:26px}
+nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:12px;font-weight:500;z-index:20;max-width:90vw;text-align:center}
+.foot{font-size:.8rem;color:var(--soft);text-align:center;margin:22px 8px 8px}
+
+.qa{grid-template-columns:repeat(3,1fr)!important}
+.qa-a{display:block;text-decoration:none;color:inherit;padding:4px 2px;font-size:.88rem;line-height:1.2;font-weight:500;text-align:center}
+.qa-a small{display:block;color:var(--soft);font-size:.72rem;margin-top:2px}
+.ic-red{background:var(--crit-bg)!important;color:var(--crit)!important}
+.qa-a .ic{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:0 auto 6px}
+.qa-a .ic svg{width:25px;height:25px}
+.grid2 .field{margin-bottom:6px}
+.grid2>div{min-width:0}
+.field select{width:100%}
+.card .grid2{grid-template-columns:1fr 1fr!important}
+.figs{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
+.fig{flex:1 1 120px;max-width:190px;border-radius:10px;overflow:hidden;border:1px solid var(--paper-l);
+ background-color:var(--paper);
+ background-image:linear-gradient(var(--paper-l) 1px,transparent 1px),linear-gradient(90deg,var(--paper-l) 1px,transparent 1px);
+ background-size:10px 10px}
+.fig .fl{font-size:.75rem;font-weight:700;padding:4px 7px 0;color:var(--ink)}
+.fig svg{display:block;width:100%;height:auto}
+.fig .tr{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.fig .ste{fill:var(--crit);opacity:.3}
+.fig .std{fill:var(--warn);opacity:.35}
+.fig .fn{font-size:.72rem;color:var(--soft);padding:0 7px 5px;line-height:1.2}
+.pat .figs{margin-top:6px}
+:root{--paper:#FFF7F5;--paper-l:#F6D9D3}
+:root[data-theme="dark"]{--paper:#1C2733;--paper-l:#2C3B4C}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#1C2733;--paper-l:#2C3B4C}}
+
+.qa{gap:4px 4px!important}
+.qa>*{align-self:start}
+.qa button,.qa-a{font-size:.8rem!important}
+.qa .ic,.qa-a .ic{width:44px!important;height:44px!important;margin-bottom:4px!important}
+.qa .ic svg,.qa-a .ic svg{width:21px!important;height:21px!important}
+.qa small,.qa-a small{font-size:.68rem!important}
+.pick{width:100%;border:0;cursor:pointer;justify-content:space-between;gap:8px;text-align:left;font:inherit}
+.pick .pv{font-size:1.15rem;font-weight:700;color:var(--accent);flex:1}
+.pick .pv.empty{color:var(--soft);font-weight:500}
+.pick .pi{display:flex;color:var(--accent)} .pick .pi svg{width:20px;height:20px}
+.pick .chev{width:18px;height:18px;color:var(--soft)}
+.scrim{position:fixed;inset:0;background:rgba(10,18,28,.55);z-index:30}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:31;background:var(--card);border-radius:24px 24px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;box-shadow:0 -6px 24px rgba(0,0,0,.2)}
+@media (prefers-reduced-motion:no-preference){.sheet:not([hidden]){animation:up .2s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.4}}}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+.sheet h2{margin:0;font-size:1.3rem;font-weight:900}
+.sh-sub{margin:4px 0 14px;color:var(--soft);font-size:.9rem}
+.sexopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.sexopt{border:2px solid var(--line);background:var(--field);border-radius:18px;padding:16px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+.sexopt .sx{width:56px;height:56px;border-radius:50%;background:var(--card);display:grid;place-items:center;color:var(--accent)}
+.sexopt .sx svg{width:30px;height:30px}
+.sexopt b{font-size:1.1rem}
+.sexopt small{font-size:.75rem;color:var(--soft);text-align:center}
+.sexopt[aria-pressed="true"]{border-color:var(--accent);background:var(--card)}
+.sh-full{width:100%}
+.agedisp{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--field);border-radius:16px;padding:12px;margin:12px 0}
+.agedisp .sx{color:var(--accent);display:flex}.agedisp .sx svg{width:26px;height:26px}
+.agedisp b{font-size:2.2rem;font-weight:900;color:var(--accent);min-width:2ch;text-align:center}
+.agedisp span:last-child{color:var(--soft)}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.keypad button{border:0;background:var(--field);border-radius:14px;min-height:54px;font-size:1.35rem;font-weight:700;cursor:pointer;color:var(--ink)}
+.keypad button:active{background:var(--field-b)}
+.keypad .fn{font-size:.95rem;color:var(--soft)}
+
+.hero:not(.small){padding-bottom:62px}
+.ecgstrip{position:relative;margin:14px -16px 0;height:78px;overflow:hidden;
+ background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);
+ background-size:12px 12px;border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12)}
+.hero.small .ecgstrip{display:none}
+#stripSvg{position:absolute;left:0;top:6px;height:58px;width:auto;will-change:transform}
+#stripSvg path{fill:none;stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round}
+#stripSvg .nrm{stroke:rgba(255,255,255,.92)}
+#stripSvg .stm{stroke:#FF5C6C;filter:drop-shadow(0 0 3px rgba(255,92,108,.7))}
+#stripSvg .stf{fill:#FF5C6C;opacity:.22;stroke:none}
+@media (prefers-reduced-motion:no-preference){#stripSvg{animation:ecgscroll 12s linear infinite}@keyframes ecgscroll{to{transform:translateX(-50%)}}}
+.strip-legend{position:absolute;right:10px;bottom:4px;display:flex;gap:10px;font-size:.7rem;color:rgba(255,255,255,.85)}
+.strip-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.strip-legend .n{background:#fff}.strip-legend .s{background:#FF5C6C}
+.drop{position:relative}
+.stamp{display:none;align-items:center;gap:10px;margin:0 auto 12px;border:2.5px solid var(--crit);color:var(--crit);background:var(--crit-bg);border-radius:12px;padding:8px 14px;transform:rotate(-2.5deg);cursor:pointer;text-align:left}
+.stamp svg{width:24px;height:24px;flex-shrink:0}
+.stamp b{display:block;font-size:1rem}
+.stamp small{display:block;font-size:.75rem;opacity:.85}
+.drop.locked .stamp{display:inline-flex}
+.drop.locked .btn{opacity:.4;pointer-events:none;filter:grayscale(1)}
+.drop.locked>p{opacity:.6}
+</style>
+</head>
+<body>
+
+<header class="hero" id="hero">
+  <div class="hero-in">
+    <div class="top" id="homeBar">
+      <div>
+        <div class="brand">EMS Quick ECG Guide<small>by JPS · Version 1.0</small></div>
+        <p class="copy">© 2026 JPS_dev. All rights reserved.<i>(Always follow your local protocols)</i></p>
+      </div>
+      <div class="icons">
+        <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="ecgstrip" id="ecgStrip" aria-hidden="true">
+      <svg id="stripSvg" preserveAspectRatio="xMinYMid meet"></svg>
+      <div class="strip-legend"><span><i class="n"></i>Sinus rhythm</span><span><i class="s"></i>STEMI</span></div>
+    </div>
+    <div class="subbar" id="subBar" hidden>
+      <button class="back" id="backBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Back</button>
+      <h1 id="subTitle"></h1>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+<!-- ANALYZE -->
+<section id="page-analyze">
+  <div class="card float">
+    <h2>Patient</h2>
+    <div class="grid2">
+      <div><div class="lbl">Age</div><button type="button" class="field pick" id="ageBtn" aria-haspopup="dialog"><span class="pv" id="ageVal">Tap</span><span>yrs</span></button><input type="hidden" id="age"></div>
+      <div><div class="lbl">Sex</div><button type="button" class="field pick" id="sexBtn" aria-haspopup="dialog"><span class="pi" id="sexIc"></span><span class="pv" id="sexVal">Select</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><input type="hidden" id="sex"></div>
+    </div>
+    <div class="thr" id="thr"></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h2>Quick actions</h2>
+    <div class="qa">
+      <a class="qa-a" href="tel:+97125048555" target="_blank" rel="noopener" data-call><div class="ic ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></div>UMOC hotline<small>02 504 8555</small></a>
+      <button data-go="criteria"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 16h4l2-12 2 15 1-6h3c2 0 3-5 5-5s3 8 4 8h1"/></svg></div>STEMI criteria<small>Standard</small></button>
+      <button data-go="enhanced"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>Enhanced criteria<small>ii to vi</small></button>
+      <button data-go="omi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></div>OMI patterns<small>12 patterns</small></button>
+      <button data-go="bbb"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16l3-8 3 6 3-6 3 6 3-6 3 8"/></svg></div>LBBB vs RBBB<small>WiLLiaM MaRRoW</small></button>
+      <button data-go="handover"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 12h8M8 16h5"/></svg></div>Handover<small>CASMEET</small></button>
+    </div>
+  </div>
+
+  <div class="sec-title"><h2>12-lead ECG</h2><span id="imgCount">No image yet</span></div>
+  <div class="card">
+    <div class="drop" id="drop">
+      <button type="button" class="stamp" id="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span><b>Age and sex required</b><small>Tap to enter patient details</small></span></button>
+      <p>Lay the tracing flat, fill the frame, avoid glare. Keep lead labels and the calibration pulse in view.</p>
+      <div class="btn-row">
+        <label class="btn">Take photo<input type="file" id="camInput" accept="image/*" capture="environment"></label>
+        <label class="btn ghost">Choose file<input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
+      </div>
+      <div class="thumbs" id="thumbs"></div>
+    </div>
+    <div class="lbl" style="margin:14px 0 4px">Complaint, vitals and history (optional)</div>
+    <textarea id="notes" placeholder="e.g. Chest pain 40 min, diaphoretic, BP 92/60, SpO2 95%, known pacemaker"></textarea>
+    <div class="actions">
+      <button class="btn" id="analyzeBtn" disabled>Analyze ECG</button>
+      <button class="btn ghost" id="stopBtn" hidden>Stop</button>
+      <button class="btn ghost" id="clearBtn" hidden>New patient</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite">Enter age and sex, then add an ECG image.</p>
+    <div class="notice" id="unavail" hidden></div>
+  </div>
+  <div class="rep" id="report" hidden aria-live="polite"></div>
+</section>
+
+<!-- STANDARD CRITERIA -->
+<section id="page-criteria" class="ref stack float" hidden>
+  <div class="card">
+    <h3><span class="tag">i</span>Standard STEMI activation</h3>
+    <div class="figs" data-fig="stemi"></div>
+    <p>New ST elevation at the J-point in 2 or more contiguous leads (V3R and V4R included):</p>
+    <ul>
+      <li>V2–V3: men under 40 ≥2.5 mm, men 40 and over ≥2 mm, women of any age ≥1.5 mm</li>
+      <li>All other leads: ≥1 mm</li>
+      <li>Only valid without LV hypertrophy or LBBB</li>
+    </ul>
+    <p style="margin:8px 0 0">Signifies ongoing acute coronary artery occlusion.</p>
+  </div>
+  <div class="card">
+    <h3>Contiguous lead groups</h3>
+    <ul>
+      <li><b>Inferior:</b> II, III, aVF</li>
+      <li><b>Lateral:</b> I, aVL, V5, V6</li>
+      <li><b>Septal:</b> V1, V2</li>
+      <li><b>Anterior:</b> V3, V4</li>
+      <li><b>Posterior:</b> V7–V9 · <b>Right ventricle:</b> V3R, V4R</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Criteria not fully met?</h3>
+    <p style="margin:0">If the presentation suggests benefit from PPCI or a cardiology opinion, call UMOC. UMOC sets up a conference call with the receiving facility for an individual assessment.</p>
+    <a class="hotline" style="margin:12px 0 0" href="tel:+97125048555" target="_blank" rel="noopener" data-call>Call UMOC 02 504 8555</a>
+  </div>
+</section>
+
+<!-- ENHANCED CRITERIA -->
+<section id="page-enhanced" class="ref stack float" hidden>
+  <div class="card"><h3><span class="tag">ii</span>Posterior STEMI</h3><div class="figs" data-fig="post"></div>
+    <p style="margin:0">ST depression in V1–V3, especially when the terminal T wave is positive (STE equivalent), plus ST elevation ≥0.5 mm in V7–V9.</p></div>
+  <div class="card"><h3><span class="tag">iii</span>LCx occlusion / right ventricular MI</h3><div class="figs" data-fig="lcx"></div>
+    <p style="margin:0">ST elevation in V7–V9 (left circumflex), or in V3R and V4R (right ventricle).</p></div>
+  <div class="card"><h3><span class="tag">iv</span>Multivessel ischaemia / left main obstruction</h3><div class="figs" data-fig="lm"></div>
+    <p style="margin:0">ST depression ≥1 mm in 6 or more surface leads (inferolateral), with ST elevation in aVR and/or V1. Especially significant with haemodynamic compromise.</p></div>
+  <div class="card"><h3><span class="tag">v</span>LBBB / paced rhythm</h3><div class="figs" data-fig="lbbbv"></div>
+    <p style="margin:0">QRS over 120 ms. No Q waves in I, V5, V6. Monomorphic R in I, V5, V6. ST and T opposite the main QRS deflection. With high clinical suspicion of ischaemia, manage as STEMI.</p></div>
+  <div class="card"><h3><span class="tag">vi</span>RBBB</h3><div class="figs" data-fig="rbbbv"></div>
+    <p style="margin:0">QRS over 120 ms. rsR' "bunny ear" in V1–V3. Slurred S waves in I, aVL and often V5–V6. With high clinical suspicion of ischaemia, manage as STEMI.</p></div>
+</section>
+
+<!-- OMI -->
+<section id="page-omi" class="ref float" hidden>
+  <div class="card" id="omiList"></div>
+</section>
+
+<!-- BBB -->
+<section id="page-bbb" class="ref stack float" hidden>
+  <div class="card">
+    <h3>WiLLiaM: left bundle branch block</h3>
+    <div class="figs" data-fig="lbbb"></div>
+    <ul>
+      <li><b>V1:</b> "W" shape, a deep wide QS or rS.</li>
+      <li><b>V6:</b> "M" shape, a broad notched R with no Q wave.</li>
+      <li>QRS over 120 ms, ST and T opposite the main QRS deflection.</li>
+      <li>Standard STE criteria don't apply. Use modified Sgarbossa (Smith).</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>MaRRoW: right bundle branch block</h3>
+    <div class="figs" data-fig="rbbb"></div>
+    <ul>
+      <li><b>V1:</b> "M" shape, rsR' bunny ears.</li>
+      <li><b>V6:</b> "W" shape, a wide slurred S wave.</li>
+      <li>QRS over 120 ms. STE criteria still apply in RBBB.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Quick tell from V1</h3>
+    <p style="margin:0">Look at the terminal part of the QRS in V1. Deflection pointing down means LBBB; pointing up means RBBB.</p>
+  </div>
+</section>
+
+<!-- PATHWAY -->
+<section id="page-pathway" class="ref stack float" hidden>
+  <a class="hotline" href="tel:+97125048555" target="_blank" rel="noopener" data-call>Call UMOC hotline 02 504 8555</a>
+  <div class="card">
+    <h3>STEMI PPCI criteria met</h3>
+    <ol class="steps">
+      <li>Manage per the Clinical Guidelines and Medication Formulary.</li>
+      <li>Call the UMOC hotline and say <b>"STEMI Pathway Activation"</b>. Give the nearest approved STEMI PPCI facility and your exact location.</li>
+      <li>Stay on the call. UMOC verifies and contacts the facility, or gives an alternative.</li>
+      <li>UMOC connects you to the facility by conference call, target under 2 minutes.</li>
+      <li>Say "STEMI Pathway Activation" and give a detailed CASMEET report. Depart scene as soon as possible.</li>
+      <li>Upload or transmit the ECG and vitals and complete the STEMI Pathway tabs in SPMS.</li>
+      <li>On arrival, update the SPMS arrival time and give an I-MIST-AMBO handover.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>Criteria not met</h3>
+    <p style="margin:0">Manage per the working diagnosis and clinical guidelines. Transport to the nearest appropriate receiving facility. If occlusion is still suspected, call UMOC.</p>
+  </div>
+</section>
+<!-- HANDOVER -->
+<section id="page-handover" class="ref float" hidden>
+  <div class="card">
+    <div class="hg">
+      <label>Call sign / incident no.<input class="in" id="h_call"></label>
+      <label>Location / ETA<input class="in" id="h_eta"></label>
+      <label>AVPU / GCS<input class="in" id="h_gcs"></label>
+      <label>RR<input class="in" id="h_rr" inputmode="numeric"></label>
+      <label>HR<input class="in" id="h_hr" inputmode="numeric"></label>
+      <label>BP<input class="in" id="h_bp"></label>
+      <label>SpO₂<input class="in" id="h_spo2" inputmode="numeric"></label>
+      <label>BGL<input class="in" id="h_bgl"></label>
+    </div>
+    <label class="lbl" style="display:block;margin-top:10px">Treatment given<textarea id="h_tx" placeholder="e.g. Aspirin 300 mg PO, GTN 0.4 mg SL x1, IV access L ACF"></textarea></label>
+    <div class="hg" style="margin-top:8px">
+      <label>Allergies<input class="in" id="h_all"></label>
+      <label>Medications<input class="in" id="h_meds"></label>
+      <label>Background<input class="in" id="h_bg"></label>
+    </div>
+    <p class="lbl" style="margin:10px 0 0">Age, sex, complaint and ECG result fill in from the Analyze tab.</p>
+    <div class="actions">
+      <button class="btn" id="casBtn">CASMEET</button>
+      <button class="btn ghost" id="imBtn">I-MIST-AMBO</button>
+    </div>
+    <div class="out" id="hout" hidden></div>
+    <div class="actions"><button class="btn ghost" id="copyBtn" hidden>Copy handover</button></div>
+  </div>
+</section>
+<p class="foot"><b>Clinical tool for educational and supportive use.</b> Always correlate with clinical presentation, patient history, physical exam, and primary monitoring equipment. Your own ECG reading, local protocols and UMOC / medical control take precedence.</p>
+</main>
+
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sexSheet" role="dialog" aria-modal="true" aria-labelledby="sexT" hidden>
+  <div class="grab"></div>
+  <h2 id="sexT">Patient sex</h2>
+  <p class="sh-sub">Sets the V2–V3 ST elevation threshold.</p>
+  <div class="sexopts">
+    <button type="button" class="sexopt" data-sex="Male"><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"/><path d="M14.5 9.5L20 4M15 4h5v5"/></svg></span><b>Male</b><small>≥2 mm, ≥2.5 mm under 40</small></button>
+    <button type="button" class="sexopt" data-sex="Female"><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M12 15v7M9 19h6"/></svg></span><b>Female</b><small>≥1.5 mm any age</small></button>
+  </div>
+  <button type="button" class="btn ghost sh-full" data-close>Cancel</button>
+</div>
+<div class="sheet" id="ageSheet" role="dialog" aria-modal="true" aria-labelledby="ageT" hidden>
+  <div class="grab"></div>
+  <h2 id="ageT">Patient age</h2>
+  <div class="agedisp"><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><b id="ageDraft">–</b><span>yrs</span></div>
+  <div class="keypad" id="keypad"></div>
+  <div class="actions"><button type="button" class="btn ghost" data-close>Cancel</button><button type="button" class="btn" id="ageDone">Done</button></div>
+</div>
+<nav class="bottom" aria-label="Main">
+  <button data-go="analyze" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2-6 4 12 2-6h8"/></svg>Analyze</button>
+  <button data-go="criteria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Criteria</button>
+  <button data-go="pathway"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>Pathway</button>
+  <button data-go="handover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="8" y="3" width="8" height="4" rx="1"/></svg>Handover</button>
+</nav>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  let refreshHook=null;
+  const root=document.documentElement;
+  const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1800);}
+
+  const th=store.get("eqg-theme");if(th)root.setAttribute("data-theme",th);
+  $("themeBtn").onclick=()=>{const cur=root.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");const n=cur==="dark"?"light":"dark";root.setAttribute("data-theme",n);store.set("eqg-theme",n);};
+
+  function threshold(){
+    const age=parseInt($("age").value,10),sex=$("sex").value;
+    if(!sex)return null;
+    if(sex==="Female")return "≥1.5 mm";
+    if(isNaN(age))return "≥2 mm (≥2.5 mm if under 40)";
+    return age<40?"≥2.5 mm":"≥2 mm";
+  }
+  function updThr(){const t=threshold(),el=$("thr");el.textContent="";if(!t){el.textContent="Enter age and sex to see the V2–V3 STE threshold.";return;}
+    const b=document.createElement("b");b.textContent=t;const b2=document.createElement("b");b2.textContent="≥1 mm";el.append("V2–V3: ",b," · other leads: ",b2);}
+  const scrim=$("scrim");let openSheet=null;
+  function sheetOpen(id){openSheet=$(id);scrim.hidden=false;openSheet.hidden=false;const f=openSheet.querySelector("button");f&&f.focus();}
+  function sheetClose(){if(!openSheet)return;openSheet.hidden=true;scrim.hidden=true;openSheet=null;}
+  scrim.onclick=sheetClose;document.querySelectorAll("[data-close]").forEach(b=>b.onclick=sheetClose);
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")sheetClose();});
+  const MALE=document.querySelector('[data-sex="Male"] .sx').innerHTML,FEMALE=document.querySelector('[data-sex="Female"] .sx').innerHTML;
+  function syncPick(){
+    const a=$("age").value,x=$("sex").value;
+    $("ageVal").textContent=a||"Tap";$("ageVal").classList.toggle("empty",!a);
+    $("sexVal").textContent=x||"Select";$("sexVal").classList.toggle("empty",!x);
+    $("sexIc").innerHTML=x==="Male"?MALE:x==="Female"?FEMALE:"";
+    document.querySelectorAll(".sexopt").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sex===x?"true":"false"));
+    updThr();gate();
+  }
+  function patientOK(){return !!($("age").value&&$("sex").value);}
+  function gate(){const ok=patientOK();$("drop").classList.toggle("locked",!ok);$("camInput").disabled=!ok;$("fileInput").disabled=!ok;if(!ok)$("analyzeBtn").disabled=true;else if(refreshHook)refreshHook();}
+  $("stamp").onclick=()=>{if(!$("age").value)$("ageBtn").click();else $("sexBtn").click();};
+  $("sexBtn").onclick=()=>{syncPick();sheetOpen("sexSheet");};
+  document.querySelectorAll(".sexopt").forEach(b=>b.onclick=()=>{$("sex").value=b.dataset.sex;syncPick();sheetClose();});
+  let draft="";
+  const showDraft=()=>{$("ageDraft").textContent=draft||"–";};
+  ["1","2","3","4","5","6","7","8","9","C","0","⌫"].forEach(k=>{const b=document.createElement("button");b.type="button";b.textContent=k==="C"?"Clear":k;if(k==="C"||k==="⌫"){b.className="fn";b.setAttribute("aria-label",k==="C"?"Clear":"Delete");}
+    b.onclick=()=>{if(k==="C")draft="";else if(k==="⌫")draft=draft.slice(0,-1);else if(draft.length<3){const n=draft+k;if(parseInt(n,10)<=120)draft=n.replace(/^0+(?=\d)/,"");}showDraft();};
+    $("keypad").appendChild(b);});
+  $("ageBtn").onclick=()=>{draft=$("age").value;showDraft();sheetOpen("ageSheet");};
+  $("ageDone").onclick=()=>{$("age").value=draft;syncPick();sheetClose();};
+  syncPick();
+
+  // Navigation with back stack
+  const pages={analyze:"",criteria:"STEMI criteria",enhanced:"Enhanced criteria",omi:"OMI patterns",bbb:"LBBB vs RBBB",pathway:"STEMI PPCI pathway",handover:"Handover"};
+  const navMap={omi:"criteria",enhanced:"criteria",bbb:"criteria"};
+  let current="analyze";const hist=[];
+  function show(p){
+    Object.keys(pages).forEach(x=>$("page-"+x).hidden=x!==p);
+    const home=p==="analyze";
+    $("homeBar").hidden=!home;$("subBar").hidden=home;$("hero").classList.toggle("small",!home);
+    $("subTitle").textContent=pages[p];
+    const tab=navMap[p]||p;
+    document.querySelectorAll("nav.bottom button").forEach(b=>b.dataset.go===tab?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
+    current=p;window.scrollTo({top:0});
+  }
+  function go(p){if(p===current)return;hist.push(current);show(p);}
+  function back(){show(hist.pop()||"analyze");}
+  document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{
+    if(b.closest("nav.bottom")){hist.length=0;if(b.dataset.go!=="analyze")hist.push("analyze");show(b.dataset.go);}else go(b.dataset.go);
+  }));
+  $("backBtn").onclick=back;
+
+
+
+  // ---------- Header ECG strip: sinus -> STEMI ----------
+  (function(){
+    const y=45,BW=110;
+    const nb=x=>`M${x} ${y} L${x+14} ${y} Q${x+20} ${y-8} ${x+26} ${y} L${x+34} ${y} L${x+37} ${y+4} L${x+41} ${y-38} L${x+45} ${y+12} L${x+48} ${y} L${x+60} ${y} Q${x+71} ${y-22} ${x+82} ${y} L${x+BW} ${y}`;
+    const sb=x=>`M${x} ${y} L${x+14} ${y} Q${x+20} ${y-8} ${x+26} ${y} L${x+34} ${y} L${x+37} ${y+4} L${x+41} ${y-38} L${x+45} ${y-8} L${x+47} ${y-18} C${x+55} ${y-36} ${x+72} ${y-34} ${x+82} ${y} L${x+BW} ${y}`;
+    const sf=x=>`M${x+47} ${y} L${x+47} ${y-18} C${x+55} ${y-36} ${x+72} ${y-34} ${x+82} ${y} Z`;
+    let n="",st="",f="";const per=8,W=per*BW;
+    for(let c=0;c<2;c++)for(let i=0;i<per;i++){const x=c*W+i*BW;if(i<4)n+=nb(x);else{st+=sb(x);f+=sf(x);}}
+    const svg=$("stripSvg");svg.setAttribute("viewBox",`0 4 ${2*W} 58`);
+    svg.innerHTML=`<path class="stf" d="${f}"/><path class="nrm" d="${n}"/><path class="stm" d="${st}"/>`;
+  })();
+
+  // ---------- Call links: open the phone dialer ----------
+  document.querySelectorAll("[data-call]").forEach(a=>a.addEventListener("click",()=>{
+    try{navigator.clipboard&&navigator.clipboard.writeText("025048555").catch(()=>{});}catch(e){}
+    toast("Opening dialer: UMOC 02 504 8555");
+  }));
+
+  // ---------- Schematic ECG figures ----------
+  const K=5,Y0=45,NS="http://www.w3.org/2000/svg";
+  function beat(b){
+    let x=30,d=`M0 ${Y0} L12 ${Y0} Q19 ${Y0-9} 26 ${Y0} L30 ${Y0}`;
+    if(b.p===false)d=`M0 ${Y0} L30 ${Y0}`;
+    for(const [dx,amp] of b.qrs){x+=dx;d+=` L${x} ${Y0-amp*K}`;}
+    const st=b.st||0,yJ=Y0-st*K;x+=3;d+=` L${x} ${yJ}`;const jx=x;
+    const ys=b.rise?yJ-b.rise*K:yJ;x+=(b.stLen??12);d+=` L${x} ${ys}`;const sx=x;
+    const tw=b.tw||26,t=b.t??3;
+    if(b.bi){d+=` Q${x+tw/4} ${ys-2*t*K} ${x+tw/2} ${Y0} Q${x+3*tw/4} ${Y0+2*t*K} ${x+tw} ${Y0}`;}
+    else d+=` Q${x+tw/2} ${ys-2*t*K} ${x+tw} ${Y0}`;
+    x+=tw;d+=` L${x+10} ${Y0}`;x+=10;
+    return {d,w:x,jx,sx,yJ,ys,st};
+  }
+  function fig(b){
+    const r=beat(b);const box=document.createElement("div");box.className="fig";
+    const l=document.createElement("div");l.className="fl";l.textContent=b.label;box.appendChild(l);
+    const svg=document.createElementNS(NS,"svg");svg.setAttribute("viewBox",`0 0 ${r.w} 90`);svg.setAttribute("aria-hidden","true");
+    if(r.st!==0){const p=document.createElementNS(NS,"polygon");p.setAttribute("points",`${r.jx},${Y0} ${r.jx},${r.yJ} ${r.sx},${r.ys} ${r.sx},${Y0}`);p.setAttribute("class",r.st>0?"ste":"std");svg.appendChild(p);}
+    const path=document.createElementNS(NS,"path");path.setAttribute("d",r.d);path.setAttribute("class","tr");svg.appendChild(path);
+    box.appendChild(svg);
+    if(b.note){const n=document.createElement("div");n.className="fn";n.textContent=b.note;box.appendChild(n);}
+    return box;
+  }
+  const R=(r=9,s=3)=>[[3,-0.8],[3,r],[4,-s],[3,0]];
+  const rS=(r=2,s=7)=>[[3,r],[4,-s],[3,0]];
+  const FIGS={
+    stemi:[{label:"J-point STE",qrs:R(8,2),st:2,t:4,note:"Measure ST at the J-point"}],
+    post:[{label:"V1–V3",qrs:rS(3,5),st:-2,t:2.5,note:"ST depression, upright T"},{label:"V7–V9",qrs:R(5,2),st:0.8,t:2,note:"STE ≥0.5 mm"}],
+    lcx:[{label:"V7–V9, V3R, V4R",qrs:R(5,2),st:1.5,t:2.5,note:"ST elevation"}],
+    lm:[{label:"≥6 leads",qrs:R(8,2),st:-1.5,t:2,note:"STD ≥1 mm"},{label:"aVR / V1",qrs:[[3,-6],[3,1],[3,0]],st:1.5,t:-1,note:"ST elevation"}],
+    lbbbv:[{label:"V1",qrs:[[4,-5],[5,-3],[5,-8],[6,0]],st:1.5,t:3,note:"Deep wide QS, discordant ST"},{label:"V6",qrs:[[4,6],[4,4.5],[4,8],[6,0]],st:-1,t:-2,note:"Broad notched R"}],
+    rbbbv:[{label:"V1",qrs:[[3,2],[3,-1.5],[5,7],[5,0]],st:-0.5,t:-2,note:"rsR' bunny ears"},{label:"V6",qrs:[[3,-0.5],[3,8],[3,0],[8,-2.5],[5,0]],t:2,note:"Wide slurred S"}],
+    lbbb:[{label:"V1 · W",qrs:[[4,-5],[5,-3],[5,-8],[6,0]],st:1.5,t:3},{label:"V6 · M",qrs:[[4,6],[4,4.5],[4,8],[6,0]],st:-1,t:-2}],
+    rbbb:[{label:"V1 · M",qrs:[[3,2],[3,-1.5],[5,7],[5,0]],st:-0.5,t:-2},{label:"V6 · W",qrs:[[3,-0.5],[3,8],[3,0],[8,-2.5],[5,0]],t:2}]
+  };
+  const OMI=[
+    {n:"Wellens pattern A",w:"V2–V3",d:"Biphasic T wave: positive first, then negative.",f:[{label:"V2–V3",qrs:R(8,4),st:0.5,bi:true,t:2}]},
+    {n:"Wellens pattern B",w:"V2–V3",d:"Deeply inverted T wave.",f:[{label:"V2–V3",qrs:R(8,4),st:0.5,t:-3.5,tw:30}]},
+    {n:"Hyperacute T wave",w:"Any lead",d:"Broad-based, bulky, disproportionately large T wave for the QRS.",f:[{label:"Any lead",qrs:R(6,2),st:0.5,t:6,tw:38}]},
+    {n:"De Winter T wave",w:"Precordial leads",d:"Upward-sloping 1–3 mm ST depression at the J-point running into a tall positive T wave.",f:[{label:"V1–V6",qrs:R(8,3),st:-2,rise:3,stLen:8,t:5,tw:30}]},
+    {n:"Aslanger pattern",w:"III, V4–V6, V1–V2",d:"All three: any ST elevation in III, plus ST depression in any of V4–V6 with a positive or terminally positive T wave, plus ST in V1 higher than in V2.",f:[{label:"III",qrs:R(5,1),st:1,t:2,note:"Any STE"},{label:"V4–V6",qrs:R(9,2),st:-1.5,t:2,note:"STD, positive T"},{label:"V1",qrs:rS(1,6),st:1.5,t:1},{label:"V2",qrs:rS(2,8),st:0.5,t:2,note:"ST lower than V1"}]},
+    {n:"South African flag sign",w:"I, aVL, V2, III",d:"ST elevation in I, aVL and V2, with ST depression in III.",f:[{label:"I",qrs:R(6,1),st:1.5,t:2.5},{label:"aVL",qrs:R(5,1),st:1.5,t:2.5},{label:"V2",qrs:rS(2,7),st:2,t:3.5},{label:"III",qrs:R(4,3),st:-1.5,t:1}]},
+    {n:"New-onset bifascicular block",w:"V1–V2, V5–V6, II, III, aVF, aVL",d:"RBBB (rsR' in V1–V2, slurred S in V5–V6) plus left anterior fascicular block (rS in II, III, aVF and qR in aVL).",f:[{label:"V1–V2",qrs:[[3,2],[3,-1.5],[5,7],[5,0]],st:-0.5,t:-2},{label:"V5–V6",qrs:[[3,-0.5],[3,8],[3,0],[8,-2.5],[5,0]],t:2},{label:"II, III, aVF",qrs:rS(1.5,8),t:1.5,note:"rS"},{label:"aVL",qrs:[[2,-1.5],[4,8],[3,0]],t:2,note:"qR"}]},
+    {n:"Posterior OMI",w:"V1–V4",d:"Maximal ST depression in the anterior precordial leads V1–V4.",f:[{label:"V1–V4",qrs:rS(3,5),st:-3,t:2.5}]},
+    {n:"Terminal QRS distortion",w:"V2–V3",d:"Absence of both an S wave and a J wave in either V2 or V3. Points to anterior MI rather than early repolarisation.",f:[{label:"V2–V3",qrs:[[3,-0.5],[3,7],[3,3]],st:3,stLen:6,t:5,note:"No S wave, no J wave"}]},
+    {n:"Modified Sgarbossa (Smith)",w:"LBBB or paced rhythm",d:"Any one is positive. 1st: concordant ST elevation in any lead. 2nd: concordant ST depression in V1–V3. 3rd: excessively discordant ST elevation, ST/S ratio ≥25% in any lead.",f:[{label:"1st · any lead",qrs:[[3,6],[3,8],[3,7],[3,0]],st:1.5,t:4,note:"Concordant STE"},{label:"2nd · V1–V3",qrs:[[3,-6],[4,-8],[3,0]],st:-1.5,t:-1.5,note:"Concordant STD"},{label:"3rd · any lead",qrs:[[3,1],[4,-8],[3,0]],st:3,t:4,note:"ST/S ≥25%"}]},
+    {n:"Precordial swirl",w:"V1–V2, V5–V6",d:"ST elevation in V1–V2 with ST depression in V5–V6.",f:[{label:"V1–V2",qrs:rS(2,7),st:2,t:3},{label:"V5–V6",qrs:R(9,1),st:-1.5,t:1.5}]},
+    {n:"Northern OMI",w:"aVR, aVL, II, III, aVF, V4–V6",d:"Any ST elevation in aVR and aVL with a negative T wave, plus any ST depression in inferior and lateral leads with a positive or biphasic T wave.",f:[{label:"aVR",qrs:[[3,-6],[3,1],[3,0]],st:1,t:-1.5},{label:"aVL",qrs:R(5,1),st:1,t:-1.5},{label:"II, III, aVF, V4–V6",qrs:R(8,2),st:-1,t:1.5}]}
+  ];
+  document.querySelectorAll("[data-fig]").forEach(c=>(FIGS[c.dataset.fig]||[]).forEach(b=>c.appendChild(fig(b))));
+  const ol=$("omiList");
+  OMI.forEach(o=>{const d=document.createElement("div");d.className="pat";
+    const b=document.createElement("b");b.textContent=o.n;const w=document.createElement("span");w.className="w";w.textContent=o.w;
+    const f=document.createElement("div");f.className="figs";o.f.forEach(x=>f.appendChild(fig(x)));
+    const p=document.createElement("p");p.textContent=o.d;d.append(b,w,f,p);ol.appendChild(d);});
+
+  // Files
+  const drop=$("drop"),thumbs=$("thumbs"),analyzeBtn=$("analyzeBtn"),stopBtn=$("stopBtn"),clearBtn=$("clearBtn"),statusEl=$("status"),report=$("report");
+  let files=[],maxCount=4,sample=null,imagesOK=false,ctl=null,busy=false,lastReport=null;
+  function setStatus(t,o={}){statusEl.className="status"+(o.err?" err":"");statusEl.textContent="";if(o.pulse){const s=document.createElement("span");s.className="pulse";statusEl.appendChild(s);}statusEl.append(t);}
+  function refresh(){analyzeBtn.disabled=busy||!patientOK()||!files.length||!sample||!imagesOK;clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" image"+(files.length>1?"s":""):"No image yet";}
+  function addFiles(list){
+    if(!patientOK()){setStatus("Enter age and sex first.",{err:true});return;}
+    const ok=[...list].filter(f=>/^image\//.test(f.type));
+    if(!ok.length){setStatus("That file isn't an image. Use a JPEG, PNG or WebP photo.",{err:true});return;}
+    ok.forEach(f=>{if(files.length<maxCount)files.push(f);});
+    renderThumbs();refresh();if(sample&&imagesOK)setStatus("Ready. Enter age and sex, then analyze.");
+  }
+  function renderThumbs(){thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);renderThumbs();refresh();};d.append(img,b);thumbs.appendChild(d);});}
+  $("camInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
+  $("fileInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
+  ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
+  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
+  drop.addEventListener("drop",e=>{if(e.dataTransfer?.files?.length)addFiles(e.dataTransfer.files);});
+
+  refreshHook=refresh;gate();
+  function unavailable(m){$("unavail").textContent=m;$("unavail").hidden=false;refresh();}
+  (async()=>{
+    if(!window.claude||typeof window.claude.use!=="function"){unavailable("Analysis runs only when this app is opened inside Claude. The criteria, OMI, pathway and handover tabs work anywhere.");return;}
+    try{sample=await window.claude.use("sample");}catch(e){sample=null;}
+    if(!sample){unavailable("The analysis engine isn't available here. Open the app from Claude while signed in.");return;}
+    try{const lim=await sample.limits();imagesOK=!!lim?.images;if(imagesOK){maxCount=Math.max(1,Math.min(lim.images.maxCount||4,6));$("fileInput").accept=lim.images.mediaTypes.join(",");}}catch(e){imagesOK=false;}
+    if(!imagesOK)unavailable("Your Claude account doesn't support image input for published apps yet, so photos can't be analyzed here. Until it does, upload the ECG photo directly in a Claude chat for a read.");
+    refresh();
+  })();
+
+  const LEADS=["I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6"];
+
+  function buildPrompt(){
+    const age=$("age").value.trim(),sex=$("sex").value,notes=$("notes").value.trim().slice(0,1500),thr=threshold();
+    const ctx=[];
+    ctx.push("Age: "+(age||"not given"));
+    ctx.push("Sex: "+(sex||"not given"));
+    ctx.push("V2-V3 STE threshold for this patient: "+(thr||"UNKNOWN (sex not given) - use >=1.5 mm as the safety floor and say so")+"; other leads >=1 mm");
+    if(notes)ctx.push("Complaint/vitals/history: "+notes);
+    return `You are EMS Quick ECG Guide, decision support for an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) are ONE ECG tracing. Apply THIS SERVICE'S PROTOCOL below exactly.
+
+METHOD (do all of it, lead by lead, before concluding):
+1. Quality: calibration pulse (10 mm/mV, 25 mm/s), lead labels and layout, artifact, baseline wander. Name any lead you cannot read.
+2. Rhythm: rate (R-R method), regularity, P waves and P:QRS, PR (0.12-0.20 s), QRS width (<0.12 s narrow) and morphology (LBBB, RBBB, LAFB, paced, delta), QTc if estimable, axis.
+3. For EACH of the 12 leads: J-point ST deviation in mm vs the PR/TP baseline (positive = elevation), T-wave shape (upright, inverted, biphasic, hyperacute, flat), and anything notable (Q wave, rsR', S-wave/J-wave presence in V2-V3).
+4. Check contiguity: inferior II/III/aVF; lateral I/aVL/V5/V6; septal V1-V2; anterior V3-V4. Look for reciprocal change.
+
+SERVICE STEMI PPCI CRITERIA (ESC 2023):
+(i) Standard STEMI: new J-point STE in >=2 contiguous leads (incl. V3R/V4R): V2-V3 >=2.5 mm men <40, >=2 mm men >=40, >=1.5 mm women any age; >=1 mm all other leads; not valid with LVH or LBBB.
+(ii) Posterior STEMI: ST depression V1-V3 esp. with positive terminal T, and STE >=0.5 mm in V7-V9.
+(iii) LCx occlusion/RV MI: STE in V7-V9, or V3R and V4R.
+(iv) Multivessel ischaemia/left main: ST depression >=1 mm in >=6 surface leads (inferolateral) with STE in aVR and/or V1, esp. with haemodynamic compromise.
+(v) LBBB/paced: QRS >120 ms, no Q in I/V5/V6, monomorphic R in I/V5/V6, ST-T opposite main QRS deflection -> with high clinical suspicion manage as STEMI.
+(vi) RBBB: QRS >120 ms, rsR' in V1-V3, slurred S in I, aVL, often V5-V6 -> with high clinical suspicion manage as STEMI.
+
+OMI PATTERNS (exact definitions; name one only if every part is present):
+- Wellens A: biphasic T (up then down) in V2-V3.
+- Wellens B: deeply inverted T in V2-V3.
+- Hyperacute T: broad-based, bulky, disproportionately large T in any lead.
+- De Winter: upsloping 1-3 mm ST depression at the J-point with tall positive T (precordial).
+- Aslanger: any STE in III AND ST depression in any of V4-V6 with positive/terminally positive T AND ST in V1 higher than V2.
+- South African flag: STE in I, aVL and V2 with ST depression in III.
+- New-onset bifascicular block: RBBB (rsR' V1-V2, slurred S V5-V6) + LAFB (rS in II, III, aVF; qR in aVL).
+- Posterior OMI: maximal ST depression in V1-V4.
+- Terminal QRS distortion: absence of BOTH S wave and J wave in V2 or V3 (anterior MI vs early repolarisation).
+- Modified Sgarbossa-Smith (LBBB/paced only): concordant STE in any lead; concordant ST depression in V1-V3; or discordant STE with ST/S ratio >=25%.
+- Precordial swirl: STE in V1-V2 with ST depression in V5-V6.
+- Northern OMI: STE in aVR and aVL with negative T, plus ST depression in inferior and lateral leads (II, III, aVF, V4-V6) with positive or biphasic T.
+
+DECISION RULES (safety first; missing an occlusion is worse than over-calling):
+- "met": criterion (i)-(iv) clearly fulfilled; or (v)/(vi)/an OMI pattern present with a supportive complaint.
+- "consult": anything borderline or uncertain (STE within about 0.5 mm of threshold, unreadable key leads, OMI pattern without clear symptoms, BBB/paced with symptoms but no Sgarbossa, sex unknown near threshold, photo quality limits the call) -> contact UMOC for conference call. When torn between "met" and "not_met", choose "consult".
+- "not_met": criteria clearly absent AND no OMI pattern.
+- Never state a lead's value you could not see; mark it "unclear". Measurements from a photo are estimates.
+
+FIELD CONSIDERATIONS: brief, framed as considerations per the service Clinical Guidelines, Medication Formulary and UMOC/medical control, consistent with standard ACLS (aspirin chewed for ACS unless contraindicated; nitrate only if SBP >90, no PDE-5 inhibitor, no RV infarct; oxygen if SpO2 <90%; pads on for STEMI; synchronized cardioversion for unstable tachycardia; adenosine 6 mg then 12 mg rapid IV for stable regular narrow SVT; atropine 1 mg q3-5 min max 3 mg and pacing for symptomatic bradycardia; defibrillation, epinephrine 1 mg, amiodarone 300/150 mg for VF/pVT). If STEMI met: UMOC hotline 02 504 8555, "STEMI Pathway Activation", CASMEET, depart scene ASAP, SPMS STEMI tabs.
+
+Crew context:
+${ctx.join("\n")}
+
+Reply with ONLY this JSON (short field-readable strings, no markdown). "leads" MUST contain all 12 keys.
+{"is_ecg":true,
+"quality":{"adequate":true,"summary":"","limitations":[]},
+"primary":{"rhythm":"headline","confidence":"high|moderate|low","summary":""},
+"parameters":{"rate":{"value":"","note":""},"regularity":{"value":"","note":""},"p_waves":{"value":"","note":""},"pr":{"value":"","note":""},"qrs":{"value":"","note":""},"qt":{"value":"","note":""},"axis":{"value":"","note":""}},
+"leads":{"I":{"st":"elevation|depression|none|unclear","mm":"e.g. +1.5 or -1 or 0","t":"upright|inverted|biphasic|hyperacute|flat|unclear","note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
+"stemi":{"decision":"met|consult|not_met","criterion":"e.g. (i) Standard STEMI - anterior","territory":"","reasoning":"cite measured mm vs this patient's threshold"},
+"omi_patterns":["only patterns fully present"],
+"evidence":[{"claim":"each reason behind the headline and decision","leads":["V2","V3"],"criterion":"protocol item it satisfies or rules out"}],
+"alert":{"level":"critical|caution|none","headline":"","details":[]},
+"differential":[],
+"field":[]}`;
+  }
+
+  analyzeBtn.onclick=async()=>{
+    if(!sample||!files.length||busy)return;
+    busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();
+    setStatus("Reading all 12 leads against the STEMI protocol. Usually 20–60 seconds.",{pulse:true});
+    let started=false;
+    try{
+      const data=await sample.json(buildPrompt(),{images:files.slice(0,maxCount),modelTier:"complex",signal:ctl.signal,cache:false,onText:()=>{if(!started){started=true;setStatus("Writing the report…",{pulse:true});}}});
+      lastReport=data;render(data);setStatus("Report ready. Confirm against your own reading before acting.");
+    }catch(e){
+      const c=e&&e.code;
+      const m={cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
+      setStatus(m[c]||"The analysis was interrupted. Check your connection and analyze again.",{err:c!=="cancelled"});
+      if(c==="images_unavailable")imagesOK=false;
+    }finally{busy=false;ctl=null;stopBtn.hidden=true;refresh();}
+  };
+  stopBtn.onclick=()=>ctl?.abort();
+  clearBtn.onclick=()=>{
+    files=[];renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
+    $("age").value="";$("sex").value="";$("notes").value="";syncPick();
+    document.querySelectorAll("#page-handover input,#page-handover textarea").forEach(i=>i.value="");$("hout").hidden=true;$("copyBtn").hidden=true;
+    setStatus("Enter age and sex, then add an ECG image.");refresh();window.scrollTo({top:0});
+  };
+
+  const S=x=>x==null?"":String(x);
+  const arr=x=>Array.isArray(x)?x.map(S).filter(Boolean):[];
+  const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;};
+  const list=items=>{const u=el("ul");items.forEach(t=>u.appendChild(el("li",null,t)));return u;};
+  const card=(title,content)=>{const c=el("div","card");c.appendChild(el("h3",null,title));c.appendChild(content);return c;};
+
+  function leadMap(L){
+    const order=["I","aVR","V1","V4","II","aVL","V2","V5","III","aVF","V3","V6"];
+    const wrap=el("div");const g=el("div","leadmap");
+    order.forEach(k=>{
+      const d=(L&&L[k])||{};const st=S(d.st).toLowerCase();const t=S(d.t).toLowerCase();
+      let cls="lead";if(st==="elevation")cls+=" ste";else if(st==="depression")cls+=" std";else if(st==="unclear")cls+=" unclear";
+      if(st!=="elevation"&&st!=="depression"&&["inverted","biphasic","hyperacute"].includes(t))cls+=" tw";
+      const box=el("div",cls);box.appendChild(el("b",null,k));
+      let line=st==="elevation"?"STE "+(S(d.mm)||""):st==="depression"?"STD "+(S(d.mm)||""):st==="unclear"?"unclear":"ST normal";
+      box.appendChild(el("span",null,line.trim()));
+      if(t&&t!=="upright"&&t!=="unclear")box.appendChild(el("span",null,"T "+t));
+      if(d.note)box.title=S(d.note);
+      g.appendChild(box);
+    });
+    wrap.appendChild(g);
+    const lg=el("div","legend");
+    [["var(--crit)","ST elevation"],["var(--warn)","ST depression"],["var(--accent)","Abnormal T wave"],["var(--field-b)","Normal / unclear"]].forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
+    wrap.appendChild(lg);
+    const notes=LEADS.filter(k=>L&&L[k]&&L[k].note).map(k=>k+": "+S(L[k].note));
+    if(notes.length){const n=list(notes);n.style.marginTop="10px";n.style.fontSize=".88rem";wrap.appendChild(n);}
+    return wrap;
+  }
+
+  function render(d){
+    report.textContent="";
+    if(!d||typeof d!=="object"){setStatus("The report came back incomplete. Analyze again.",{err:true});return;}
+    if(d.is_ecg===false){report.appendChild(card("Not readable as an ECG",el("p",null,S(d.quality?.summary)||"Retake the photo with the full tracing in frame.")));report.hidden=false;return;}
+
+    const st=d.stemi||{};const dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult";
+    const box=el("div","stemi "+dec);box.setAttribute("role",dec==="met"?"alert":"note");
+    box.appendChild(el("p","q","STEMI PPCI criteria met?"));
+    box.appendChild(el("div","a",dec==="met"?"YES — Activate STEMI pathway":dec==="consult"?"Not fully met — consult UMOC":"NO"));
+    if(st.criterion)box.appendChild(el("p",null,S(st.criterion)+(st.territory?" · "+S(st.territory):"")));
+    if(st.reasoning)box.appendChild(el("p",null,S(st.reasoning)));
+    if(dec!=="not_met"){const a=el("a","call",dec==="met"?"Call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d":"Call UMOC 02 504 8555 for conference call");a.href="tel:025048555";box.appendChild(a);}
+    else box.appendChild(el("p",null,"Manage per working diagnosis. Transport to the nearest appropriate facility."));
+    report.appendChild(box);
+
+    const p=d.primary||{};const h=el("div","card head");
+    h.appendChild(el("p","k","Primary interpretation"));h.appendChild(el("div","r",S(p.rhythm)||"Interpretation unavailable"));
+    if(p.summary)h.appendChild(el("p",null,S(p.summary)));
+    const cf=S(p.confidence).toLowerCase();if(cf)h.appendChild(el("span","pill"+(cf==="low"?" low":""),"Confidence: "+cf));
+    report.appendChild(h);
+
+    const a=d.alert||{};const lv=["critical","caution"].includes(a.level)?a.level:"none";
+    const al=el("div","alert"+(lv==="critical"?"":" "+lv));al.appendChild(el("h3",null,S(a.headline)||(lv==="none"?"No critical EMS alert":"Caution")));
+    const ad=arr(a.details);if(ad.length)al.appendChild(list(ad));report.appendChild(al);
+
+    // Why this reading
+    const ev=Array.isArray(d.evidence)?d.evidence:[];
+    if(ev.length){
+      const u=el("ul","why");
+      ev.forEach(x=>{if(!x)return;const li=el("li");li.appendChild(el("div","claim",S(x.claim)));if(x.criterion)li.appendChild(el("div","crit",S(x.criterion)));const ls=arr(x.leads);if(ls.length){const t=el("div","ltags");ls.forEach(l=>t.appendChild(el("span",null,l)));li.appendChild(t);}u.appendChild(li);});
+      report.appendChild(card("Why this reading",u));
+    }
+
+    report.appendChild(card("Lead-by-lead read",leadMap(d.leads)));
+
+    const om=arr(d.omi_patterns);if(om.length){const w=el("div","omi");om.forEach(o=>w.appendChild(el("span",null,o)));report.appendChild(card("OMI patterns present",w));}
+
+    const P=d.parameters||{};const g=el("div","params");
+    [["rate","Rate"],["regularity","Regularity"],["p_waves","P waves"],["pr","PR"],["qrs","QRS"],["qt","QT / QTc"],["axis","Axis"]].forEach(([k,l])=>{const v=P[k];if(!v)return;const c=el("div","param");c.appendChild(el("div","pk",l));c.appendChild(el("div","pv",S(typeof v==="object"?v.value:v)||"—"));if(typeof v==="object"&&v.note)c.appendChild(el("div","pn",S(v.note)));g.appendChild(c);});
+    report.appendChild(card("Measured parameters",g));
+
+    const fc=arr(d.field);report.appendChild(card("Field considerations",fc.length?list(fc):el("p",null,"Follow the Clinical Guidelines and Medication Formulary.")));
+    const df=arr(d.differential);if(df.length)report.appendChild(card("Differential",list(df)));
+    const q=d.quality||{};const qc=el("div");qc.appendChild(el("p",null,S(q.summary)||"No quality notes."));const lm=arr(q.limitations);if(lm.length)qc.appendChild(list(lm));
+    report.appendChild(card("Image quality and limits",qc));
+
+    report.hidden=false;report.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+  }
+
+  // Handover
+  const v=id=>$(id).value.trim();
+  function ecgLine(){if(!lastReport)return "ECG: not analysed in app";const r=lastReport;let s="ECG: "+S(r.primary?.rhythm);if(r.stemi?.decision==="met")s+=" — STEMI PPCI criteria met ("+S(r.stemi.criterion)+")";else if(r.stemi?.decision==="consult")s+=" — criteria not fully met, occlusion suspected";return s;}
+  function vitals(){return [v("h_gcs")&&"AVPU/GCS "+v("h_gcs"),v("h_rr")&&"RR "+v("h_rr"),v("h_hr")&&"HR "+v("h_hr"),v("h_bp")&&"BP "+v("h_bp"),v("h_spo2")&&"SpO2 "+v("h_spo2")+"%",v("h_bgl")&&"BGL "+v("h_bgl")].filter(Boolean).join(", ")||"not recorded";}
+  const mode=()=>$("notes").value.trim()||"not recorded";
+  function out(t){$("hout").textContent=t;$("hout").hidden=false;$("copyBtn").hidden=false;}
+  $("casBtn").onclick=()=>out(`C – Call sign / incident: ${v("h_call")||"—"}
+A – Age: ${$("age").value.trim()||"—"}
+S – Sex: ${$("sex").value||"—"}
+M – Mode of illness: ${mode()}
+E – Examination: ${vitals()}. ${ecgLine()}
+E – ETA / location: ${v("h_eta")||"—"}
+T – Treatment: ${v("h_tx")||"—"}`);
+  $("imBtn").onclick=()=>out(`I – Identification: ${[$("age").value.trim()&&$("age").value.trim()+" yrs",$("sex").value].filter(Boolean).join(" ")||"—"}
+M – Medical complaint: ${mode()}
+I – Issues identified: ${ecgLine()}
+S – Signs: ${vitals()}
+T – Treatment: ${v("h_tx")||"—"}
+A – Allergies: ${v("h_all")||"—"}
+M – Medications: ${v("h_meds")||"—"}
+B – Background: ${v("h_bg")||"—"}
+O – Other: ${lastReport?.stemi?.decision==="met"?"STEMI Pathway activated via UMOC":"—"}`);
+  $("copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText($("hout").textContent);toast("Handover copied");}catch(e){toast("Copy blocked. Press and hold the text to copy.");}};
+})();
+</script>
+</body>
+</html>

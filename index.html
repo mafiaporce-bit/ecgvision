@@ -829,14 +829,14 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
   const LEADS=["I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6"];
 
-  function buildPrompt(){
+  function buildPrompt(zoom){
     const age=$("age").value.trim(),sex=$("sex").value,notes=$("notes").value.trim().slice(0,1500),thr=threshold();
     return `You are the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) (up to 5) are photos of printed ECG paper from a corpuls, LIFEPAK or similar monitor, and MUST all belong to ONE patient: either several pages of the same 12-lead, or serial 12-leads of the same patient.
 
 SAME-PATIENT CHECK (do this first): compare everything printed on each image: name, patient ID, incident/record ID, age, sex, date and time, device. If any identifier conflicts between images (different name, ID, age or sex, or dates that can't be the same care episode), or the tracings are clearly from different people, set same_patient to false, explain which images conflict, and do NOT measure or combine them. If identifiers are simply not printed, set same_patient to "unconfirmed" and continue.
 MULTIPLE IMAGES: if they are pages of one 12-lead, combine them so every lead is measured once. If they are serial 12-leads, measure the MOST RECENT one (latest printed time, or the last image if no time) for "leads", and describe changes from earlier ones in "serial_changes".
 
-YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
+${zoom?"IMAGES: image 1 is the full photo. Images 2 and 3 are ZOOMED crops of the LEFT half and RIGHT half of that same photo (not other patients, not other tracings). Use the zoomed crops to read small waveforms such as T waves; use image 1 to confirm which lead is which.\n\n":""}YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
 
 PATIENT: age ${age||"not given"}, sex ${sex||"not given"}. This patient's V2-V3 threshold is ${thr||"unknown"}; all other leads 1 mm.${notes?"\nCOMPLAINT/VITALS: "+notes:""}
 
@@ -885,6 +885,35 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 "alert":{"level":"critical|caution|none","headline":"","details":[]},
 "differential":[],
 "field":[]}`;
+  }
+
+  // The monitor measures the axes from the electrical signal itself, which is more reliable
+  // than reading small T waves from a photo. When a P-QRS-T axis line is printed, use the
+  // T axis to set clear-cut limb-lead T polarity (hexaxial projection).
+  function applyMonitorAxis(d){
+    const ax=S((d.printed||{}).axes).match(/-?\d+(\.\d+)?/g);
+    if(!ax||ax.length<3||!d.leads)return;
+    const tAx=parseFloat(ax[2]);if(!isFinite(tAx))return;
+    const ANG={I:0,II:60,III:120,aVR:-150,aVL:-30,aVF:90};const fixed=[];
+    Object.entries(ANG).forEach(([k,a])=>{const o=d.leads[k];if(!o||o.present===false)return;
+      const c=Math.cos((tAx-a)*Math.PI/180);const t=S(o.t).toLowerCase();let want=null;
+      if(c<=-0.4&&(t==="upright"||t==="flat"||t===""||t==="unclear"))want="inverted";
+      else if(c>=0.4&&(t==="inverted"||((t==="flat"||t===""||t==="unclear")&&c>=0.6)))want="upright";
+      if(want){fixed.push(k+" → "+want);o.t=want;o.note=((o.note?S(o.note)+"; ":"")+"T polarity from monitor's T axis "+tAx+"°").slice(0,160);}});
+    if(fixed.length)d._axisNote="T waves corrected using the monitor's measured T axis ("+tAx+"°): "+fixed.join(", ")+". The photo read disagreed; the monitor measures the actual signal.";
+  }
+  // Zoomed halves of a single photo so small waveforms are read at double resolution.
+  function cropPart(file,x0,x1){
+    return new Promise((res,rej)=>{const u=URL.createObjectURL(file),img=new Image();
+      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0));const M=1568,sc=Math.min(1,M/Math.max(sw,img.height));
+        const c=document.createElement("canvas");c.width=Math.round(sw*sc);c.height=Math.round(img.height*sc);
+        c.getContext("2d").drawImage(img,sx,0,sw,img.height,0,0,c.width,c.height);URL.revokeObjectURL(u);
+        c.toBlob(b=>b?res(new File([b],"zoom.jpg",{type:"image/jpeg"})):rej(new Error("crop")),"image/jpeg",0.9);};
+      img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("crop"));};img.src=u;});
+  }
+  async function withZoom(list){
+    if(list.length!==1)return {imgs:list,zoom:false};
+    try{return {imgs:[list[0],await cropPart(list[0],0,0.55),await cropPart(list[0],0.45,1)],zoom:true};}catch(e){return {imgs:list,zoom:false};}
   }
 
   // ---------- Service protocol: ESC 2023 STEMI activation table, applied in code ----------
@@ -962,7 +991,9 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     const tick=()=>setStatus(phase+"… "+Math.round((Date.now()-t0)/1000)+" s",{pulse:true});tick();const timer=setInterval(tick,1000);
     let started=false;
     try{
-      const data=await sample.json(buildPrompt(),{images:files.slice(0,maxCount),modelTier:"complex",signal:ctl.signal,cache:false,onText:()=>{if(!started){started=true;phase="Writing the report";tick();}}});
+      const zz=await withZoom(files.slice(0,maxCount));
+      const data=await sample.json(buildPrompt(zz.zoom),{images:zz.imgs,modelTier:"complex",signal:ctl.signal,cache:false,onText:()=>{if(!started){started=true;phase="Writing the report";tick();}}});
+      applyMonitorAxis(data);
       data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport=data;render(data);clearInterval(timer);setStatus("Report ready in "+Math.round((Date.now()-t0)/1000)+" s. Confirm against your own reading before acting.");
     }catch(e){
       clearInterval(timer);
@@ -1033,12 +1064,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       const mm=[];if(pa>0&&ea>0&&Math.abs(pa-ea)>1)mm.push("age "+pa+" (you entered "+ea+")");
       if(/^(M|MALE)$/.test(ps)&&es==="Female")mm.push("sex M (you entered Female)");if(/^(F|FEMALE)$/.test(ps)&&es==="Male")mm.push("sex F (you entered Male)");
       if(mm.length)st.warnings=["Printout shows "+mm.join(" and ")+". The V2–V3 threshold depends on age and sex. Check the patient details and analyze again."].concat(st.warnings||[]);}
-    // Cross-check limb-lead T waves against the monitor's printed T axis (hexaxial geometry).
-    {const ax=S((d.printed||{}).axes).match(/-?\d+(\.\d+)?/g);
-      if(ax&&ax.length>=3){const tAx=parseFloat(ax[2]);const ANG={I:0,II:60,III:120,aVR:-150,aVL:-30,aVF:90};const bad=[];
-        Object.entries(ANG).forEach(([k,a])=>{const c=Math.cos((tAx-a)*Math.PI/180);const t=S(d.leads&&d.leads[k]&&d.leads[k].t).toLowerCase();
-          if(c<=-0.4&&t==="upright")bad.push(k+" (expected inverted)");if(c>=0.4&&t==="inverted")bad.push(k+" (expected upright)");});
-        if(bad.length)st.warnings=(st.warnings||[]).concat(["The monitor's printed T axis ("+tAx+"°) disagrees with the app's T-wave read in: "+bad.join(", ")+". Check these leads on the paper."]);}}
+    if(d._axisNote)st.warnings=(st.warnings||[]).concat([d._axisNote]);
     (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
     if((st.checks||[]).length){const u=el("ul","why");st.checks.forEach(c=>{const li=el("li");li.appendChild(el("div","claim",(c.ok===true?"✅ ":c.ok===false?"✖ ":"⚠️ ")+c.t));u.appendChild(li);});report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
 

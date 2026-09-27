@@ -176,7 +176,7 @@ textarea{min-height:64px;resize:vertical}
 .out{white-space:pre-wrap;background:var(--field);border-radius:12px;padding:12px;font-size:.92rem;margin-top:10px}
 
 nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:10}
-nav.bottom button{flex:1;max-width:140px;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.8rem;font-weight:500;color:var(--soft);padding:6px 0}
+nav.bottom button{flex:1;max-width:120px;min-width:0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.8rem;font-weight:500;color:var(--soft);padding:6px 0}
 nav.bottom svg{width:26px;height:26px}
 nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:12px;font-weight:500;z-index:20;max-width:90vw;text-align:center}
@@ -264,6 +264,28 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .drop.locked .stamp{display:inline-flex}
 .drop.locked .btn{opacity:.4;pointer-events:none;filter:grayscale(1)}
 .drop.locked>p{opacity:.6}
+
+.imghint{font-size:.8rem;color:var(--soft);margin:10px 0 0}
+.samept{display:flex;align-items:flex-start;gap:10px;margin:12px auto 0;max-width:420px;text-align:left;background:var(--warn-bg);border:2px solid var(--warn);border-radius:12px;padding:10px 12px;font-size:.92rem;cursor:pointer}
+.samept input{width:22px;height:22px;flex-shrink:0;margin:0;accent-color:var(--accent)}
+.samept.ok{background:var(--ok-bg);border-color:var(--ok)}
+.pt-block{border:2px solid var(--crit);background:var(--crit-bg);border-radius:20px;padding:16px}
+.pt-block h3{margin:0 0 6px;color:var(--crit)}
+
+.review{border:2px solid var(--accent)}
+.rv-btns{display:flex;gap:10px;margin-top:10px}
+.rv-btns .btn{flex:1}
+.leadpick{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:8px 0}
+.leadpick button{border:1.5px solid var(--line);background:var(--field);border-radius:10px;min-height:40px;font-weight:700;cursor:pointer;color:var(--ink)}
+.leadpick button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.rv-form label.lbl{display:block;margin-top:10px}
+.rv-form select{width:100%;font:inherit;padding:11px 12px;border:0;border-radius:12px;background:var(--field);color:var(--ink)}
+.chk{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:.92rem}
+.chk input{width:22px;height:22px;flex-shrink:0;margin:0;accent-color:var(--accent)}
+.lesson{border-top:1px solid var(--line);padding:10px 0}
+.lesson:first-child{border-top:0;padding-top:0}
+.lesson .meta{font-size:.78rem;color:var(--soft)}
+.lesson .del{margin-top:6px;min-height:36px;padding:0 12px;font-size:.85rem}
 </style>
 </head>
 <body>
@@ -325,6 +347,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
         <label class="btn ghost">Choose file<input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
       </div>
       <div class="thumbs" id="thumbs"></div>
+      <p class="imghint" id="imgHint">Up to 5 photos, all from this one patient: pages of the same 12-lead, or serial 12-leads.</p>
+      <label class="samept" id="samePt" hidden><input type="checkbox" id="samePtChk"><span>I confirm all photos are from <b>this one patient</b></span></label>
     </div>
     <div class="lbl" style="margin:14px 0 4px">Complaint, vitals and history (optional)</div>
     <textarea id="notes" placeholder="e.g. Chest pain 40 min, diaphoretic, BP 92/60, SpO2 95%, known pacemaker"></textarea>
@@ -435,6 +459,17 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     <p style="margin:0">Manage per the working diagnosis and clinical guidelines. Transport to the nearest appropriate receiving facility. If occlusion is still suspected, call UMOC.</p>
   </div>
 </section>
+<!-- LEARNING -->
+<section id="page-learning" class="ref stack float" hidden>
+  <div class="card">
+    <h3>How the app learns</h3>
+    <p>After each reading, an ACP or physician can mark it <b>correct</b> or <b>correct it</b>. Every correction becomes a lesson that is sent with all future reads, so the same mistake isn't repeated.</p>
+    <p style="margin:0"><b>Your protocol stays locked.</b> Lessons only improve how the ECG is measured. The activation decision always follows your STEMI protocol: the ESC 2023 criteria table and the UMOC PPCI pathway. Lessons can't change thresholds or the pathway.</p>
+  </div>
+  <div class="card" id="learnStats"><h3>Accuracy</h3><p class="lbl" id="learnMsg">Loading…</p><div class="params" id="statGrid"></div></div>
+  <div class="card"><h3>Lessons in use</h3><div id="lessonList"><p class="lbl">No lessons yet.</p></div></div>
+</section>
+
 <!-- HANDOVER -->
 <section id="page-handover" class="ref float" hidden>
   <div class="card">
@@ -497,6 +532,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   <button data-go="criteria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Criteria</button>
   <button data-go="pathway"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>Pathway</button>
   <button data-go="handover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="8" y="3" width="8" height="4" rx="1"/></svg>Handover</button>
+  <button data-go="learning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/><path d="M22 10v6"/></svg>Learning</button>
 </nav>
 
 <script>
@@ -548,7 +584,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   syncPick();
 
   // Navigation with back stack
-  const pages={analyze:"",criteria:"STEMI criteria",enhanced:"Enhanced criteria",omi:"OMI patterns",bbb:"LBBB vs RBBB",pathway:"STEMI PPCI pathway",handover:"Handover"};
+  const pages={analyze:"",learning:"Learning",criteria:"STEMI criteria",enhanced:"Enhanced criteria",omi:"OMI patterns",bbb:"LBBB vs RBBB",pathway:"STEMI PPCI pathway",handover:"Handover"};
   const navMap={omi:"criteria",enhanced:"criteria",bbb:"criteria"};
   let current="analyze";const hist=[];
   function show(p){
@@ -558,7 +594,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     $("subTitle").textContent=pages[p];
     const tab=navMap[p]||p;
     document.querySelectorAll("nav.bottom button").forEach(b=>b.dataset.go===tab?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
-    current=p;window.scrollTo({top:0});
+    current=p;window.scrollTo({top:0});if(p==="learning")loadLearning();
   }
   function go(p){if(p===current)return;hist.push(current);show(p);}
   function back(){show(hist.pop()||"analyze");}
@@ -628,6 +664,63 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     try{return JSON.parse(text.slice(a,b+1));}catch(e){throw{code:"invalid_json"};}
   }};}
 
+
+  // ---------- Learning: ACP-reviewed corrections (Netlify only) ----------
+  let isNetlify=false;
+  async function api(method,body,query,admin){
+    let code=store.get("eqg-code");if(!code){code=await askCode();if(!code)throw new Error("cancelled");}
+    const h={"content-type":"application/json","x-access-code":code};if(admin)h["x-admin-code"]=admin;
+    const r=await fetch("/api/lessons"+(query||""),{method,headers:h,body:body?JSON.stringify(body):undefined});
+    if(r.status===403&&!admin&&method==="DELETE"){const a=prompt("Admin code required to remove lessons:");if(!a)throw new Error("Not removed.");return api(method,body,query,a);}
+    if(r.status===401){store.set("eqg-code","");throw new Error("Access code incorrect.");}
+    if(r.status===404)throw new Error("Learning server not deployed yet (lessons.mjs).");
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("Error "+r.status));return j;
+  }
+  function reviewCard(d){
+    const c=el("div","card review");c.appendChild(el("h3",null,"Review this reading"));
+    c.appendChild(el("p","lbl","ACP or physician: was the app's reading correct? Your review teaches future reads."));
+    const btns=el("div","rv-btns");const ok=el("button","btn","✓ Correct");const no=el("button","btn ghost","✎ Needs correction");btns.append(ok,no);c.appendChild(btns);
+    const reading=(S(d.primary&&d.primary.rhythm)+" | decision: "+S(d.stemi&&d.stemi.decision)+" "+S(d.stemi&&d.stemi.criterion)).slice(0,240);
+    const done=msg=>{c.textContent="";c.appendChild(el("h3",null,"Review saved"));c.appendChild(el("p",null,msg));};
+    ok.onclick=async()=>{ok.disabled=true;try{await api("POST",{verdict:"correct",reading});done("Thanks. Marked as correct.");}catch(e){ok.disabled=false;toast(e.message);}};
+    no.onclick=()=>{
+      btns.remove();const f=el("div","rv-form");
+      f.appendChild(el("label","lbl","Which leads were misread? (tap all that apply)"));
+      const lp=el("div","leadpick");const picked=new Set();
+      LEADS.forEach(k=>{const b=el("button",null,k);b.type="button";b.setAttribute("aria-pressed","false");b.onclick=()=>{picked.has(k)?picked.delete(k):picked.add(k);b.setAttribute("aria-pressed",picked.has(k)?"true":"false");};lp.appendChild(b);});
+      f.appendChild(lp);
+      const l1=el("label","lbl","What did the app get wrong?");const t1=document.createElement("textarea");t1.maxLength=300;t1.placeholder="e.g. Lead I T wave is inverted; app said upright. LIFEPAK '| I' marker read as lead II.";l1.appendChild(t1);f.appendChild(l1);
+      const l2=el("label","lbl","Correct final reading");const t2=document.createElement("textarea");t2.maxLength=200;t2.placeholder="e.g. Sinus rhythm, LVH with strain. No STEMI.";l2.appendChild(t2);f.appendChild(l2);
+      const l3=el("label","lbl","Reviewed by");const sel=document.createElement("select");["ACP","Physician","Paramedic"].forEach(o=>{const op=document.createElement("option");op.textContent=o;sel.appendChild(op);});l3.appendChild(sel);f.appendChild(l3);
+      const ck=el("label","chk");const cb=document.createElement("input");cb.type="checkbox";ck.append(cb,el("span",null,"This correction was reviewed by an ACP or physician."));f.appendChild(ck);
+      f.appendChild(el("p","lbl","Don't enter patient names, IDs or other identifiers."));
+      const sv=el("button","btn","Save lesson");sv.style.width="100%";sv.style.marginTop="10px";f.appendChild(sv);
+      sv.onclick=async()=>{
+        if(t1.value.trim().length<5){toast("Describe what was wrong.");return;}
+        if(!cb.checked){toast("Tick the ACP / physician review box.");return;}
+        sv.disabled=true;
+        try{await api("POST",{verdict:"corrected",reading,lesson:{text:t1.value.trim(),final:t2.value.trim(),leads:[...picked],role:sel.value,reviewed:true}});done("Saved. Future reads will use this lesson.");}
+        catch(e){sv.disabled=false;toast(e.message);}
+      };
+      c.appendChild(f);
+    };
+    return c;
+  }
+  async function loadLearning(){
+    const msg=$("learnMsg"),grid=$("statGrid"),ll=$("lessonList");
+    if(!isNetlify){msg.textContent="Learning works in the Netlify version of the app (ecgvision.netlify.app).";return;}
+    msg.textContent="Loading…";
+    try{
+      const j=await api("GET");const st=j.stats||{correct:0,corrected:0};const tot=(st.correct||0)+(st.corrected||0);
+      msg.textContent=tot?"Based on "+tot+" reviewed reading"+(tot>1?"s":"")+".":"No readings reviewed yet. Review a reading after each analysis.";
+      grid.textContent="";[["Reviewed",tot],["Correct",st.correct||0],["Corrected",st.corrected||0],["Accuracy",tot?Math.round(100*(st.correct||0)/tot)+"%":"–"]].forEach(([k,v])=>{const c=el("div","param");c.appendChild(el("div","pk",k));c.appendChild(el("div","pv",String(v)));grid.appendChild(c);});
+      ll.textContent="";const ls=(j.lessons||[]).slice().reverse();
+      if(!ls.length){ll.appendChild(el("p","lbl","No lessons yet."));return;}
+      ls.forEach(x=>{const d=el("div","lesson");d.appendChild(el("div","meta",S(x.date).slice(0,10)+" · "+S(x.role)+(x.leads&&x.leads.length?" · "+x.leads.join(", "):"")));d.appendChild(el("p",null,S(x.text)));if(x.final)d.appendChild(el("p","lbl","Correct reading: "+S(x.final)));
+        const del=el("button","btn ghost del","Remove lesson");del.onclick=async()=>{if(!confirm("Remove this lesson? Future reads will no longer use it."))return;try{await api("DELETE",null,"?id="+encodeURIComponent(x.id));loadLearning();}catch(e){toast(e.message);}};d.appendChild(del);ll.appendChild(d);});
+    }catch(e){msg.textContent=e.message;}
+  }
+
   // ---------- Call links: open the phone dialer ----------
   document.querySelectorAll("[data-call]").forEach(a=>a.addEventListener("click",()=>{
     try{navigator.clipboard&&navigator.clipboard.writeText("025048555").catch(()=>{});}catch(e){}
@@ -693,17 +786,17 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
   // Files
   const drop=$("drop"),thumbs=$("thumbs"),analyzeBtn=$("analyzeBtn"),stopBtn=$("stopBtn"),clearBtn=$("clearBtn"),statusEl=$("status"),report=$("report");
-  let files=[],maxCount=4,sample=null,imagesOK=false,ctl=null,busy=false,lastReport=null;
+  let files=[],maxCount=5,sample=null,imagesOK=false,ctl=null,busy=false,lastReport=null;
   function setStatus(t,o={}){statusEl.className="status"+(o.err?" err":"");statusEl.textContent="";if(o.pulse){const s=document.createElement("span");s.className="pulse";statusEl.appendChild(s);}statusEl.append(t);}
-  function refresh(){analyzeBtn.disabled=busy||!patientOK()||!files.length||!sample||!imagesOK;clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" image"+(files.length>1?"s":""):"No image yet";}
+  function refresh(){const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);analyzeBtn.disabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked);clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
   function addFiles(list){
     if(!patientOK()){setStatus("Enter age and sex first.",{err:true});return;}
     const ok=[...list].filter(f=>/^image\//.test(f.type));
     if(!ok.length){setStatus("That file isn't an image. Use a JPEG, PNG or WebP photo.",{err:true});return;}
-    ok.forEach(f=>{if(files.length<maxCount)files.push(f);});
-    renderThumbs();refresh();if(sample&&imagesOK)setStatus("Ready. Enter age and sex, then analyze.");
+    const before=files.length;ok.forEach(f=>{if(files.length<maxCount)files.push(f);});if(files.length!==before)$("samePtChk").checked=false;if(ok.length>files.length-before)setStatus("Maximum "+maxCount+" photos per patient. Extra photos were not added.",{err:true});
+    renderThumbs();refresh();if(sample&&imagesOK&&files.length>1&&!$("samePtChk").checked)setStatus("Confirm all photos are from this one patient.");else if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");
   }
-  function renderThumbs(){thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);renderThumbs();refresh();};d.append(img,b);thumbs.appendChild(d);});}
+  function renderThumbs(){thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};d.append(img,b);thumbs.appendChild(d);});}
   $("camInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   $("fileInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
@@ -711,13 +804,14 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   drop.addEventListener("drop",e=>{if(e.dataTransfer?.files?.length)addFiles(e.dataTransfer.files);});
 
   refreshHook=refresh;gate();
+  $("samePtChk").onchange=()=>{refresh();if($("samePtChk").checked&&patientOK())setStatus("Ready. Tap Analyze ECG.");};
   function unavailable(m){$("unavail").textContent=m;$("unavail").hidden=false;refresh();}
   (async()=>{
     const inClaude=!!(window.claude&&typeof window.claude.use==="function");
-    if(!inClaude){sample=netlifySample();imagesOK=true;maxCount=4;refresh();return;}
+    if(!inClaude){isNetlify=true;sample=netlifySample();imagesOK=true;maxCount=5;refresh();return;}
     try{sample=await window.claude.use("sample");}catch(e){sample=null;}
     if(!sample){unavailable("The analysis engine isn't available here. Open the app from Claude while signed in.");return;}
-    try{const lim=await sample.limits();imagesOK=!!lim?.images;if(imagesOK){maxCount=Math.max(1,Math.min(lim.images.maxCount||4,6));$("fileInput").accept=lim.images.mediaTypes.join(",");}}catch(e){imagesOK=false;}
+    try{const lim=await sample.limits();imagesOK=!!lim?.images;if(imagesOK){maxCount=Math.max(1,Math.min(lim.images.maxCount||5,5));$("fileInput").accept=lim.images.mediaTypes.join(",");}}catch(e){imagesOK=false;}
     if(!imagesOK)unavailable("Your Claude account doesn't support image input for published apps yet, so photos can't be analyzed here. Until it does, upload the ECG photo directly in a Claude chat for a read.");
     refresh();
   })();
@@ -726,23 +820,29 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
   function buildPrompt(){
     const age=$("age").value.trim(),sex=$("sex").value,notes=$("notes").value.trim().slice(0,1500),thr=threshold();
-    return `You are the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) show ONE ECG tracing, usually a photo of printed paper from a corpuls, LIFEPAK or similar monitor.
+    return `You are the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) (up to 5) are photos of printed ECG paper from a corpuls, LIFEPAK or similar monitor, and MUST all belong to ONE patient: either several pages of the same 12-lead, or serial 12-leads of the same patient.
+
+SAME-PATIENT CHECK (do this first): compare everything printed on each image: name, patient ID, incident/record ID, age, sex, date and time, device. If any identifier conflicts between images (different name, ID, age or sex, or dates that can't be the same care episode), or the tracings are clearly from different people, set same_patient to false, explain which images conflict, and do NOT measure or combine them. If identifiers are simply not printed, set same_patient to "unconfirmed" and continue.
+MULTIPLE IMAGES: if they are pages of one 12-lead, combine them so every lead is measured once. If they are serial 12-leads, measure the MOST RECENT one (latest printed time, or the last image if no time) for "leads", and describe changes from earlier ones in "serial_changes".
 
 YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
 
 PATIENT: age ${age||"not given"}, sex ${sex||"not given"}. This patient's V2-V3 threshold is ${thr||"unknown"}; all other leads 1 mm.${notes?"\nCOMPLAINT/VITALS: "+notes:""}
 
 HOW TO MEASURE (follow exactly, lead by lead):
+0. Identify every lead by its GRID POSITION before measuring. Most printouts are 4 columns x 3 rows: column 1 = I, II, III (top to bottom); column 2 = aVR, aVL, aVF; column 3 = V1, V2, V3; column 4 = V4, V5, V6; a long rhythm strip may run underneath. LIFEPAK and several other monitors print a vertical lead-change marker bar immediately before each label, so "| I" is lead I (NOT II), "| II" is lead II and "| III" is lead III. Never count vertical strokes to name a lead; use the grid position. Photos may show only some pages (e.g. corpuls pages 5-7) or be cut off at the edges.
 1. Calibration: find the 1 mV calibration pulse and count its height in small boxes (normally 10). Report it as calibration.mm_per_mv. Paper speed is printed (normally 25 mm/s).
 2. Baseline: the TP segment (flat line between end of T and next P). Use the PR segment only if TP is not visible.
 3. J-point: the exact point where the QRS ends and the ST segment starts, i.e. where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Measure the vertical distance between the J-point and the baseline in SMALL BOXES as seen on this paper, to the nearest 0.5. Positive = above baseline, negative = below.
 4. NEVER measure at the T-wave, at the peak of the ST hump, or in the middle of the ST segment. A tall T wave is not ST elevation.
 5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. This is very common in young men and in early repolarisation. Report the real J-point value.
 6. ST shape: isoelectric, concave (smiley), straight, convex (frowny/tombstone), horizontal, upsloping or downsloping. Only call it convex or tombstone if the ST segment clearly bows upward above the line from J-point to T peak.
-7. T wave: upright, inverted, biphasic, hyperacute (broad, bulky, disproportionately tall for the QRS) or flat, and its height in small boxes.
+7. T wave polarity for EVERY lead, judged against the baseline: upright (above), inverted (below), biphasic (both), hyperacute (broad, bulky, disproportionately tall for the QRS) or flat. Report its height in small boxes (negative if inverted). In I, II, aVL, aVF and V4-V6 the T wave is normally upright; if it dips below the baseline there, it is INVERTED and must be reported. aVR normally has an inverted T.
 8. Q waves: none, q (small) or QS.
 9. Leads not visible in the photo (for example, when only part of the printout is photographed) must be reported with "present": false and j_mm null. Never guess a lead you cannot see.
 10. Only list reciprocal change, tombstone morphology, or any finding if your own measurements show it. The headline and summary MUST agree with your j_mm values: do not write "STEMI" unless contiguous leads meet the patient's threshold.
+11. Monitor printout: if the paper shows the monitor's own data (HR, PR, QRS, QT/QTc, axes, an "STJ Level" table, or interpretation statements such as "LVH with secondary repolarization abnormality"), copy it exactly into "printed". It is the monitor's opinion, not a diagnosis. If your J-point for a lead differs from the printed STJ value by more than 0.5 mm, look at that lead again; when the photo is unclear, use the printed value and say so in that lead's note.
+12. FINAL CHECK before answering: go through all 12 leads again in grid order and confirm (a) the label matches the grid position, (b) the J-point value, (c) the T-wave polarity. Fix any mismatch.
 
 ALSO ASSESS: rate (R-R method), rhythm, P waves, PR, QRS width in ms, bundle branch block (RBBB, LBBB, paced, LAFB, bifascicular), LVH voltage, QTc if estimable, axis if limb leads visible.
 Posterior (V7-V9) or right-sided (V3R, V4R) leads: measure them only if they are printed and labelled.
@@ -753,13 +853,19 @@ FIELD CONSIDERATIONS: brief, per the service Clinical Guidelines, Medication For
 
 Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 {"is_ecg":true,
+"same_patient":true,
+"same_patient_reason":"which identifiers matched or conflicted",
+"images_used":"e.g. images 1-3 are pages of one 12-lead",
+"serial_changes":[],
 "quality":{"adequate":true,"summary":"","limitations":[]},
 "calibration":{"visible":true,"mm_per_mv":10,"paper_speed":"25 mm/s"},
 "primary":{"rhythm":"rhythm and key measured findings","confidence":"high|moderate|low","summary":""},
 "parameters":{"rate":{"value":"","note":""},"regularity":{"value":"","note":""},"p_waves":{"value":"","note":""},"pr":{"value":"","note":""},"qrs":{"value":"","note":""},"qt":{"value":"","note":""},"axis":{"value":"","note":""}},
 "conduction":{"qrs_ms":90,"bbb":"none|RBBB|LBBB|paced|LAFB|bifascicular|IVCD","lvh":false},
-"leads":{"I":{"present":true,"j_mm":0,"st_shape":"isoelectric","t":"upright","t_mm":2,"q":"none","note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
+"layout":"e.g. 3x4 + rhythm strip; labels confirmed by grid position",
+"leads":{"I":{"present":true,"j_mm":0,"st_shape":"isoelectric","t":"upright|inverted|biphasic|hyperacute|flat","t_mm":2,"q":"none","note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
 "extra_leads":{"V7":null,"V8":null,"V9":null,"V3R":null,"V4R":null},
+"printed":{"interpretation":[],"stj":{},"hr":"","pr":"","qrs":"","qtc":"","axes":""},
 "omi_patterns":[],
 "evidence":[{"claim":"a measured observation","leads":["V2"]}],
 "alert":{"level":"critical|caution|none","headline":"","details":[]},
@@ -852,7 +958,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
   };
   stopBtn.onclick=()=>ctl?.abort();
   clearBtn.onclick=()=>{
-    files=[];renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
+    files=[];$("samePtChk").checked=false;renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
     $("age").value="";$("sex").value="";$("notes").value="";syncPick();
     document.querySelectorAll("#page-handover input,#page-handover textarea").forEach(i=>i.value="");$("hout").hidden=true;$("copyBtn").hidden=true;
     setStatus("Enter age and sex, then add an ECG image.");refresh();window.scrollTo({top:0});
@@ -878,7 +984,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       if(j!==null&&["inverted","biphasic","hyperacute"].includes(t))cls+=" tw";
       const box=el("div",cls);box.appendChild(el("b",null,k));box.appendChild(el("span",null,line));
       if(j!==null&&(k==="V2"||k==="V3"||j>0))box.appendChild(el("span",null,"needs ≥"+thr(k)));
-      if(j!==null&&t&&t!=="upright")box.appendChild(el("span",null,"T "+t));
+      if(j!==null&&t&&t!=="upright"&&t!=="unclear")box.appendChild(el("span",null,"T "+t));
       if(o.note)box.title=S(o.note);
       g.appendChild(box);
     });
@@ -894,6 +1000,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
   function render(d){
     report.textContent="";
     if(!d||typeof d!=="object"){setStatus("The report came back incomplete. Analyze again.",{err:true});return;}
+    if(files.length>1&&d.same_patient===false){const b=el("div","pt-block");b.appendChild(el("h3",null,"Photos appear to be from different patients"));b.appendChild(el("p",null,S(d.same_patient_reason)||"Identifiers on the photos don't match."));b.appendChild(el("p",null,"No reading was made. Tap New patient and add photos from one patient only."));report.appendChild(b);report.hidden=false;d.stemi={decision:"consult",criterion:"Not analysed: mixed patients",checks:[],warnings:[]};return;}
     if(d.is_ecg===false){report.appendChild(card("Not readable as an ECG",el("p",null,S(d.quality?.summary)||"Retake the photo with the full tracing in frame.")));report.hidden=false;return;}
 
     const st=d.stemi||{};const dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult";
@@ -905,6 +1012,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     if(dec!=="not_met"){const a=el("a","call",dec==="met"?"Call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d":"Call UMOC 02 504 8555 for conference call");a.href="tel:025048555";box.appendChild(a);}
     else box.appendChild(el("p",null,"Manage per working diagnosis. Transport to the nearest appropriate facility."));
     report.appendChild(box);
+    if(d.same_patient==="unconfirmed"&&files.length>1)st.warnings=(st.warnings||[]).concat(["No patient identifiers printed on the photos. You confirmed they are from one patient."]);
     (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
     if((st.checks||[]).length){const u=el("ul","why");st.checks.forEach(c=>{const li=el("li");li.appendChild(el("div","claim",(c.ok===true?"✅ ":c.ok===false?"✖ ":"⚠️ ")+c.t));u.appendChild(li);});report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
 
@@ -926,7 +1034,16 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       report.appendChild(card("Why this reading",u));
     }
 
+    if(files.length>1&&(d.images_used||arr(d.serial_changes).length)){const w=el("div");if(d.images_used)w.appendChild(el("p",null,S(d.images_used)));const sc=arr(d.serial_changes);if(sc.length){w.appendChild(el("p","lbl","Changes between serial ECGs"));w.appendChild(list(sc));}report.appendChild(card("Photos used",w));}
     report.appendChild(card("Lead-by-lead read (J-point, standard 10 mm/mV)",leadMap(d)));
+    const pr=d.printed||{};const pi=arr(pr.interpretation);const stj=pr.stj&&typeof pr.stj==="object"?Object.entries(pr.stj).filter(([k,v])=>v!==null&&v!==""):[];
+    const pm=[["HR",pr.hr],["PR",pr.pr],["QRS",pr.qrs],["QT/QTc",pr.qtc],["Axes",pr.axes]].filter(x=>x[1]);
+    if(pi.length||stj.length||pm.length){const w=el("div");
+      if(pm.length)w.appendChild(el("p",null,pm.map(x=>x[0]+" "+S(x[1])).join(" · ")));
+      if(pi.length)w.appendChild(list(pi));
+      if(stj.length){const t=el("div","ltags");t.style.marginTop="8px";stj.forEach(([k,v])=>t.appendChild(el("span",null,k+" "+S(v))));w.appendChild(el("p","lbl","Printed STJ level (mm)"));w.appendChild(t);}
+      const n=el("p","lbl","The monitor's automatic statement is unconfirmed. Your own reading and UMOC decide.");n.style.marginTop="8px";w.appendChild(n);
+      report.appendChild(card("Monitor printout",w));}
 
     const om=arr(d.omi_patterns);if(om.length){const w=el("div","omi");om.forEach(o=>w.appendChild(el("span",null,o)));report.appendChild(card("OMI patterns present",w));}
 
@@ -939,6 +1056,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     const q=d.quality||{};const qc=el("div");qc.appendChild(el("p",null,S(q.summary)||"No quality notes."));const lm=arr(q.limitations);if(lm.length)qc.appendChild(list(lm));
     report.appendChild(card("Image quality and limits",qc));
 
+    if(isNetlify)report.appendChild(reviewCard(d));
     report.hidden=false;report.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
   }
 

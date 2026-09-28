@@ -374,6 +374,36 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .cxsum{white-space:pre-wrap;background:var(--field);border-radius:12px;padding:12px;font-size:.92rem;line-height:1.5}
 .cxnav{margin-top:10px}
 .flagline{background:var(--crit-bg);color:var(--crit);border-radius:10px;padding:8px 10px;font-weight:700;font-size:.85rem;margin:0 0 6px}
+
+.fullov{position:fixed;inset:0;z-index:50;background:#0B1624;color:#fff;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.ov-top b{display:block;font-size:1.1rem}
+.ov-top span{display:block;font-size:.82rem;opacity:.85;margin-top:2px}
+.rd-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;margin:10px 0}
+#rdCanvas{max-width:100%;max-height:100%;touch-action:none;border-radius:8px;background:#000}
+.ov-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ov-btns .btn{min-height:44px;font-size:.88rem;padding:0 8px}
+.ov-btns .btn.ghost{color:#fff;border-color:rgba(255,255,255,.5)}
+#rdDone{grid-column:1/-1}
+.qwarn{background:#FFE17A;color:#3A2A00;border-radius:10px;padding:8px 10px;font-size:.85rem;font-weight:700;margin-top:8px}
+.cam{padding:0;background:#000}
+#camVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.camframe{position:absolute;left:4%;right:4%;top:18%;bottom:26%;border:3px solid #FFE17A;border-radius:14px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+.camframe span{position:absolute;left:0;right:0;top:-54px;text-align:center;font-size:.8rem;font-weight:700;padding:0 8px;text-shadow:0 1px 3px #000}
+.cambtns{position:absolute;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));grid-template-columns:1fr 1fr 1fr;align-items:center}
+.camshot{width:70px;height:70px;border-radius:50%!important;background:#fff!important;border:5px solid rgba(255,255,255,.4)!important;justify-self:center;padding:0!important}
+.thumb .chk-badge{position:absolute;left:4px;bottom:4px;font-size:.68rem;font-weight:700;border-radius:6px;padding:2px 6px;border:0;cursor:pointer}
+.thumb .chk-badge.need{background:#C3283A;color:#fff}
+.thumb .chk-badge.okb{background:rgba(0,0,0,.6);color:#fff}
+
+.protostamp{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 12px;font-size:.78rem;color:var(--soft);margin-bottom:12px}
+.protostamp b{color:var(--ink)}
+.protostamp .unsigned{color:var(--crit);font-weight:700}
+.nowait{display:block;margin-top:12px;background:var(--crit-bg);color:var(--crit);border:1.5px solid var(--crit);border-radius:12px;padding:9px 12px;font-size:.84rem;text-decoration:none;line-height:1.35}
+.nowait b{display:block}
+.xleads{border-radius:16px;padding:11px 13px;background:var(--card);border:2px solid var(--accent)}
+.xleads h3{margin:0 0 4px;font-size:1rem;color:var(--accent)}
+.xleads ul{margin:0;padding-left:1.2em;font-size:.88rem}
+.xleads li{margin:4px 0}
 </style>
 </head>
 <body>
@@ -433,7 +463,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
       <p>Lay the tracing flat, fill the frame, avoid glare. Keep lead labels and the calibration pulse in view.</p>
       <div class="btn-row">
         <button type="button" class="stamp" id="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span><b>Age and sex required</b><small>Tap to enter patient details</small></span></button>
-        <label class="btn">Take photo<input type="file" id="camInput" accept="image/*" capture="environment"></label>
+        <button type="button" class="btn" id="camBtn">Take photo</button><input type="file" id="camInput" accept="image/*" capture="environment" hidden>
         <label class="btn ghost">Choose file<input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
       </div>
       <div class="thumbs" id="thumbs"></div>
@@ -444,6 +474,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     <button type="button" class="cxfield" id="cxOpen"><span id="cxText" class="empty">Tap to add symptoms, onset, skin, vitals and history</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
     <textarea id="notes" hidden></textarea>
     <label class="chk dbl"><input type="checkbox" id="dblChk"><span><b>Double-check</b>: two independent reads compared lead by lead. Higher confidence, about twice the cost.</span></label>
+    <a class="nowait" href="tel:+97125048555" target="_blank" rel="noopener" data-call><b>STEMI on the monitor? Call UMOC now.</b> Don't wait for this app. 📞 02 504 8555</a>
     <div class="actions">
       <button class="btn" id="analyzeBtn" disabled>Analyze ECG</button>
       <button class="btn ghost" id="stopBtn" hidden>Stop</button>
@@ -457,6 +488,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
 <!-- STANDARD CRITERIA -->
 <section id="page-criteria" class="ref stack float" hidden>
+  <div class="protostamp" data-stamp></div>
   <div class="card">
     <h3><span class="tag">i</span>Standard STEMI activation</h3>
     <div class="figs" data-fig="stemi"></div>
@@ -540,6 +572,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
 <!-- PATHWAY -->
 <section id="page-pathway" class="ref stack float" hidden>
+  <div class="protostamp" data-stamp></div>
   <a class="hotline" href="tel:+97125048555" target="_blank" rel="noopener" data-call>Call UMOC hotline 02 504 8555</a>
   <div class="card">
     <h3>STEMI PPCI criteria met</h3>
@@ -566,6 +599,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     <p style="margin:0"><b>Your protocol stays locked.</b> Lessons only improve how the ECG is measured. The activation decision always follows your STEMI protocol: the ESC 2023 criteria table and the UMOC PPCI pathway. Lessons can't change thresholds or the pathway.</p>
   </div>
   <div class="card" id="learnStats"><h3>Accuracy</h3><p class="lbl" id="learnMsg">Loading…</p><div class="params" id="statGrid"></div></div>
+  <div class="card"><h3>Validation tally</h3><p class="lbl">Counts readings where a reviewer entered the confirmed answer. This is how you prove the app is safe.</p><div id="valBox"><p class="lbl">No confirmed answers yet.</p></div></div>
+  <div class="card"><h3>Usage log</h3><p class="lbl">Anonymous: decision, confidence and time only. No photos or patient details.</p><div id="useBox"><p class="lbl">No readings logged yet.</p></div><button type="button" class="btn ghost" id="csvBtn" style="width:100%;margin-top:10px">Download log (CSV)</button></div>
   <div class="card"><h3>Lessons in use</h3><div id="lessonList"><p class="lbl">No lessons yet.</p></div></div>
 </section>
 
@@ -597,7 +632,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     <div class="actions"><button class="btn ghost" id="copyBtn" hidden>Copy handover</button></div>
   </div>
 </section>
-<p class="foot"><b>Clinical tool for educational and supportive use.</b> Always correlate with clinical presentation, patient history, physical exam, and primary monitoring equipment. Your own ECG reading, local protocols and UMOC / medical control take precedence.</p>
+<p class="foot"><span data-stamp-short></span><br><b>Clinical tool for educational and supportive use.</b> Always correlate with clinical presentation, patient history, physical exam, and primary monitoring equipment. Your own ECG reading, local protocols and UMOC / medical control take precedence.</p>
 </main>
 
 
@@ -633,6 +668,26 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   <div id="cxBody" class="cxbody"></div>
   <div class="actions cxnav"><button type="button" class="btn ghost" id="cxBack">Back</button><button type="button" class="btn" id="cxNext">Next</button></div>
 </div>
+<div class="fullov" id="redact" hidden>
+  <div class="ov-top"><b>Cover patient details</b><span>Drag on the photo to black out the name, ID and record number. Keep the axes and STJ numbers visible. Tap a box to remove it.</span></div>
+  <div class="qwarn" id="qWarn" hidden></div>
+  <div class="rd-wrap"><canvas id="rdCanvas"></canvas></div>
+  <div class="ov-btns">
+    <button type="button" class="btn ghost" id="rdRetake">Remove photo</button>
+    <button type="button" class="btn ghost" id="rdReset">Default box</button>
+    <button type="button" class="btn ghost" id="rdNone">No details on photo</button>
+    <button type="button" class="btn" id="rdDone">Done: details covered</button>
+  </div>
+</div>
+<div class="fullov cam" id="camOv" hidden>
+  <video id="camVid" playsinline muted></video>
+  <div class="camframe"><span>Fit the whole printout inside the frame. Include the header (axes) and the STJ table. Hold the phone flat above the paper.</span></div>
+  <div class="ov-btns cambtns">
+    <button type="button" class="btn ghost" id="camCancel">Cancel</button>
+    <button type="button" class="btn ghost" id="camNative">Phone camera</button>
+    <button type="button" class="btn camshot" id="camShot" aria-label="Capture photo"></button>
+  </div>
+</div>
 <nav class="bottom" aria-label="Main">
   <button data-go="analyze" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2-6 4 12 2-6h8"/></svg>Analyze</button>
   <button data-go="criteria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Criteria</button>
@@ -643,6 +698,9 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
 <script>
 (function(){
+  // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
+  const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
+  const APP_VERSION="1.0";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -676,7 +734,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     updThr();gate();if(reEvalHook)reEvalHook();
   }
   function patientOK(){return !!($("age").value&&$("sex").value);}
-  function gate(){const ok=patientOK();$("drop").classList.toggle("locked",!ok);$("camInput").disabled=!ok;$("fileInput").disabled=!ok;if(!ok)$("analyzeBtn").disabled=true;else if(refreshHook)refreshHook();}
+  function gate(){const ok=patientOK();$("drop").classList.toggle("locked",!ok);$("camInput").disabled=!ok;$("camBtn").disabled=!ok;$("fileInput").disabled=!ok;if(!ok)$("analyzeBtn").disabled=true;else if(refreshHook)refreshHook();}
   $("stamp").onclick=()=>{if(!$("age").value)$("ageBtn").click();else $("sexBtn").click();};
   $("sexBtn").onclick=()=>{syncPick();sheetOpen("sexSheet");};
   document.querySelectorAll(".sexopt").forEach(b=>b.onclick=()=>{$("sex").value=b.dataset.sex;syncPick();sheetClose();if(!$("age").value)setTimeout(()=>$("ageBtn").click(),180);});
@@ -797,10 +855,14 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   function reviewCard(d){
     const c=el("div","card review");c.appendChild(el("h3",null,"Review this reading"));
     c.appendChild(el("p","lbl","ACP or physician: was the app's reading correct? Your review teaches future reads."));
+    c.appendChild(el("p","lbl","Confirmed answer (from ACP, physician or cath lab). Used for the validation tally:"));
+    const refw=el("div","opts");[["stemi","STEMI – activate"],["omi","OMI – UMOC decision"],["not_stemi","Not STEMI"]].forEach(([v,t])=>{const b=el("button","opt",t);b.type="button";b.setAttribute("aria-pressed","false");
+      b.onclick=async()=>{if(!d._logId){toast("Still saving the reading. Try again in a moment.");return;}try{await api("POST",{verdict:"reference",id:d._logId,ref:v});refw.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));toast("Confirmed answer saved.");}catch(e){toast(e.message);}};refw.appendChild(b);});
+    c.appendChild(refw);c.appendChild(el("p","lbl","Was the app's lead-by-lead reading correct?"));
     const btns=el("div","rv-btns");const ok=el("button","btn","✓ Correct");const no=el("button","btn ghost","✎ Needs correction");btns.append(ok,no);c.appendChild(btns);
     const reading=(S(d.primary&&d.primary.rhythm)+" | decision: "+S(d.stemi&&d.stemi.decision)+" "+S(d.stemi&&d.stemi.criterion)).slice(0,240);
     const done=msg=>{c.textContent="";c.appendChild(el("h3",null,"Review saved"));c.appendChild(el("p",null,msg));};
-    ok.onclick=async()=>{ok.disabled=true;try{await api("POST",{verdict:"correct",reading});done("Thanks. Marked as correct.");}catch(e){ok.disabled=false;toast(e.message);}};
+    ok.onclick=async()=>{ok.disabled=true;try{await api("POST",{verdict:"correct",reading,logId:d._logId});done("Thanks. Marked as correct.");}catch(e){ok.disabled=false;toast(e.message);}};
     no.onclick=()=>{
       btns.remove();const f=el("div","rv-form");
       f.appendChild(el("label","lbl","Which leads were misread? (tap all that apply)"));
@@ -817,13 +879,45 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
         if(t1.value.trim().length<5){toast("Describe what was wrong.");return;}
         if(!cb.checked){toast("Tick the ACP / physician review box.");return;}
         sv.disabled=true;
-        try{await api("POST",{verdict:"corrected",reading,lesson:{text:t1.value.trim(),final:t2.value.trim(),leads:[...picked],role:sel.value,reviewed:true}});done("Saved. Future reads will use this lesson.");}
+        try{await api("POST",{verdict:"corrected",reading,logId:d._logId,lesson:{text:t1.value.trim(),final:t2.value.trim(),leads:[...picked],role:sel.value,reviewed:true}});done("Saved. Future reads will use this lesson.");}
         catch(e){sv.disabled=false;toast(e.message);}
       };
       c.appendChild(f);
     };
     return c;
   }
+  let logCache=[];
+  function renderLog(log){
+    logCache=log;const vb=$("valBox"),ub=$("useBox");vb.textContent="";ub.textContent="";
+    const withRef=log.filter(x=>x.ref);
+    if(withRef.length){
+      const st=withRef.filter(x=>x.ref==="stemi"),ns=withRef.filter(x=>x.ref==="not_stemi"),om=withRef.filter(x=>x.ref==="omi");
+      const cnt=(a,dec)=>a.filter(x=>x.decision===dec).length;
+      const g=el("div","params");
+      const cell=(k,v,n,bad)=>{const c=el("div","param");c.appendChild(el("div","pk",k));const pv=el("div","pv",String(v));if(bad&&Number(v)>0)pv.style.color="var(--crit)";c.appendChild(pv);if(n)c.appendChild(el("div","pn",n));g.appendChild(c);};
+      cell("Confirmed STEMIs",st.length);
+      cell("App said YES",cnt(st,"met"),st.length?Math.round(100*cnt(st,"met")/st.length)+"% of STEMIs":"");
+      cell("App said consult",cnt(st,"consult"),"flagged, not activated");
+      cell("MISSED (app said NO)",cnt(st,"not_met"),st.length?Math.round(100*cnt(st,"not_met")/st.length)+"% of STEMIs":"",true);
+      cell("Confirmed not STEMI",ns.length);
+      cell("False activations",cnt(ns,"met"),ns.length?Math.round(100*cnt(ns,"met")/ns.length)+"%":"",true);
+      cell("Confirmed OMI",om.length);
+      cell("OMI flagged (yellow or YES)",om.filter(x=>x.omi.length||x.decision==="met").length,"");
+      vb.appendChild(g);
+      vb.appendChild(el("p","lbl",withRef.length<100?"Aim for at least 100 confirmed readings, including 20+ real STEMIs, before trusting these numbers.":"Share these numbers with your medical director."));
+    }else vb.appendChild(el("p","lbl","No confirmed answers yet. After each reading, pick the confirmed answer in the Review card."));
+    if(log.length){
+      const now=Date.now(),d7=log.filter(x=>now-Date.parse(x.date)<7*864e5).length;
+      const avg=k=>Math.round(log.reduce((n,x)=>n+(Number(x[k])||0),0)/log.length);
+      const g=el("div","params");[["Readings",log.length],["Last 7 days",d7],["YES",log.filter(x=>x.decision==="met").length],["Consult",log.filter(x=>x.decision==="consult").length],["NO",log.filter(x=>x.decision==="not_met").length],["Avg confidence",avg("conf")+"%"],["Avg time",avg("secs")+" s"],["Reviewed",log.filter(x=>x.review||x.ref).length]].forEach(([k,v])=>{const c=el("div","param");c.appendChild(el("div","pk",k));c.appendChild(el("div","pv",String(v)));g.appendChild(c);});
+      ub.appendChild(g);
+    }else ub.appendChild(el("p","lbl","No readings logged yet."));
+  }
+  $("csvBtn").onclick=()=>{if(!logCache.length){toast("No readings logged yet.");return;}
+    const cols=["date","decision","criterion","conf","omi","double","secs","missing","review","ref"];
+    const q=v=>'"'+String(v==null?"":Array.isArray(v)?v.join("; "):v).replace(/"/g,'""')+'"';
+    const csv=[cols.join(",")].concat(logCache.map(x=>cols.map(c=>q(x[c])).join(","))).join("\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="ecg-guide-log.csv";document.body.appendChild(a);a.click();a.remove();};
   async function loadLearning(){
     const msg=$("learnMsg"),grid=$("statGrid"),ll=$("lessonList");
     if(!isNetlify){msg.textContent="Learning works in the Netlify version of the app (ecgvision.netlify.app).";return;}
@@ -832,6 +926,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
       const j=await api("GET");const st=j.stats||{correct:0,corrected:0};const tot=(st.correct||0)+(st.corrected||0);
       msg.textContent=tot?"Based on "+tot+" reviewed reading"+(tot>1?"s":"")+".":"No readings reviewed yet. Review a reading after each analysis.";
       grid.textContent="";[["Reviewed",tot],["Correct",st.correct||0],["Corrected",st.corrected||0],["Accuracy",tot?Math.round(100*(st.correct||0)/tot)+"%":"–"]].forEach(([k,v])=>{const c=el("div","param");c.appendChild(el("div","pk",k));c.appendChild(el("div","pv",String(v)));grid.appendChild(c);});
+      renderLog(j.log||[]);
       ll.textContent="";const ls=(j.lessons||[]).slice().reverse();
       if(!ls.length){ll.appendChild(el("p","lbl","No lessons yet."));return;}
       ls.forEach(x=>{const d=el("div","lesson");d.appendChild(el("div","meta",S(x.date).slice(0,10)+" · "+S(x.role)+(x.leads&&x.leads.length?" · "+x.leads.join(", "):"")));d.appendChild(el("p",null,S(x.text)));if(x.final)d.appendChild(el("p","lbl","Correct reading: "+S(x.final)));
@@ -919,6 +1014,75 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   window.__cxReset=()=>{cx=CX0();cxApply();};
   window.__cx=()=>cx;
 
+
+  // ---------- Patient-detail redaction + photo quality check ----------
+  const cleared=new WeakSet();let rdQueue=[],rdFile=null,rdImg=null,rdRects=[],rdDrag=null;
+  const RD_DEFAULT=()=>[{x:0.02,y:0.02,w:0.33,h:0.22}];
+  function quality(img){
+    const w=600,h=Math.max(1,Math.round(img.height*w/img.width));const c=document.createElement("canvas");c.width=w;c.height=h;const x=c.getContext("2d");x.drawImage(img,0,0,w,h);
+    const d=x.getImageData(0,0,w,h).data;const g=new Float32Array(w*h);let bright=0;
+    for(let i=0,p=0;i<d.length;i+=4,p++){g[p]=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];if(Math.min(d[i],d[i+1],d[i+2])>=250)bright++;}
+    let sum=0,sq=0,n=0;for(let yy=1;yy<h-1;yy++)for(let xx=1;xx<w-1;xx++){const p=yy*w+xx;const l=g[p-1]+g[p+1]+g[p-w]+g[p+w]-4*g[p];sum+=l;sq+=l*l;n++;}
+    const mean=sum/n;return {sharp:sq/n-mean*mean,glare:bright/(w*h)};
+  }
+  function rdDraw(){const c=$("rdCanvas"),x=c.getContext("2d");x.drawImage(rdImg,0,0,c.width,c.height);
+    rdRects.forEach(r=>{x.fillStyle="rgba(0,0,0,.88)";x.fillRect(r.x*c.width,r.y*c.height,r.w*c.width,r.h*c.height);x.strokeStyle="#FF5C6C";x.lineWidth=3;x.strokeRect(r.x*c.width,r.y*c.height,r.w*c.width,r.h*c.height);});
+    if(rdDrag&&rdDrag.moved){const r=rdDrag.r;x.strokeStyle="#FFE17A";x.lineWidth=3;x.setLineDash([8,6]);x.strokeRect(r.x*c.width,r.y*c.height,r.w*c.width,r.h*c.height);x.setLineDash([]);}}
+  function rdOpenNext(){
+    if(!rdQueue.length){$("redact").hidden=true;renderThumbs();refresh();if(files.length&&files.every(f=>cleared.has(f))&&patientOK())setStatus(files.length>1&&!$("samePtChk").checked?"Confirm all photos are from this one patient.":"Ready. Tap Analyze ECG.");return;}
+    rdFile=rdQueue.shift();const u=URL.createObjectURL(rdFile);const img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(u);rdImg=img;rdRects=RD_DEFAULT();
+      const wrap=$("redact").querySelector(".rd-wrap");$("redact").hidden=false;
+      const maxW=Math.min(window.innerWidth-24,1000),maxH=Math.max(200,window.innerHeight-260);const sc=Math.min(maxW/img.width,maxH/img.height);
+      const c=$("rdCanvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);rdDraw();
+      const q=quality(img);const w=[];if(q.sharp<60)w.push("Photo looks blurry. Retake it for a reliable read.");if(q.glare>0.06)w.push("Glare detected on the paper. Tilt the phone or move away from direct light.");
+      $("qWarn").textContent=w.map(t=>"⚠ "+t).join(" ");$("qWarn").hidden=!w.length;};
+    img.onerror=()=>{URL.revokeObjectURL(u);toast("Couldn't open that photo.");const i=files.indexOf(rdFile);if(i>=0)files.splice(i,1);rdOpenNext();};
+    img.src=u;
+  }
+  function rdPos(e){const c=$("rdCanvas"),b=c.getBoundingClientRect();return {x:Math.min(1,Math.max(0,(e.clientX-b.left)/b.width)),y:Math.min(1,Math.max(0,(e.clientY-b.top)/b.height))};}
+  $("rdCanvas").addEventListener("pointerdown",e=>{e.preventDefault();$("rdCanvas").setPointerCapture(e.pointerId);const p=rdPos(e);rdDrag={p0:p,moved:false,r:{x:p.x,y:p.y,w:0,h:0}};});
+  $("rdCanvas").addEventListener("pointermove",e=>{if(!rdDrag)return;const p=rdPos(e),a=rdDrag.p0;if(Math.abs(p.x-a.x)+Math.abs(p.y-a.y)>0.02)rdDrag.moved=true;rdDrag.r={x:Math.min(a.x,p.x),y:Math.min(a.y,p.y),w:Math.abs(p.x-a.x),h:Math.abs(p.y-a.y)};rdDraw();});
+  $("rdCanvas").addEventListener("pointerup",e=>{if(!rdDrag)return;const d=rdDrag;rdDrag=null;
+    if(d.moved&&d.r.w>0.02&&d.r.h>0.02)rdRects.push(d.r);
+    else{const p=d.p0;const i=rdRects.findIndex(r=>p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h);if(i>=0)rdRects.splice(i,1);}
+    rdDraw();});
+  $("rdReset").onclick=()=>{rdRects=RD_DEFAULT();rdDraw();};
+  $("rdRetake").onclick=()=>{const i=files.indexOf(rdFile);if(i>=0)files.splice(i,1);$("samePtChk").checked=false;rdOpenNext();};
+  $("rdNone").onclick=()=>{cleared.add(rdFile);rdOpenNext();};
+  $("rdDone").onclick=()=>{
+    if(!rdRects.length){toast("Draw a box over the patient details, or tap 'No details on photo'.");return;}
+    const c=document.createElement("canvas");c.width=rdImg.width;c.height=rdImg.height;const x=c.getContext("2d");x.drawImage(rdImg,0,0);x.fillStyle="#000";
+    rdRects.forEach(r=>x.fillRect(r.x*c.width,r.y*c.height,r.w*c.width,r.h*c.height));
+    const old=rdFile;c.toBlob(b=>{if(!b){toast("Couldn't save the covered photo.");return;}const nf=new File([b],"ecg-covered.jpg",{type:"image/jpeg"});cleared.add(nf);
+      const i=files.indexOf(old);if(i>=0)files[i]=nf;rdOpenNext();},"image/jpeg",0.92);
+  };
+  window.__rdQueue=list=>{rdQueue=rdQueue.concat(list);if($("redact").hidden)rdOpenNext();};
+  window.__cleared=f=>cleared.has(f);
+  window.__rdOpen=f=>{rdQueue=[f].concat(rdQueue);rdOpenNext();};
+
+  // ---------- Guided camera ----------
+  let camStream=null;
+  function camClose(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}$("camOv").hidden=true;}
+  $("camBtn").onclick=async()=>{
+    if(!patientOK()){toast("Enter age and sex first.");return;}
+    if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){$("camInput").click();return;}
+    try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:3840},height:{ideal:2160}},audio:false});
+      const v=$("camVid");v.srcObject=camStream;$("camOv").hidden=false;await v.play();}
+    catch(e){camClose();$("camInput").click();}
+  };
+  $("camCancel").onclick=camClose;
+  $("camNative").onclick=()=>{camClose();$("camInput").click();};
+  $("camShot").onclick=()=>{const v=$("camVid");if(!v.videoWidth)return;const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
+    c.toBlob(b=>{camClose();if(b)addFiles([new File([b],"ecg-photo.jpg",{type:"image/jpeg"})]);},"image/jpeg",0.93);};
+
+  // ---------- Offline mode (Netlify only) ----------
+  if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")&&!window.claude){window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{});});}
+  window.addEventListener("offline",()=>toast("No signal. Reference pages, handover and UMOC call still work."));
+  window.addEventListener("online",()=>toast("Back online. ECG analysis is available again."));
+  // ---------- Protocol stamp ----------
+  document.querySelectorAll("[data-stamp]").forEach(e=>{e.textContent="";const b=document.createElement("b");b.textContent="Protocol: ";e.append(b,PROTOCOL.name,document.createElement("br"),"Reviewed by: ");const r=document.createElement("span");r.textContent=PROTOCOL.reviewedBy+(PROTOCOL.reviewDate?" on "+PROTOCOL.reviewDate:"");if(/not yet/i.test(PROTOCOL.reviewedBy))r.className="unsigned";e.append(r," · App v"+APP_VERSION);});
+  document.querySelectorAll("[data-stamp-short]").forEach(e=>e.textContent="Follows "+PROTOCOL.name+" · App v"+APP_VERSION+" · "+(/not yet/i.test(PROTOCOL.reviewedBy)?"not yet signed off":"reviewed by "+PROTOCOL.reviewedBy));
   // ---------- Call links: open the phone dialer ----------
   document.querySelectorAll("[data-call]").forEach(a=>a.addEventListener("click",()=>{
     try{navigator.clipboard&&navigator.clipboard.writeText("025048555").catch(()=>{});}catch(e){}
@@ -987,15 +1151,15 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   const drop=$("drop"),thumbs=$("thumbs"),analyzeBtn=$("analyzeBtn"),stopBtn=$("stopBtn"),clearBtn=$("clearBtn"),statusEl=$("status"),report=$("report");
   let files=[],maxCount=5,sample=null,imagesOK=false,ctl=null,busy=false,lastReport=null;
   function setStatus(t,o={}){statusEl.className="status"+(o.err?" err":"");statusEl.textContent="";if(o.pulse){const s=document.createElement("span");s.className="pulse";statusEl.appendChild(s);}statusEl.append(t);}
-  function refresh(){const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);analyzeBtn.disabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked);clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
+  function refresh(){const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);const unchecked=files.some(f=>!window.__cleared(f));analyzeBtn.disabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked)||unchecked;if(unchecked&&!busy)setStatus("Cover the patient details on each photo (tap the red badge).");clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
   function addFiles(list){
     if(!patientOK()){setStatus("Enter age and sex first.",{err:true});return;}
     const ok=[...list].filter(f=>/^image\//.test(f.type));
     if(!ok.length){setStatus("That file isn't an image. Use a JPEG, PNG or WebP photo.",{err:true});return;}
-    const before=files.length;ok.forEach(f=>{if(files.length<maxCount)files.push(f);});if(files.length!==before)$("samePtChk").checked=false;if(ok.length>files.length-before)setStatus("Maximum "+maxCount+" photos per patient. Extra photos were not added.",{err:true});
+    const before=files.length;const added=[];ok.forEach(f=>{if(files.length<maxCount){files.push(f);added.push(f);}});if(added.length)window.__rdQueue(added);if(files.length!==before)$("samePtChk").checked=false;if(ok.length>files.length-before)setStatus("Maximum "+maxCount+" photos per patient. Extra photos were not added.",{err:true});
     renderThumbs();refresh();if(sample&&imagesOK&&files.length>1&&!$("samePtChk").checked)setStatus("Confirm all photos are from this one patient.");else if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");
   }
-  function renderThumbs(){thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};d.append(img,b);thumbs.appendChild(d);});}
+  function renderThumbs(){thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};const ck=document.createElement("button");ck.type="button";const okc=window.__cleared(f);ck.className="chk-badge "+(okc?"okb":"need");ck.textContent=okc?"✓ covered":"Cover details";ck.onclick=()=>window.__rdOpen(f);d.append(img,b,ck);thumbs.appendChild(d);});}
   $("camInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   $("fileInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
@@ -1150,6 +1314,18 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     try{return {imgs:[list[0],await cropPart(list[0],0,0.55),await cropPart(list[0],0.45,1)],zoom:true};}catch(e){return {imgs:list,zoom:false};}
   }
 
+  // Extra leads and next ECG steps suggested by the result (workbook enhanced criteria ii and iii).
+  function nextSteps(d){
+    const st=d.stemi||{},J=st.J||(()=>null),out=[];const ge=(k,v)=>J(k)!==null&&J(k)>=v,le=(k,v)=>J(k)!==null&&J(k)<=v;
+    const inf=["II","III","aVF"].filter(k=>ge(k,1));
+    if(inf.length>=2||/inferior/i.test(S(st.territory)))out.push("Record right-sided leads V3R–V4R: inferior ST elevation. STE ≥1 mm in V4R means right-ventricular infarct: avoid nitrates, give fluids per guidelines. (Criterion iii)");
+    const pd=["V1","V2","V3"].filter(k=>le(k,-0.5));
+    if(pd.length>=2||/posterior/i.test(S(st.criterion))||(st.omi||[]).some(x=>/posterior/i.test(x.n)))out.push("Record posterior leads V7–V9: ST depression in V1–V3. STE ≥0.5 mm in V7–V9 confirms posterior STEMI. (Criterion ii)");
+    if(["I","aVL","V5","V6"].filter(k=>ge(k,1)).length>=2&&!inf.length)out.push("Lateral ST elevation: check V7–V9 for circumflex (LCx) involvement. (Criterion iii)");
+    if(st.decision==="consult"||(st.omi||[]).length)out.push("Repeat the 12-lead every 10–15 minutes, or at once if symptoms change. Evolving changes can meet criteria later.");
+    if((st.missing||[]).filter(k=>k!=="aVR").length)out.push("Photograph the full 12-lead: some leads were not in the photo.");
+    return out;
+  }
   // ---------- Service protocol: ESC 2023 STEMI activation table, applied in code ----------
   const CONTIG=[["II","III"],["III","aVF"],["II","aVF"],["I","aVL"],["I","V5"],["I","V6"],["aVL","V5"],["aVL","V6"],["V5","V6"],["V1","V2"],["V2","V3"],["V3","V4"],["V4","V5"]];
   const TERR={II:"inferior",III:"inferior",aVF:"inferior",I:"lateral",aVL:"lateral",V5:"lateral",V6:"lateral",V1:"septal",V2:"septal",V3:"anterior",V4:"anterior"};
@@ -1266,6 +1442,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 
   analyzeBtn.onclick=async()=>{
     if(!sample||!files.length||busy)return;
+    if(isNetlify&&navigator.onLine===false){setStatus("No connection. ECG analysis needs internet. Reference pages, handover and the UMOC call still work offline.",{err:true});return;}
     busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();
     const t0=Date.now();let phase="Reading all 12 leads";
     const tick=()=>setStatus(phase+"… "+Math.round((Date.now()-t0)/1000)+" s",{pulse:true});tick();const timer=setInterval(tick,1000);
@@ -1281,6 +1458,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       applyMonitorSTJ(data);
       applyMonitorAxis(data);
       data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);lastReport=data;render(data);clearInterval(timer);setStatus("Report ready in "+Math.round((Date.now()-t0)/1000)+" s. Confirm against your own reading before acting.");
+      if(isNetlify){const st=data.stemi||{};api("POST",{verdict:"log",entry:{decision:st.decision,criterion:st.criterion,conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:Math.round((Date.now()-t0)/1000),missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
     }catch(e){
       clearInterval(timer);
       const c=e&&e.code;
@@ -1353,6 +1531,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       ob.appendChild(list(st.omi.map(x=>(x.confirmed?"✔ ":"? ")+x.n+": "+x.why)));
       const a=el("a","call","Call UMOC 02 504 8555 · discuss activation");a.href="tel:+97125048555";a.target="_blank";a.rel="noopener";a.addEventListener("click",()=>toast("Opening dialer: UMOC 02 504 8555"));ob.appendChild(a);
       report.appendChild(ob);}
+    {const ns=nextSteps(d);if(ns.length){const x=el("div","xleads");x.appendChild(el("h3",null,"Next ECG steps"));x.appendChild(list(ns));report.appendChild(x);}}
     if(d.same_patient==="unconfirmed"&&files.length>1)st.warnings=(st.warnings||[]).concat(["No patient identifiers printed on the photos. You confirmed they are from one patient."]);
     {const pr=d.printed||{},pa=parseInt(pr.age,10),ps=S(pr.sex).trim().toUpperCase(),ea=parseInt($("age").value,10),es=$("sex").value;
       const mm=[];if(pa>0&&ea>0&&Math.abs(pa-ea)>1)mm.push("age "+pa+" (you entered "+ea+")");

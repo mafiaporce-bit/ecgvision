@@ -313,6 +313,67 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .omibox p{margin:4px 0}
 .omibox ul{margin:8px 0 0;padding-left:1.2em}
 .omibox .call{display:flex;align-items:center;justify-content:center;margin-top:12px;background:#3A2A00;color:#FFE17A;font-weight:900;font-size:1.05rem;border-radius:14px;min-height:52px;text-decoration:none;text-align:center;padding:0 10px}
+
+/* Patient + Quick actions side by side */
+.toprow{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
+.toprow .card{padding:12px;border-radius:18px;min-width:0}
+.toprow .card h2{font-size:1rem;margin:0 0 8px}
+.toprow .card .grid2{grid-template-columns:1fr!important;gap:0}
+.toprow .field{min-height:42px;margin:2px 0 6px;padding:0 10px}
+.toprow .pick .pv{font-size:1rem}
+.toprow .lbl{font-size:.75rem}
+.toprow .thr{font-size:.72rem;padding:6px 8px}
+.toprow .qa{grid-template-columns:1fr 1fr!important;gap:6px 2px!important}
+.toprow .qa button,.toprow .qa-a{font-size:.68rem!important;line-height:1.15;padding:2px 0}
+.toprow .qa .ic,.toprow .qa-a .ic{width:36px!important;height:36px!important;margin-bottom:3px!important}
+.toprow .qa .ic svg,.toprow .qa-a .ic svg{width:18px!important;height:18px!important}
+.toprow .qa small,.toprow .qa-a small{display:none!important}
+/* Result boxes about one third smaller */
+.head{padding:11px 13px!important}
+.head .k{font-size:.72rem!important}
+.head .r{font-size:1.05rem!important;margin:1px 0 4px!important}
+.head p{font-size:.85rem}
+.head .pill{font-size:.72rem;margin-top:6px}
+.stemi{padding:11px 13px!important;border-radius:16px!important}
+.stemi .q{font-size:.72rem!important}
+.stemi .a{font-size:1.2rem!important;margin:1px 0 3px!important}
+.stemi p{font-size:.85rem;margin:3px 0 0!important}
+.stemi .call{min-height:40px!important;font-size:.88rem!important;margin-top:8px!important;border-radius:11px!important}
+.omibox{padding:11px 13px!important;border-radius:16px!important}
+.omibox .q{font-size:.72rem!important}
+.omibox .a{font-size:1.05rem!important;margin:1px 0 3px!important}
+.omibox p,.omibox ul{font-size:.85rem}
+.omibox .call{min-height:40px!important;font-size:.88rem!important;margin-top:8px!important;border-radius:11px!important}
+
+/* Header ECG strip at half size */
+.ecgstrip{height:40px!important;margin-top:10px!important;background-size:8px 8px!important}
+#stripSvg{height:29px!important;top:3px!important}
+#stripSvg path{stroke-width:2.2!important}
+.strip-legend{font-size:.6rem!important;bottom:2px!important;right:6px!important;gap:8px!important;background:rgba(10,25,45,.55);padding:1px 6px;border-radius:6px}
+.strip-legend i{width:6px!important;height:6px!important}
+
+/* Lock stamp sits straight, exactly over the photo buttons */
+.drop .btn-row{position:relative}
+.drop .btn-row .stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)!important;margin:0!important;z-index:2;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+
+.cxfield{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;border:0;background:var(--field);border-radius:12px;padding:12px;font:inherit;font-size:.95rem;color:var(--ink);cursor:pointer;min-height:52px}
+.cxfield svg{width:20px;height:20px;flex-shrink:0;color:var(--soft)}
+.cxfield .empty{color:var(--soft)}
+.cxsheet{max-height:90vh;display:flex;flex-direction:column}
+.cxhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.cxbar{height:4px;background:var(--line);border-radius:3px;margin:8px 0 10px;overflow:hidden}
+.cxbar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.cxbody{overflow-y:auto;flex:1;padding-bottom:6px}
+.cxbody h4{margin:12px 0 6px;font-size:.9rem;color:var(--soft);font-weight:700}
+.opts{display:flex;flex-wrap:wrap;gap:7px}
+.opt{border:1.5px solid var(--line);background:var(--field);color:var(--ink);border-radius:11px;padding:9px 12px;font:inherit;font-size:.9rem;cursor:pointer}
+.opt[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:700}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vgrid label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--soft)}
+.vgrid .in{font-size:1.1rem;font-weight:700;color:var(--accent)}
+.cxsum{white-space:pre-wrap;background:var(--field);border-radius:12px;padding:12px;font-size:.92rem;line-height:1.5}
+.cxnav{margin-top:10px}
+.flagline{background:var(--crit-bg);color:var(--crit);border-radius:10px;padding:8px 10px;font-weight:700;font-size:.85rem;margin:0 0 6px}
 </style>
 </head>
 <body>
@@ -344,7 +405,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 <main class="main">
 <!-- ANALYZE -->
 <section id="page-analyze">
-  <div class="card float">
+  <div class="toprow float">
+  <div class="card">
     <h2>Patient</h2>
     <div class="grid2">
       <div><div class="lbl">Age</div><button type="button" class="field pick" id="ageBtn" aria-haspopup="dialog"><span class="pv" id="ageVal">Tap</span><span>yrs</span></button><input type="hidden" id="age"></div>
@@ -352,7 +414,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     </div>
     <div class="thr" id="thr"></div>
   </div>
-  <div class="card" style="margin-top:12px">
+  <div class="card">
     <h2>Quick actions</h2>
     <div class="qa">
       <a class="qa-a" href="tel:+97125048555" target="_blank" rel="noopener" data-call><div class="ic ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></div>UMOC hotline<small>02 504 8555</small></a>
@@ -364,12 +426,13 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     </div>
   </div>
 
+  </div>
   <div class="sec-title"><h2>12-lead ECG</h2><span id="imgCount">No image yet</span></div>
   <div class="card">
     <div class="drop" id="drop">
-      <button type="button" class="stamp" id="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span><b>Age and sex required</b><small>Tap to enter patient details</small></span></button>
       <p>Lay the tracing flat, fill the frame, avoid glare. Keep lead labels and the calibration pulse in view.</p>
       <div class="btn-row">
+        <button type="button" class="stamp" id="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span><b>Age and sex required</b><small>Tap to enter patient details</small></span></button>
         <label class="btn">Take photo<input type="file" id="camInput" accept="image/*" capture="environment"></label>
         <label class="btn ghost">Choose file<input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
       </div>
@@ -378,7 +441,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
       <label class="samept" id="samePt" hidden><input type="checkbox" id="samePtChk"><span>I confirm all photos are from <b>this one patient</b></span></label>
     </div>
     <div class="lbl" style="margin:14px 0 4px">Complaint, vitals and history (optional)</div>
-    <textarea id="notes" placeholder="e.g. Chest pain 40 min, diaphoretic, BP 92/60, SpO2 95%, known pacemaker"></textarea>
+    <button type="button" class="cxfield" id="cxOpen"><span id="cxText" class="empty">Tap to add symptoms, onset, skin, vitals and history</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    <textarea id="notes" hidden></textarea>
     <label class="chk dbl"><input type="checkbox" id="dblChk"><span><b>Double-check</b>: two independent reads compared lead by lead. Higher confidence, about twice the cost.</span></label>
     <div class="actions">
       <button class="btn" id="analyzeBtn" disabled>Analyze ECG</button>
@@ -562,6 +626,13 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   <input class="in" id="codeInput" type="password" autocomplete="off" placeholder="Access code" style="font-size:1.1rem;padding:14px">
   <div class="actions"><button type="button" class="btn ghost" data-close>Cancel</button><button type="button" class="btn" id="codeSave">Save and analyze</button></div>
 </div>
+<div class="sheet cxsheet" id="cxSheet" role="dialog" aria-modal="true" aria-labelledby="cxTitle" hidden>
+  <div class="grab"></div>
+  <div class="cxhead"><h2 id="cxTitle">Symptoms</h2><span id="cxStep" class="lbl"></span></div>
+  <div class="cxbar"><i id="cxBar"></i></div>
+  <div id="cxBody" class="cxbody"></div>
+  <div class="actions cxnav"><button type="button" class="btn ghost" id="cxBack">Back</button><button type="button" class="btn" id="cxNext">Next</button></div>
+</div>
 <nav class="bottom" aria-label="Main">
   <button data-go="analyze" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2-6 4 12 2-6h8"/></svg>Analyze</button>
   <button data-go="criteria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Criteria</button>
@@ -573,7 +644,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 <script>
 (function(){
   const $=id=>document.getElementById(id);
-  let refreshHook=null,reEvalHook=null;
+  let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
   const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
   function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1800);}
@@ -608,14 +679,14 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   function gate(){const ok=patientOK();$("drop").classList.toggle("locked",!ok);$("camInput").disabled=!ok;$("fileInput").disabled=!ok;if(!ok)$("analyzeBtn").disabled=true;else if(refreshHook)refreshHook();}
   $("stamp").onclick=()=>{if(!$("age").value)$("ageBtn").click();else $("sexBtn").click();};
   $("sexBtn").onclick=()=>{syncPick();sheetOpen("sexSheet");};
-  document.querySelectorAll(".sexopt").forEach(b=>b.onclick=()=>{$("sex").value=b.dataset.sex;syncPick();sheetClose();});
+  document.querySelectorAll(".sexopt").forEach(b=>b.onclick=()=>{$("sex").value=b.dataset.sex;syncPick();sheetClose();if(!$("age").value)setTimeout(()=>$("ageBtn").click(),180);});
   let draft="";
   const showDraft=()=>{$("ageDraft").textContent=draft||"–";};
   ["1","2","3","4","5","6","7","8","9","C","0","⌫"].forEach(k=>{const b=document.createElement("button");b.type="button";b.textContent=k==="C"?"Clear":k;if(k==="C"||k==="⌫"){b.className="fn";b.setAttribute("aria-label",k==="C"?"Clear":"Delete");}
     b.onclick=()=>{if(k==="C")draft="";else if(k==="⌫")draft=draft.slice(0,-1);else if(draft.length<3){const n=draft+k;if(parseInt(n,10)<=120)draft=n.replace(/^0+(?=\d)/,"");}showDraft();};
     $("keypad").appendChild(b);});
   $("ageBtn").onclick=()=>{draft=$("age").value;showDraft();sheetOpen("ageSheet");};
-  $("ageDone").onclick=()=>{$("age").value=draft;syncPick();sheetClose();};
+  $("ageDone").onclick=()=>{$("age").value=draft;syncPick();sheetClose();if(draft&&!$("sex").value)setTimeout(()=>$("sexBtn").click(),180);};
   syncPick();
 
   // Navigation with back stack
@@ -768,6 +839,86 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     }catch(e){msg.textContent=e.message;}
   }
 
+
+  // ---------- Guided complaint / vitals / history ----------
+  const CX0=()=>({sym:[],symOther:"",char:[],rad:[],status:"",score:"",onset:"",skin:[],v:{sbp:"",dbp:"",hr:"",rr:"",spo2:"",o2:"",bgl:"",bglu:"mmol/L",gcs:""},pacer:"",hx:[],meds:[],other:""});
+  let cx=CX0();
+  const O={
+    sym:["Chest pain","Chest pressure / tightness","Shortness of breath","Diaphoresis","Nausea / vomiting","Epigastric pain","Dizziness / light-headed","Syncope","Palpitations","Fatigue / weakness","Altered mental status","Post cardiac arrest (ROSC)","No symptoms (routine ECG)"],
+    char:["Pressure","Squeezing","Heaviness","Tightness","Burning","Sharp","Tearing"],
+    rad:["Left arm","Right arm","Both arms","Jaw","Neck","Back","Epigastrium","No radiation"],
+    status:["Ongoing","Resolved","Intermittent"],
+    score:["1","2","3","4","5","6","7","8","9","10"],
+    onset:["< 30 min","30–60 min","1–3 h","3–6 h","6–12 h","12–24 h","> 24 h","Unknown"],
+    skin:["Normal","Pale","Cool / clammy","Diaphoretic","Cyanotic","Mottled","Flushed"],
+    o2:["Room air","On oxygen"],
+    pacer:["No","Pacemaker","ICD","Unknown"],
+    hx:["Previous MI","PCI / stent","CABG","Heart failure","Hypertension","Diabetes","Kidney disease","Atrial fibrillation","Known LBBB","Known LVH","Smoker","Aspirin allergy"],
+    meds:["PDE-5 inhibitor in last 48 h (sildenafil / tadalafil)","Anticoagulant","Antiplatelet / aspirin today","Nitrate taken today","Beta-blocker"]
+  };
+  const painy=()=>cx.sym.some(x=>/chest|epigastric/i.test(x));
+  function chips(key,list,multi,target){
+    const w=el("div","opts");
+    list.forEach(o=>{const b=el("button","opt",o);b.type="button";const on=()=>multi?target[key].includes(o):target[key]===o;b.setAttribute("aria-pressed",on()?"true":"false");
+      b.onclick=()=>{if(multi){const a=target[key];const i=a.indexOf(o);if(i>=0)a.splice(i,1);else{
+            if(key==="sym"&&o.startsWith("No symptoms"))a.length=0; else if(key==="sym"){const k=a.findIndex(x=>x.startsWith("No symptoms"));if(k>=0)a.splice(k,1);}
+            if(key==="rad"&&o==="No radiation")a.length=0; else if(key==="rad"){const k=a.indexOf("No radiation");if(k>=0)a.splice(k,1);}
+            a.push(o);}}
+        else target[key]=target[key]===o?"":o;
+        w.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed",(multi?target[key].includes(x.textContent):target[key]===x.textContent)?"true":"false"));};
+      w.appendChild(b);});
+    return w;
+  }
+  function textIn(obj,key,ph,num){const i=document.createElement("input");i.className="in";i.value=obj[key]||"";i.placeholder=ph||"";if(num)i.inputMode="decimal";i.oninput=()=>obj[key]=i.value.trim();return i;}
+  const STEPS=[
+    {t:"Symptoms",show:()=>true,r:b=>{b.appendChild(el("h4",null,"What is the patient complaining of? (tap all that apply)"));b.appendChild(chips("sym",O.sym,true,cx));b.appendChild(el("h4",null,"Other"));b.appendChild(textIn(cx,"symOther","e.g. arm heaviness only"));}},
+    {t:"Pain details",show:painy,r:b=>{b.appendChild(el("h4",null,"Character"));b.appendChild(chips("char",O.char,true,cx));b.appendChild(el("h4",null,"Radiation"));b.appendChild(chips("rad",O.rad,true,cx));b.appendChild(el("h4",null,"Right now the pain is"));b.appendChild(chips("status",O.status,false,cx));b.appendChild(el("h4",null,"Pain score (out of 10)"));b.appendChild(chips("score",O.score,false,cx));}},
+    {t:"Onset",show:()=>true,r:b=>{b.appendChild(el("h4",null,"When did it start?"));b.appendChild(chips("onset",O.onset,false,cx));}},
+    {t:"Skin",show:()=>true,r:b=>{b.appendChild(el("h4",null,"Skin condition (tap all that apply)"));b.appendChild(chips("skin",O.skin,true,cx));}},
+    {t:"Vitals",show:()=>true,r:b=>{const g=el("div","vgrid");
+      [["sbp","BP systolic","120"],["dbp","BP diastolic","80"],["hr","Heart rate","bpm"],["rr","Resp rate","/min"],["spo2","SpO₂ %","98"],["gcs","GCS","15"],["bgl","Blood glucose",""]].forEach(([k,l,ph])=>{const L=el("label",null,l);L.appendChild(textIn(cx.v,k,ph,true));g.appendChild(L);});
+      b.appendChild(g);b.appendChild(el("h4",null,"Glucose unit"));b.appendChild(chips("bglu",["mmol/L","mg/dL"],false,cx.v));b.appendChild(el("h4",null,"SpO₂ taken on"));b.appendChild(chips("o2",O.o2,false,cx.v));}},
+    {t:"History & devices",show:()=>true,r:b=>{b.appendChild(el("h4",null,"Pacemaker / ICD"));b.appendChild(chips("pacer",O.pacer,false,cx));b.appendChild(el("h4",null,"Medical history"));b.appendChild(chips("hx",O.hx,true,cx));b.appendChild(el("h4",null,"Medications of note"));b.appendChild(chips("meds",O.meds,true,cx));b.appendChild(el("h4",null,"Anything else"));b.appendChild(textIn(cx,"other","free text"));}},
+    {t:"Summary",show:()=>true,r:b=>{b.appendChild(el("h4",null,"This goes into the report and handover"));b.appendChild(el("div","cxsum",cxSummary()||"Nothing entered."));const f=cxFlags();if(f.length){b.appendChild(el("h4",null,"Safety flags"));f.forEach(x=>b.appendChild(el("div","flagline","⚠ "+x)));}}}
+  ];
+  let cxi=0;
+  function cxSummary(){
+    const p=[];const sym=cx.sym.concat(cx.symOther?[cx.symOther]:[]);
+    if(sym.length){const d=[cx.char.join("/").toLowerCase(),cx.rad.length?(cx.rad.includes("No radiation")?"no radiation":"radiating to "+cx.rad.join(", ").toLowerCase()):"",cx.status?cx.status.toLowerCase():"",cx.score?cx.score+"/10":""].filter(Boolean);let done=false;
+      const parts=sym.map(x=>{if(!done&&d.length&&/chest|epigastric/i.test(x)){done=true;return x+" ("+d.join(", ")+")";}return x;});p.push(parts.join(", ")+".");}
+    if(cx.onset)p.push("Onset "+cx.onset+(cx.onset==="Unknown"?".":" ago."));
+    if(cx.skin.length)p.push("Skin: "+cx.skin.join(", ").toLowerCase()+".");
+    const v=cx.v,vs=[];if(v.sbp||v.dbp)vs.push("BP "+(v.sbp||"?")+"/"+(v.dbp||"?"));if(v.hr)vs.push("HR "+v.hr);if(v.rr)vs.push("RR "+v.rr);if(v.spo2)vs.push("SpO2 "+v.spo2+"%"+(v.o2?" on "+v.o2.toLowerCase():""));if(v.bgl)vs.push("BGL "+v.bgl+" "+v.bglu);if(v.gcs)vs.push("GCS "+v.gcs);
+    if(vs.length)p.push(vs.join(", ")+".");
+    if(cx.pacer)p.push("Pacemaker/ICD: "+cx.pacer.toLowerCase()+".");
+    if(cx.hx.length)p.push("Hx: "+cx.hx.join(", ")+".");
+    if(cx.meds.length)p.push("Meds: "+cx.meds.join(", ")+".");
+    if(cx.other)p.push(cx.other);
+    return p.join(" ");
+  }
+  function cxFlags(){const f=[];const sbp=parseFloat(cx.v.sbp);
+    if(cx.meds.some(x=>/PDE-5/.test(x)))f.push("PDE-5 inhibitor in the last 48 h: nitrates contraindicated.");
+    if(sbp&&sbp<90)f.push("SBP below 90: avoid nitrates; manage hypotension per Clinical Guidelines.");
+    if(cx.hx.includes("Aspirin allergy"))f.push("Aspirin allergy reported.");
+    if(cx.pacer==="Pacemaker"||cx.pacer==="ICD")f.push(cx.pacer+" present: paced rhythm makes standard ST criteria unreliable (modified Sgarbossa applies).");
+    const sp=parseFloat(cx.v.spo2);if(sp&&sp<90)f.push("SpO₂ below 90%: oxygen indicated per guidelines.");
+    return f;}
+  const visible=()=>STEPS.filter(x=>x.show());
+  function cxRender(){const vs=visible();if(cxi>=vs.length)cxi=vs.length-1;const st=vs[cxi];
+    $("cxTitle").textContent=st.t;$("cxStep").textContent="Step "+(cxi+1)+" of "+vs.length;$("cxBar").style.width=((cxi+1)/vs.length*100)+"%";
+    const b=$("cxBody");b.textContent="";st.r(b);b.scrollTop=0;
+    $("cxBack").textContent=cxi===0?"Cancel":"Back";$("cxNext").textContent=cxi===vs.length-1?"Save":"Next";}
+  function cxApply(){const sum=cxSummary();$("notes").value=sum;const t=$("cxText");t.textContent=sum||"Tap to add symptoms, onset, skin, vitals and history";t.classList.toggle("empty",!sum);
+    const v=cx.v,set=(id,val)=>{if(val)$(id).value=val;};
+    set("h_bp",(v.sbp||v.dbp)?(v.sbp||"?")+"/"+(v.dbp||"?"):"");set("h_hr",v.hr);set("h_rr",v.rr);set("h_spo2",v.spo2);set("h_bgl",v.bgl?v.bgl+" "+v.bglu:"");set("h_gcs",v.gcs);
+    if(cx.meds.length)$("h_meds").value=cx.meds.join(", ");if(cx.hx.length)$("h_bg").value=cx.hx.filter(x=>x!=="Aspirin allergy").join(", ");if(cx.hx.includes("Aspirin allergy"))$("h_all").value="Aspirin";
+    if(lastReportRef())reEvalHook&&reEvalHook();}
+  $("cxOpen").onclick=()=>{cxi=0;cxRender();sheetOpen("cxSheet");};
+  $("cxBack").onclick=()=>{if(cxi===0){sheetClose();return;}cxi--;cxRender();};
+  $("cxNext").onclick=()=>{const n=visible().length;if(cxi<n-1){cxi++;cxRender();}else{cxApply();sheetClose();}};
+  window.__cxReset=()=>{cx=CX0();cxApply();};
+  window.__cx=()=>cx;
+
   // ---------- Call links: open the phone dialer ----------
   document.querySelectorAll("[data-call]").forEach(a=>a.addEventListener("click",()=>{
     try{navigator.clipboard&&navigator.clipboard.writeText("025048555").catch(()=>{});}catch(e){}
@@ -879,7 +1030,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 SAME-PATIENT CHECK (do this first): compare everything printed on each image: name, patient ID, incident/record ID, age, sex, date and time, device. If any identifier conflicts between images (different name, ID, age or sex, or dates that can't be the same care episode), or the tracings are clearly from different people, set same_patient to false, explain which images conflict, and do NOT measure or combine them. If identifiers are simply not printed, set same_patient to "unconfirmed" and continue.
 MULTIPLE IMAGES: if they are pages of one 12-lead, combine them so every lead is measured once. If they are serial 12-leads, measure the MOST RECENT one (latest printed time, or the last image if no time) for "leads", and describe changes from earlier ones in "serial_changes".
 
-${zoom?"IMAGES: image 1 is the full photo. Images 2 and 3 are ZOOMED crops of the LEFT half and RIGHT half of that same photo (not other patients, not other tracings). Use the zoomed crops to read small waveforms such as T waves; use image 1 to confirm which lead is which.\n\n":""}YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
+${(()=>{const p=window.__cx?window.__cx().pacer:"";return (p==="Pacemaker"||p==="ICD")?"DEVICE: the crew reports the patient has a "+p+". Look carefully for pacing spikes and a paced rhythm.\n\n":"";})()}${zoom?"IMAGES: image 1 is the full photo. Images 2 and 3 are ZOOMED crops of the LEFT half and RIGHT half of that same photo (not other patients, not other tracings). Use the zoomed crops to read small waveforms such as T waves; use image 1 to confirm which lead is which.\n\n":""}YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
 
 MEASURE BLIND: you are deliberately NOT told the patient's age, sex, symptoms or STEMI thresholds, so that your measurements are not influenced by them. Do not mention thresholds or whether anything "meets" criteria; just measure. The app applies the thresholds itself.
 
@@ -1141,7 +1292,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
   stopBtn.onclick=()=>ctl?.abort();
   clearBtn.onclick=()=>{
     files=[];$("samePtChk").checked=false;renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
-    $("age").value="";$("sex").value="";$("notes").value="";syncPick();
+    $("age").value="";$("sex").value="";$("notes").value="";syncPick();window.__cxReset&&window.__cxReset();
     document.querySelectorAll("#page-handover input,#page-handover textarea").forEach(i=>i.value="");$("hout").hidden=true;$("copyBtn").hidden=true;
     setStatus("Enter age and sex, then add an ECG image.");refresh();window.scrollTo({top:0});
   };
@@ -1268,7 +1419,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       consult:["Call UMOC 02 504 8555 for a conference call with the receiving facility.","Repeat the 12-lead every 10–15 minutes or with any change in symptoms.","Record V7–V9 / V3R–V4R if posterior or right-ventricular involvement is suspected.","Manage per working diagnosis and Clinical Guidelines while awaiting advice."],
       not_met:["Manage per working diagnosis and Clinical Guidelines.","Repeat the 12-lead if symptoms change or persist.","Transport to the nearest appropriate receiving facility."]};
     const fdec=(d.stemi&&d.stemi.decision)||"consult";
-    const fw=el("div");fw.appendChild(list(PROTO[fdec]||PROTO.consult));
+    const fw=el("div");cxFlags().forEach(x=>fw.appendChild(el("div","flagline","⚠ "+x)));fw.appendChild(list(PROTO[fdec]||PROTO.consult));
     const fc=arr(d.field).slice(0,3);if(fc.length){fw.appendChild(el("p","lbl","Rhythm-specific"));fw.appendChild(list(fc));}
     report.appendChild(card("Field actions (service protocol)",fw));
     const df=arr(d.differential);if(df.length)report.appendChild(card("Differential",list(df)));

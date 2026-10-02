@@ -404,6 +404,17 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .xleads h3{margin:0 0 4px;font-size:1rem;color:var(--accent)}
 .xleads ul{margin:0;padding-left:1.2em;font-size:.88rem}
 .xleads li{margin:4px 0}
+
+.rhythm{border-radius:16px;padding:11px 13px;background:var(--card);border:2px solid var(--line)}
+.rhythm.caution{border-color:var(--warn);background:var(--warn-bg)}
+.rhythm.critical{border-color:var(--crit);background:var(--crit-bg)}
+.rhythm .q{font-size:.72rem;margin:0;color:var(--soft)}
+.rhythm.critical .q{color:var(--crit)}.rhythm.caution .q{color:var(--warn)}
+.rhythm .a{font-size:1.05rem;font-weight:900;margin:1px 0 4px}
+.rhythm ul{margin:4px 0 0;padding-left:1.2em;font-size:.85rem}
+.rhythm li{margin:3px 0}
+.rflags{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.flagline.crit{background:var(--crit);color:#fff}
 </style>
 </head>
 <body>
@@ -1168,7 +1179,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
   refreshHook=refresh;gate();
   reEvalHook=()=>{if(!lastReport||busy||!patientOK())return;
-    lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport._conf=computeConfidence(lastReport);
+    lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport._conf=computeConfidence(lastReport);lastReport._rhythm=rhythmAssess(lastReport,{age:parseInt($("age").value,10)});
     const y=window.scrollY;render(lastReport);window.scrollTo({top:y});
     setStatus("Decision updated for the new age/sex using the same measurements. No new read needed.");};
   $("samePtChk").onchange=()=>{refresh();if($("samePtChk").checked&&patientOK())setStatus("Ready. Tap Analyze ECG.");};
@@ -1189,12 +1200,14 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
   function buildPrompt(zoom){
     const age=$("age").value.trim(),sex=$("sex").value,notes=$("notes").value.trim().slice(0,1500),thr=threshold();
+    const pacer=window.__cx?window.__cx().pacer:"";
+    const dyn=[(pacer==="Pacemaker"||pacer==="ICD")?"DEVICE: the crew reports the patient has a "+pacer+". Look carefully for pacing spikes and a paced rhythm.":"",zoom?"IMAGES: "+zoom+". Use the zoomed images to read small waveforms (T waves, J-points, pacing spikes) and image 1 to confirm which lead is which. They are NOT other patients or other tracings.":"IMAGES: each image is a separate photo of this one patient's tracing(s)."].filter(Boolean).join("\n");
     return `You are the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) (up to 5) are photos of printed ECG paper from a corpuls, LIFEPAK or similar monitor, and MUST all belong to ONE patient: either several pages of the same 12-lead, or serial 12-leads of the same patient.
 
 SAME-PATIENT CHECK (do this first): compare everything printed on each image: name, patient ID, incident/record ID, age, sex, date and time, device. If any identifier conflicts between images (different name, ID, age or sex, or dates that can't be the same care episode), or the tracings are clearly from different people, set same_patient to false, explain which images conflict, and do NOT measure or combine them. If identifiers are simply not printed, set same_patient to "unconfirmed" and continue.
 MULTIPLE IMAGES: if they are pages of one 12-lead, combine them so every lead is measured once. If they are serial 12-leads, measure the MOST RECENT one (latest printed time, or the last image if no time) for "leads", and describe changes from earlier ones in "serial_changes".
 
-${(()=>{const p=window.__cx?window.__cx().pacer:"";return (p==="Pacemaker"||p==="ICD")?"DEVICE: the crew reports the patient has a "+p+". Look carefully for pacing spikes and a paced rhythm.\n\n":"";})()}${zoom?"IMAGES: image 1 is the full photo. Images 2 and 3 are ZOOMED crops of the LEFT half and RIGHT half of that same photo (not other patients, not other tracings). Use the zoomed crops to read small waveforms such as T waves; use image 1 to confirm which lead is which.\n\n":""}YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
+YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
 
 MEASURE BLIND: you are deliberately NOT told the patient's age, sex, symptoms or STEMI thresholds, so that your measurements are not influenced by them. Do not mention thresholds or whether anything "meets" criteria; just measure. The app applies the thresholds itself.
 
@@ -1221,7 +1234,11 @@ OMI PATTERNS (name one only if every component is present in your measurements):
 
 FIELD CONSIDERATIONS: at most 3 short items, ONLY for the rhythm itself (e.g. symptomatic bradycardia, unstable tachycardia, VF/VT). Do NOT list STEMI pathway steps, aspirin, nitrates or UMOC calls; the app adds those from the service protocol.
 
-KEEP IT SHORT (the crew is waiting): every string 12 words or fewer. t_seen 8 words or fewer. Lead "note" only for abnormal leads, otherwise "". evidence at most 4 items, differential at most 3, quality.limitations at most 3, alert.details at most 3. Leave "parameters" notes empty unless essential.
+PAPER SPEED: read the printed speed. At 50 mm/s every interval looks twice as wide: halve the measured PR, QRS and QT in ms, and use 1 large box = 0.1 s for the rate. ST and T heights in mm are NOT affected by paper speed.
+
+RHYTHM: classify the rhythm into "rhythm_class" (one of: sinus, sinus_brady, sinus_tach, sinus_arrhythmia, afib, aflutter, svt, junctional, first_degree_block, mobitz1, mobitz2, complete_block, vt_mono, vt_poly_torsades, vf, idioventricular, paced, asystole, undetermined) and give the ventricular rate as a number in "rate_bpm". Use the rhythm strip if printed. Report "flags": qtc_ms (number or null), delta_wave (short PR with slurred QRS upstroke), brugada (coved STE V1-V2 with negative T), hyperk (tall narrow peaked T, wide QRS, flat P), pericarditis (diffuse concave STE with PR depression and no reciprocal change), early_repol (J-point notch or slur with concave STE, mainly V2-V5, young patient pattern), pacer_spikes, capture_failure (spikes not followed by QRS), each true or false.
+
+ every string 12 words or fewer. t_seen 8 words or fewer. Lead "note" only for abnormal leads, otherwise "". evidence at most 4 items, differential at most 3, quality.limitations at most 3, alert.details at most 3. Leave "parameters" notes empty unless essential.
 
 Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 {"is_ecg":true,
@@ -1234,6 +1251,8 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 "primary":{"rhythm":"rhythm and key measured findings","confidence":"high|moderate|low","summary":""},
 "parameters":{"rate":{"value":"","note":""},"regularity":{"value":"","note":""},"p_waves":{"value":"","note":""},"pr":{"value":"","note":""},"qrs":{"value":"","note":""},"qt":{"value":"","note":""},"axis":{"value":"","note":""}},
 "conduction":{"qrs_ms":90,"bbb":"none|RBBB|LBBB|paced|LAFB|bifascicular|IVCD","lvh":false},
+"rhythm_class":"sinus","rate_bpm":75,
+"flags":{"qtc_ms":null,"delta_wave":false,"brugada":false,"hyperk":false,"pericarditis":false,"early_repol":false,"pacer_spikes":false,"capture_failure":false},
 "layout":"e.g. 3x4 + rhythm strip; labels confirmed by grid position",
 "leads":{"I":{"present":true,"t_seen":"where the T wave goes after the QRS, in words","j_mm":0,"st_shape":"isoelectric","t":"upright|inverted|biphasic|hyperacute|flat","t_mm":2,"q":"none","qrs":"positive|negative|isoelectric","qrs_mm":8,"s_wave":true,"j_wave":false,"note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
 "extra_leads":{"V7":null,"V8":null,"V9":null,"V3R":null,"V4R":null},
@@ -1242,7 +1261,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 "evidence":[{"claim":"a measured observation","leads":["V2"]}],
 "alert":{"level":"critical|caution|none","headline":"","details":[]},
 "differential":[],
-"field":[]}`;
+"field":[]}\n\n#DYNAMIC\n${dyn}`;
   }
 
   // The monitor measures the axes from the electrical signal itself, which is more reliable
@@ -1267,6 +1286,9 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       else if(xj===null&&yj!==null){o.j_mm=yj;o.present=y.present;}
       const xt=S(x.t).toLowerCase(),yt=S(y.t).toLowerCase();
       if(xt&&yt&&xt!==yt&&!((xt==="flat"||yt==="flat")&&(xt==="upright"||yt==="upright"))){m._disagree.push(k+" T "+xt+" vs "+yt);o.t="unclear";o.note=((o.note?S(o.note)+"; ":"")+"reads disagree on T").slice(0,160);}});
+    {const ra=S(a.rhythm_class),rb=S(b.rhythm_class);if(ra&&rb&&ra!==rb){m._disagree.push("rhythm "+ra+" vs "+rb);if(ra==="undetermined")m.rhythm_class=rb;}
+      const fa=a.flags||{},fb=b.flags||{};m.flags=Object.assign({},fb,fa);["delta_wave","brugada","hyperk","pericarditis","early_repol","capture_failure"].forEach(k=>{if(!!fa[k]!==!!fb[k])m._disagree.push("flag "+k);m.flags[k]=!!(fa[k]||fb[k]);});
+      if(!m.rate_bpm&&b.rate_bpm)m.rate_bpm=b.rate_bpm;}
     const pa=a.printed||{},pb=b.printed||{};m.printed=Object.assign({},pb,pa);
     if(!m.printed.axes&&pb.axes)m.printed.axes=pb.axes;if((!pa.stj||!Object.keys(pa.stj).length)&&pb.stj)m.printed.stj=pb.stj;
     m.omi_patterns=[...new Set([...(a.omi_patterns||[]),...(b.omi_patterns||[])])];
@@ -1301,19 +1323,66 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     if(fixed.length)d._axisNote="T waves corrected using the monitor's measured T axis ("+tAx+"°): "+fixed.join(", ")+". The photo read disagreed; the monitor measures the actual signal.";
   }
   // Zoomed halves of a single photo so small waveforms are read at double resolution.
-  function cropPart(file,x0,x1){
+  function cropPart(file,x0,x1,y0,y1){
+    y0=y0||0;y1=y1||1;
     return new Promise((res,rej)=>{const u=URL.createObjectURL(file),img=new Image();
-      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0));const M=1568,sc=Math.min(1,M/Math.max(sw,img.height));
-        const c=document.createElement("canvas");c.width=Math.round(sw*sc);c.height=Math.round(img.height*sc);
-        c.getContext("2d").drawImage(img,sx,0,sw,img.height,0,0,c.width,c.height);URL.revokeObjectURL(u);
+      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0)),sy=Math.round(img.height*y0),sh=Math.round(img.height*(y1-y0));const M=1568,sc=Math.min(1,M/Math.max(sw,sh));
+        const c=document.createElement("canvas");c.width=Math.round(sw*sc);c.height=Math.round(sh*sc);
+        c.getContext("2d").drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);URL.revokeObjectURL(u);
         c.toBlob(b=>b?res(new File([b],"zoom.jpg",{type:"image/jpeg"})):rej(new Error("crop")),"image/jpeg",0.9);};
       img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("crop"));};img.src=u;});
   }
+  function imgSize(file){return new Promise(res=>{const u=URL.createObjectURL(file),img=new Image();img.onload=()=>{URL.revokeObjectURL(u);res({w:img.width,h:img.height});};img.onerror=()=>{URL.revokeObjectURL(u);res({w:1,h:1});};img.src=u;});}
+  // One photo -> full image + 4 zoomed parts (quadrants, or 4 strips for very wide printouts).
   async function withZoom(list){
-    if(list.length!==1)return {imgs:list,zoom:false};
-    try{return {imgs:[list[0],await cropPart(list[0],0,0.55),await cropPart(list[0],0.45,1)],zoom:true};}catch(e){return {imgs:list,zoom:false};}
+    if(list.length!==1)return {imgs:list,zoom:""};
+    try{const f=list[0],sz=await imgSize(f);
+      if(sz.w/sz.h>2.0){const parts=[[0,0.3],[0.23,0.53],[0.47,0.77],[0.7,1]];const imgs=[f];for(const [a,b] of parts)imgs.push(await cropPart(f,a,b));
+        return {imgs,zoom:"image 1 is the full photo; images 2-5 are ZOOMED vertical strips of the same photo from LEFT to RIGHT (each overlaps its neighbour slightly)"};}
+      const q=[[0,0.55,0,0.55],[0.45,1,0,0.55],[0,0.55,0.45,1],[0.45,1,0.45,1]];const imgs=[f];for(const [a,b,c,d] of q)imgs.push(await cropPart(f,a,b,c,d));
+      return {imgs,zoom:"image 1 is the full photo; images 2-5 are ZOOMED quadrants of the same photo: top-left, top-right, bottom-left, bottom-right (each overlaps its neighbours slightly)"};
+    }catch(e){return {imgs:list,zoom:""};}
   }
 
+  // ---------- Rhythm and ECG flags: protocol-consistent actions (workbook drug cards / ACLS) ----------
+  const CG=" (per Clinical Guidelines and UMOC)";
+  function rhythmAssess(d,pt){
+    const rc=S(d.rhythm_class).toLowerCase(),rate=Number(d.rate_bpm)||null,f=d.flags||{},c=d.conduction||{};
+    const r={level:"none",title:"",actions:[],notes:[],flags:[]};
+    const set=(lv,t,a)=>{r.level=lv;r.title=t;r.actions=a;};
+    const rateTxt=rate?" at ~"+rate+"/min":"";
+    switch(rc){
+      case "vf":set("critical","Ventricular fibrillation",["Pulseless: start CPR now, defibrillate (workbook: 200 J adult), minimise pauses.","Epinephrine 1 mg IV/IO every 3–5 min; amiodarone 300 mg, then 150 mg.","Call UMOC; consider reversible causes."]);break;
+      case "vt_poly_torsades":set("critical","Polymorphic VT / torsades",["Pulseless: defibrillate and CPR.","Magnesium sulfate 1–2 g IV (workbook: diluted in 50–100 mL, over 5–20 min).","Stop QT-prolonging drugs; check K+/Mg; call UMOC."]);break;
+      case "vt_mono":set("critical","Monomorphic ventricular tachycardia"+rateTxt,["No pulse: treat as VF (defibrillate, CPR, epinephrine, amiodarone).","Pulse + unstable (hypotension, altered LOC, chest pain, failure): synchronized cardioversion (workbook: 100 → 150 → 200 J), sedate if time allows.","Pulse + stable: amiodarone 150 mg IV over 10 min, 12-lead, call UMOC."]);break;
+      case "asystole":set("critical","Asystole",["Confirm in 2 leads and check lead contact.","CPR; epinephrine 1 mg IV/IO every 3–5 min.","Treat reversible causes (H's and T's); call UMOC."]);break;
+      case "complete_block":set("critical","Complete (third-degree) AV block"+rateTxt,["Atropine 1 mg IV every 3–5 min (max 3 mg) often fails in complete block: prepare transcutaneous pacing (workbook: start at 60/min).","Epinephrine infusion 2–10 mcg/min if pacing is delayed or ineffective.","Pads on, 12-lead, call UMOC."]);break;
+      case "mobitz2":set("critical","Second-degree AV block, Mobitz II"+rateTxt,["High risk of progressing to complete block: pads on, pacing ready.","If symptomatic: atropine 1 mg (max 3 mg) and transcutaneous pacing."+CG,"Call UMOC."]);break;
+      case "sinus_brady":if(rate&&rate<40)set("critical","Severe sinus bradycardia"+rateTxt,["If symptomatic or unstable: atropine 1 mg IV every 3–5 min (max 3 mg).","No response: transcutaneous pacing (start 60/min) or epinephrine 2–10 mcg/min."+CG,"Look for causes: drugs, hypoxia, hyperkalaemia, inferior MI."]);
+        else set("caution","Sinus bradycardia"+rateTxt,["Treat only if symptomatic: atropine 1 mg IV every 3–5 min (max 3 mg)."+CG,"Pacing or epinephrine infusion if no response."]);break;
+      case "svt":set(rate&&rate>=150?"critical":"caution","Supraventricular tachycardia"+rateTxt,["Stable: vagal manoeuvres, then adenosine 6 mg rapid IV push, then 12 mg (record the strip).","Unstable: synchronized cardioversion (workbook: 100 → 150 → 200 J)."+CG,"Avoid adenosine if WPW with irregular rhythm."]);break;
+      case "afib":case "aflutter":{const fast=rate&&rate>120;set(fast?"caution":"none",(rc==="afib"?"Atrial fibrillation":"Atrial flutter")+rateTxt,fast?["Unstable: synchronized cardioversion (workbook: 100 → 150 → 200 J).","Stable: rate control"+CG+"; 12-lead and call UMOC.","If a delta wave (WPW) is present: no adenosine, diltiazem or beta-blockers."]:["Rate controlled: monitor, 12-lead, note anticoagulation history."]);break;}
+      case "sinus_tach":set(rate&&rate>130?"caution":"none","Sinus tachycardia"+rateTxt,["Treat the cause (pain, hypovolaemia, fever, hypoxia, anxiety); not cardioversion.","Consider PE, sepsis, bleeding if persistent."]);break;
+      case "junctional":case "idioventricular":set("caution",(rc==="junctional"?"Junctional rhythm":"Idioventricular rhythm")+rateTxt,["Escape rhythm: treat only if symptomatic (atropine, pacing)."+CG,"Common after ROSC or with inferior MI; monitor closely."]);break;
+      case "paced":set(f.capture_failure?"critical":"none","Paced rhythm"+(f.capture_failure?" with FAILURE TO CAPTURE":""),f.capture_failure?["Spikes without QRS: prepare transcutaneous pacing; treat as symptomatic bradycardia.","Call UMOC; device check needed."]:["Standard ST criteria don't apply; the app uses modified Sgarbossa."]);break;
+      case "mobitz1":set("none","Second-degree AV block, Mobitz I (Wenckebach)"+rateTxt,["Usually benign; monitor. Treat only if symptomatic."]);break;
+      case "first_degree_block":set("none","Sinus rhythm with first-degree AV block"+rateTxt,["Monitor; usually no treatment."]);break;
+      case "sinus_arrhythmia":set("none","Sinus arrhythmia"+rateTxt,[]);break;
+      case "sinus":set("none","Sinus rhythm"+rateTxt,[]);break;
+      case "undetermined":set("caution","Rhythm not determined from the photo",["Read the rhythm on the monitor; photograph a longer rhythm strip."]);break;
+      default:break;
+    }
+    if(rate&&rate>=150&&(Number(c.qrs_ms)||0)>=120&&!/vt_|vf|paced/.test(rc)){r.level="critical";r.notes.push("Wide-complex tachycardia at ~"+rate+"/min: treat as VT until proven otherwise.");}
+    const qtc=Number(f.qtc_ms)||0;if(qtc>=500)r.flags.push({lv:"caution",t:"Prolonged QTc (~"+qtc+" ms): torsades risk. Avoid QT-prolonging drugs (e.g. ondansetron, amiodarone); magnesium if torsades."});
+    if(f.delta_wave)r.flags.push({lv:"caution",t:"Delta wave (WPW pattern): with AF, avoid adenosine, diltiazem and beta-blockers; cardiovert if unstable."});
+    if(f.brugada)r.flags.push({lv:"caution",t:"Brugada pattern in V1–V2: not a STEMI. Cardiology referral; call UMOC if syncope or arrhythmia."});
+    if(f.hyperk)r.flags.push({lv:"critical",t:"Hyperkalaemia pattern (peaked T, wide QRS, flat P): treat"+CG+" (calcium, salbutamol, bicarbonate). Ask about kidney disease / dialysis."});
+    if(pt&&pt.age>0&&pt.age<16)r.flags.push({lv:"caution",t:"Age under 16: this protocol's ST thresholds are for adults. Paediatric ECGs differ; call UMOC."});
+    const order={critical:3,caution:2,none:1};r.flags.forEach(x=>{if(order[x.lv]>order[r.level])r.level=x.lv;});
+    return r;
+  }
+  function mimicNote(d){const f=d.flags||{},st=d.stemi||{};const m=[];if(f.pericarditis)m.push("pericarditis (diffuse concave STE with PR depression, no reciprocal change)");if(f.early_repol)m.push("early repolarisation (J-point notch, concave STE)");
+    if(!m.length)return null;return st.decision==="met"?"The AI also notes features of "+m.join(" and ")+", which can mimic STEMI. Activation stands per the criteria; tell UMOC so they can weigh it.":"Features of "+m.join(" and ")+" noted, which can mimic STEMI. No activation criterion is met.";}
   // Extra leads and next ECG steps suggested by the result (workbook enhanced criteria ii and iii).
   function nextSteps(d){
     const st=d.stemi||{},J=st.J||(()=>null),out=[];const ge=(k,v)=>J(k)!==null&&J(k)>=v,le=(k,v)=>J(k)!==null&&J(k)<=v;
@@ -1457,7 +1526,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       if(dbl){const [r1,r2]=await Promise.all([one(),one()]);data=mergeReads(r1,r2);}else data=await one();
       applyMonitorSTJ(data);
       applyMonitorAxis(data);
-      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);lastReport=data;render(data);clearInterval(timer);setStatus("Report ready in "+Math.round((Date.now()-t0)/1000)+" s. Confirm against your own reading before acting.");
+      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});lastReport=data;render(data);clearInterval(timer);setStatus("Report ready in "+Math.round((Date.now()-t0)/1000)+" s. Confirm against your own reading before acting.");
       if(isNetlify){const st=data.stemi||{};api("POST",{verdict:"log",entry:{decision:st.decision,criterion:st.criterion,conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:Math.round((Date.now()-t0)/1000),missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
     }catch(e){
       clearInterval(timer);
@@ -1514,6 +1583,12 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     if(files.length>1&&d.same_patient===false){const b=el("div","pt-block");b.appendChild(el("h3",null,"Photos appear to be from different patients"));b.appendChild(el("p",null,S(d.same_patient_reason)||"Identifiers on the photos don't match."));b.appendChild(el("p",null,"No reading was made. Tap New patient and add photos from one patient only."));report.appendChild(b);report.hidden=false;d.stemi={decision:"consult",criterion:"Not analysed: mixed patients",checks:[],warnings:[]};return;}
     if(d.is_ecg===false){report.appendChild(card("Not readable as an ECG",el("p",null,S(d.quality?.summary)||"Retake the photo with the full tracing in frame.")));report.hidden=false;return;}
 
+    {const rh=d._rhythm;if(rh&&(rh.level!=="none"||rh.actions.length)){const card2=el("div","rhythm "+rh.level);
+      card2.appendChild(el("p","q",rh.level==="critical"?"Rhythm alert":rh.level==="caution"?"Rhythm: caution":"Rhythm"));card2.appendChild(el("div","a",rh.title||"Rhythm"));
+      if(rh.notes.length)card2.appendChild(list(rh.notes));if(rh.actions.length)card2.appendChild(list(rh.actions));
+      if(rh.flags.length){const fl=el("div","rflags");rh.flags.forEach(x=>fl.appendChild(el("div","flagline"+(x.lv==="critical"?" crit":""),"⚠ "+x.t)));card2.appendChild(fl);}
+      report.appendChild(card2);}
+      const mn=mimicNote(d);if(mn){d.stemi.warnings=(d.stemi.warnings||[]).concat([mn]);}}
     const st=d.stemi||{};const dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult";
     const box=el("div","stemi "+dec);box.setAttribute("role",dec==="met"?"alert":"note");
     box.appendChild(el("p","q","STEMI PPCI criteria met?"));

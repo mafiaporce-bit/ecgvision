@@ -1,9 +1,13 @@
+// ECG analysis proxy as an Edge Function.
+// Edge functions only need to start the reply within 40 seconds and can then stream
+// for as long as Claude needs, so long, careful reads aren't cut off at 60 seconds.
 import { getStore } from "@netlify/blobs";
 
 const json = (o, s) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json" } });
 const TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const env = (k) => (Netlify.env.get(k) || "").trim();
 
+// Reviewed corrections from this service, sent with every read.
 async function lessonsBlock() {
   try {
     const doc = await getStore("ecg-learning").get("doc", { type: "json" });
@@ -32,9 +36,16 @@ export default async (req) => {
   if (!Array.isArray(images) || images.length < 1 || images.length > 5) return json({ error: "bad_request" }, 400);
   for (const im of images) if (!im || !TYPES.has(im.media_type) || typeof im.data !== "string") return json({ error: "bad_request" }, 400);
 
+  // The protocol instructions (before #DYNAMIC) are identical on every read, so they are cached
+  // by Anthropic for a few minutes: cheaper and a little faster. Only the tail changes per read.
+  const marker = "#DYNAMIC";
+  const cut = prompt.indexOf(marker);
+  const staticText = cut >= 0 ? prompt.slice(0, cut) : prompt;
+  const dynamicText = (cut >= 0 ? prompt.slice(cut + marker.length) : "").trim();
   const content = [
+    { type: "text", text: staticText, cache_control: { type: "ephemeral" } },
     ...images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } })),
-    { type: "text", text: prompt + (await lessonsBlock()) },
+    { type: "text", text: (dynamicText ? dynamicText + "\n" : "") + "Now measure the attached tracing exactly as instructed above." + (await lessonsBlock()) },
   ];
 
   const up = await fetch("https://api.anthropic.com/v1/messages", {
@@ -42,7 +53,7 @@ export default async (req) => {
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: env("CLAUDE_MODEL") || "claude-sonnet-5",
-      max_tokens: 16000,
+      max_tokens: 24000,
       output_config: { effort: env("CLAUDE_EFFORT") || "medium" },
       stream: true,
       messages: [{ role: "user", content }],

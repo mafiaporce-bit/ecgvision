@@ -297,6 +297,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .rep{background:var(--field);border-radius:24px;padding:10px}
 
 .dbl{margin-top:12px;background:var(--field);border-radius:12px;padding:10px 12px}
+.thorough{border:2px solid var(--accent)}
+.thorough .btn{width:100%;margin-top:8px}
 .conf-d{margin-top:8px}
 .conf-d summary{cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.85)}
 .conf-d ul{margin:6px 0 0;padding-left:1.2em;font-size:.82rem;color:rgba(255,255,255,.92)}
@@ -814,16 +816,16 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   }
   // Netlify accepts about 6 MB per request, so shrink until all photos fit in ~4.2 MB.
   async function shrinkAll(files){
-    const steps=[[1800,0.86],[1600,0.8],[1400,0.75],[1200,0.7],[1000,0.65]];
+    const steps=[[1400,0.8],[1300,0.75],[1200,0.7],[1000,0.65]];
     let out=[];
     for(const [M,Q] of steps){out=[];for(const f of files)out.push(await shrink(f,M,Q));
       if(out.reduce((n,x)=>n+x.data.length,0)<4200000)return out;}
     return out;
   }
-  function netlifySample(){return{async json(prompt,{images=[],signal,onText}={}){
+  function netlifySample(){return{async json(prompt,{images=[],signal,onText,effort}={}){
     let code=store.get("eqg-code");if(!code){code=await askCode();if(!code)throw{code:"cancelled"};}
     const imgs=await shrinkAll(images);
-    let r;try{r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({prompt,images:imgs}),signal});}
+    let r;try{r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({prompt,images:imgs,effort:effort||""}),signal});}
     catch(e){throw{code:signal&&signal.aborted?"cancelled":"network"};}
     if(r.status===401){store.set("eqg-code","");throw{code:"bad_code"};}
     if(!r.ok){let j={};try{j=await r.json();}catch(e){}
@@ -1179,7 +1181,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
   refreshHook=refresh;gate();
   reEvalHook=()=>{if(!lastReport||busy||!patientOK())return;
-    lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport._conf=computeConfidence(lastReport);lastReport._rhythm=rhythmAssess(lastReport,{age:parseInt($("age").value,10)});
+    lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport._conf=computeConfidence(lastReport);lastReport._rhythm=rhythmAssess(lastReport,{age:parseInt($("age").value,10)});if(lastReport._fast)lastReport.evidence=buildEvidence(lastReport);
     const y=window.scrollY;render(lastReport);window.scrollTo({top:y});
     setStatus("Decision updated for the new age/sex using the same measurements. No new read needed.");};
   $("samePtChk").onchange=()=>{refresh();if($("samePtChk").checked&&patientOK())setStatus("Ready. Tap Analyze ECG.");};
@@ -1198,7 +1200,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
   const LEADS=["I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6"];
 
-  function buildPrompt(zoom){
+  function buildPrompt(zoom,mode){
+    const fast=mode!=="thorough";
     const age=$("age").value.trim(),sex=$("sex").value,notes=$("notes").value.trim().slice(0,1500),thr=threshold();
     const pacer=window.__cx?window.__cx().pacer:"";
     const dyn=[(pacer==="Pacemaker"||pacer==="ICD")?"DEVICE: the crew reports the patient has a "+pacer+". Look carefully for pacing spikes and a paced rhythm.":"",zoom?"IMAGES: "+zoom+". Use the zoomed images to read small waveforms (T waves, J-points, pacing spikes) and image 1 to confirm which lead is which. They are NOT other patients or other tracings.":"IMAGES: each image is a separate photo of this one patient's tracing(s)."].filter(Boolean).join("\n");
@@ -1224,8 +1227,8 @@ HOW TO MEASURE (follow exactly, lead by lead):
 9. Leads not visible in the photo (for example, when only part of the printout is photographed) must be reported with "present": false and j_mm null. Never guess a lead you cannot see.
 10. Only list reciprocal change, tombstone morphology, or any finding if your own measurements show it. The headline and summary MUST agree with your j_mm values: do not write "STEMI" unless contiguous leads meet the patient's threshold.
 11. Monitor printout: copy any printed data (HR, PR, QRS, QT/QTc, axes, age, sex, "STJ Level" numbers, interpretation statements) exactly into "printed". A printed STJ number may be used for a lead's J-point ONLY when that lead's waveform in the photo is unreadable. NEVER use the printed interpretation text (e.g. "inferior/lateral ST-T abnormality", "LVH with repolarization abnormality") to decide what any lead looks like: machine statements are often wrong and describe lead groups loosely. Every lead's J-point and T wave must come from looking at that lead's own waveform, never from the printed words.
-12. For each lead, look at EVERY beat in that lead's segment (usually 3-4 beats) and report what most beats show. First write in "t_seen" where the T wave goes after the QRS (for example "dips below baseline after each QRS" or "small hump above baseline"), then set "t" from that description.
-13. FINAL CHECK before answering: go through all 12 leads again in grid order and confirm (a) the label matches the grid position (column 1 = I, II, III), (b) the J-point value, (c) the T-wave polarity matches your t_seen. Fix any mismatch. Do not copy a pattern from one lead to its neighbours; each lead is judged on its own.
+${fast?"12. For each lead, look at EVERY beat in that lead's segment (usually 3-4 beats) and report what most beats show.":"12. For each lead, look at EVERY beat in that lead's segment (usually 3-4 beats) and report what most beats show. First write in \"t_seen\" where the T wave goes after the QRS (for example \"dips below baseline after each QRS\" or \"small hump above baseline\"), then set \"t\" from that description."}
+13. FINAL CHECK before answering: go through all 12 leads again in grid order and confirm (a) the label matches the grid position (column 1 = I, II, III), (b) the J-point value, (c) the T-wave polarity${fast?"":" matches your t_seen"}. Fix any mismatch. Do not copy a pattern from one lead to its neighbours; each lead is judged on its own.
 
 ALSO ASSESS: rate (R-R method), rhythm, P waves, PR, QRS width in ms, bundle branch block (RBBB, LBBB, paced, LAFB, bifascicular), LVH voltage, QTc if estimable, axis if limb leads visible.
 Posterior (V7-V9) or right-sided (V3R, V4R) leads: measure them only if they are printed and labelled.
@@ -1238,9 +1241,29 @@ PAPER SPEED: read the printed speed. At 50 mm/s every interval looks twice as wi
 
 RHYTHM: classify the rhythm into "rhythm_class" (one of: sinus, sinus_brady, sinus_tach, sinus_arrhythmia, afib, aflutter, svt, junctional, first_degree_block, mobitz1, mobitz2, complete_block, vt_mono, vt_poly_torsades, vf, idioventricular, paced, asystole, undetermined) and give the ventricular rate as a number in "rate_bpm". Use the rhythm strip if printed. Report "flags": qtc_ms (number or null), delta_wave (short PR with slurred QRS upstroke), brugada (coved STE V1-V2 with negative T), hyperk (tall narrow peaked T, wide QRS, flat P), pericarditis (diffuse concave STE with PR depression and no reciprocal change), early_repol (J-point notch or slur with concave STE, mainly V2-V5, young patient pattern), pacer_spikes, capture_failure (spikes not followed by QRS), each true or false.
 
- every string 12 words or fewer. t_seen 8 words or fewer. Lead "note" only for abnormal leads, otherwise "". evidence at most 4 items, differential at most 3, quality.limitations at most 3, alert.details at most 3. Leave "parameters" notes empty unless essential.
+${fast?"SPEED MATTERS (a crew is waiting with a patient): answer with the compact format below and nothing else. No prose, no notes, no explanations.":`KEEP IT SHORT (the crew is waiting): every string 12 words or fewer. t_seen 8 words or fewer. Lead "note" only for abnormal leads, otherwise "". evidence at most 4 items, differential at most 3, quality.limitations at most 3, alert.details at most 3. Leave "parameters" notes empty unless essential.`}
 
-Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
+${fast?`Reply with ONLY this compact JSON (no markdown, no spaces needed). "L" MUST contain all 12 leads.
+Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead is not visible in the photo:
+ j = J-point ST deviation in small boxes on this paper (number, +elevation / -depression, nearest 0.5)
+ t = T wave: "u" upright, "i" inverted, "b" biphasic, "h" hyperacute, "f" flat
+ shape = ST shape: "i" isoelectric, "c" concave, "s" straight, "x" convex/tombstone, "d" downsloping depression, "u" upsloping depression, "z" horizontal depression
+ q = "n" none, "q" small q, "Q" QS
+ s = 1 if an S wave follows the R (0 if not), jw = 1 if a J-point notch/slur is present
+ pol = QRS mainly "+" positive, "-" negative or "0" isoelectric; qrsmm = height of the main QRS deflection in small boxes
+{"ok":1,"same":1,"same_why":"","used":"","ser":[],
+"qa":[1,"one short line on quality; lead names you could not read"],
+"cal":10,"speed":25,
+"dx":"rhythm and key measured findings, 12 words max","conf":"h|m|l",
+"pa":["rate","regularity","P waves","PR","QRS","QT/QTc","axis"],
+"rc":"sinus","rate":75,"qrs_ms":90,"bbb":"none|RBBB|LBBB|paced|LAFB|bifascicular|IVCD","lvh":0,
+"fl":[null,0,0,0,0,0,0,0],
+"L":{"I":[0,"u","i","n",1,0,"+",8],"II":null,"III":null,"aVR":null,"aVL":null,"aVF":null,"V1":null,"V2":null,"V3":null,"V4":null,"V5":null,"V6":null},
+"xl":{},
+"pm":{"interp":[],"stj":{},"hr":"","pr":"","qrs":"","qtc":"","axes":"","age":"","sex":""},
+"omi":[],
+"al":["critical|caution|none","headline"]}
+Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_repol, pacer_spikes, capture_failure] as 1/0. "xl" holds V7,V8,V9,V3R,V4R as [j, t] only when printed. "pm" copies what is printed on the paper (STJ numbers per lead if present). "omi" lists only patterns fully present.`:`Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 {"is_ecg":true,
 "same_patient":true,
 "same_patient_reason":"which identifiers matched or conflicted",
@@ -1261,7 +1284,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 "evidence":[{"claim":"a measured observation","leads":["V2"]}],
 "alert":{"level":"critical|caution|none","headline":"","details":[]},
 "differential":[],
-"field":[]}\n\n#DYNAMIC\n${dyn}`;
+"field":[]}`}\n\n#DYNAMIC\n${dyn}`;
   }
 
   // The monitor measures the axes from the electrical signal itself, which is more reliable
@@ -1326,10 +1349,10 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
   function cropPart(file,x0,x1,y0,y1){
     y0=y0||0;y1=y1||1;
     return new Promise((res,rej)=>{const u=URL.createObjectURL(file),img=new Image();
-      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0)),sy=Math.round(img.height*y0),sh=Math.round(img.height*(y1-y0));const M=1568,sc=Math.min(1,M/Math.max(sw,sh));
+      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0)),sy=Math.round(img.height*y0),sh=Math.round(img.height*(y1-y0));const M=1200,sc=Math.min(1,M/Math.max(sw,sh));
         const c=document.createElement("canvas");c.width=Math.round(sw*sc);c.height=Math.round(sh*sc);
         c.getContext("2d").drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);URL.revokeObjectURL(u);
-        c.toBlob(b=>b?res(new File([b],"zoom.jpg",{type:"image/jpeg"})):rej(new Error("crop")),"image/jpeg",0.9);};
+        c.toBlob(b=>b?res(new File([b],"zoom.jpg",{type:"image/jpeg"})):rej(new Error("crop")),"image/jpeg",0.82);};
       img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("crop"));};img.src=u;});
   }
   function imgSize(file){return new Promise(res=>{const u=URL.createObjectURL(file),img=new Image();img.onload=()=>{URL.revokeObjectURL(u);res({w:img.width,h:img.height});};img.onerror=()=>{URL.revokeObjectURL(u);res({w:1,h:1});};img.src=u;});}
@@ -1344,6 +1367,42 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     }catch(e){return {imgs:list,zoom:""};}
   }
 
+  // Fast-read compact format -> the full structure the rest of the app understands.
+  const TC={u:"upright",i:"inverted",b:"biphasic",h:"hyperacute",f:"flat"},SH={i:"isoelectric",c:"concave",s:"straight",x:"convex",d:"downsloping",u:"upsloping",z:"horizontal"},QC={n:"none",q:"q",Q:"QS"};
+  function expandCompact(c){
+    if(!c||typeof c!=="object"||!("L" in c))return c;
+    const n=x=>(typeof x==="number"&&isFinite(x))?x:(x===null||x===undefined||x===""?null:(isFinite(parseFloat(x))?parseFloat(x):null));
+    const leads={};LEADS.forEach(k=>{const a=c.L&&c.L[k];
+      if(!Array.isArray(a)){leads[k]={present:false,j_mm:null};return;}
+      const [j,t,sh,q,sw,jw,pol,qm]=a;
+      leads[k]={present:true,j_mm:n(j),t:TC[t]||"unclear",st_shape:SH[sh]||"",q:QC[q]||"none",s_wave:sw===1||sw===true,j_wave:jw===1||jw===true,qrs:pol==="-"?"negative":pol==="0"?"isoelectric":"positive",qrs_mm:n(qm)||0,note:""};});
+    const xl={};["V7","V8","V9","V3R","V4R"].forEach(k=>{const a=c.xl&&c.xl[k];xl[k]=Array.isArray(a)?{present:true,j_mm:n(a[0]),t:TC[a[1]]||"unclear"}:null;});
+    const fl=Array.isArray(c.fl)?c.fl:[];const b=i=>fl[i]===1||fl[i]===true;
+    const pa=Array.isArray(c.pa)?c.pa:[];const P={};[["rate",0],["regularity",1],["p_waves",2],["pr",3],["qrs",4],["qt",5],["axis",6]].forEach(([k,i])=>{P[k]={value:S(pa[i]),note:""};});
+    const al=Array.isArray(c.al)?c.al:[];const qa=Array.isArray(c.qa)?c.qa:[1,""];
+    const pm=c.pm&&typeof c.pm==="object"?c.pm:{};
+    return {is_ecg:c.ok!==0&&c.ok!==false,same_patient:c.same===0||c.same===false?false:(c.same==="u"?"unconfirmed":true),same_patient_reason:S(c.same_why),images_used:S(c.used),serial_changes:Array.isArray(c.ser)?c.ser:[],
+      quality:{adequate:!(qa[0]===0||qa[0]===false),summary:S(qa[1]),limitations:[]},
+      calibration:{visible:n(c.cal)!==null,mm_per_mv:n(c.cal)||10,paper_speed:(n(c.speed)||25)+" mm/s"},
+      primary:{rhythm:S(c.dx),confidence:{h:"high",m:"moderate",l:"low"}[S(c.conf).toLowerCase()]||"moderate",summary:""},
+      parameters:P,conduction:{qrs_ms:n(c.qrs_ms)||0,bbb:S(c.bbb)||"none",lvh:c.lvh===1||c.lvh===true},
+      rhythm_class:S(c.rc)||"undetermined",rate_bpm:n(c.rate),
+      flags:{qtc_ms:n(fl[0]),delta_wave:b(1),brugada:b(2),hyperk:b(3),pericarditis:b(4),early_repol:b(5),pacer_spikes:b(6),capture_failure:b(7)},
+      leads,extra_leads:xl,printed:{interpretation:Array.isArray(pm.interp)?pm.interp:[],stj:pm.stj&&typeof pm.stj==="object"?pm.stj:{},hr:S(pm.hr),pr:S(pm.pr),qrs:S(pm.qrs),qtc:S(pm.qtc),axes:S(pm.axes),age:S(pm.age),sex:S(pm.sex)},
+      omi_patterns:Array.isArray(c.omi)?c.omi:[],evidence:[],alert:{level:S(al[0])||"none",headline:S(al[1]),details:[]},differential:[],field:[],_fast:true};
+  }
+  // Evidence lines built by the app from the measurements (replaces the AI's prose in fast mode).
+  function buildEvidence(d){
+    const st=d.stemi||{},J=st.J||(()=>null),thr=st.thr||(()=>1),L=d.leads||{},ev=[];
+    const ste=LEADS.filter(k=>J(k)!==null&&J(k)>=thr(k)),sub=LEADS.filter(k=>J(k)!==null&&J(k)>0&&J(k)<thr(k)),dep=LEADS.filter(k=>J(k)!==null&&J(k)<=-0.5);
+    if(ste.length)ev.push({claim:"ST elevation at threshold: "+ste.map(k=>k+" +"+J(k)+" mm").join(", "),leads:ste,criterion:"meets this patient's threshold"});
+    if(sub.length)ev.push({claim:"ST elevation below threshold: "+sub.map(k=>k+" +"+J(k)).join(", "),leads:sub,criterion:"below threshold"});
+    if(dep.length)ev.push({claim:"ST depression: "+dep.map(k=>k+" "+J(k)).join(", "),leads:dep,criterion:dep.length>=2?"check reciprocal change / posterior leads":""});
+    const inv=LEADS.filter(k=>k!=="aVR"&&/inverted|biphasic/.test(S(L[k]&&L[k].t)));if(inv.length)ev.push({claim:"T-wave inversion / biphasic: "+inv.join(", "),leads:inv,criterion:""});
+    const hy=LEADS.filter(k=>S(L[k]&&L[k].t)==="hyperacute");if(hy.length)ev.push({claim:"Hyperacute T waves: "+hy.join(", "),leads:hy,criterion:"OMI pattern check"});
+    const c=d.conduction||{};if(c.lvh||(c.bbb&&c.bbb!=="none"))ev.push({claim:[c.lvh?"LVH voltage":"",c.bbb&&c.bbb!=="none"?c.bbb:""].filter(Boolean).join(" + "),leads:[],criterion:"changes how ST criteria apply"});
+    return ev.slice(0,6);
+  }
   // ---------- Rhythm and ECG flags: protocol-consistent actions (workbook drug cards / ACLS) ----------
   const CG=" (per Clinical Guidelines and UMOC)";
   function rhythmAssess(d,pt){
@@ -1509,11 +1568,14 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     return r;
   }
 
-  analyzeBtn.onclick=async()=>{
+  let readMode="fast";
+  analyzeBtn.onclick=()=>runRead("fast");
+  async function runRead(mode){
+    readMode=mode;
     if(!sample||!files.length||busy)return;
     if(isNetlify&&navigator.onLine===false){setStatus("No connection. ECG analysis needs internet. Reference pages, handover and the UMOC call still work offline.",{err:true});return;}
     busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();
-    const t0=Date.now();let phase="Reading all 12 leads";
+    const t0=Date.now();let phase=mode==="fast"?"Fast read":"Thorough read";
     const tick=()=>setStatus(phase+"… "+Math.round((Date.now()-t0)/1000)+" s",{pulse:true});tick();const timer=setInterval(tick,1000);
     let started=false;
     try{
@@ -1521,12 +1583,12 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       const dbl=$("dblChk").checked;
       if(dbl&&isNetlify&&!store.get("eqg-code")){const c0=await askCode();if(!c0)throw{code:"cancelled"};}
       if(dbl){phase="Running two independent reads";tick();}
-      const one=()=>sample.json(buildPrompt(zz.zoom),{images:zz.imgs,modelTier:"complex",signal:ctl.signal,cache:false,onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
+      const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"low":"",signal:ctl.signal,cache:false,onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       let data;
-      if(dbl){const [r1,r2]=await Promise.all([one(),one()]);data=mergeReads(r1,r2);}else data=await one();
+      if(dbl){const [r1,r2]=await Promise.all([one(),one()]);data=mergeReads(expandCompact(r1),expandCompact(r2));}else data=expandCompact(await one());
       applyMonitorSTJ(data);
       applyMonitorAxis(data);
-      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});lastReport=data;render(data);clearInterval(timer);setStatus("Report ready in "+Math.round((Date.now()-t0)/1000)+" s. Confirm against your own reading before acting.");
+      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);lastReport=data;render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready in "+data._secs+" s. Confirm against your own reading before acting.");
       if(isNetlify){const st=data.stemi||{};api("POST",{verdict:"log",entry:{decision:st.decision,criterion:st.criterion,conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:Math.round((Date.now()-t0)/1000),missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
     }catch(e){
       clearInterval(timer);
@@ -1535,7 +1597,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       setStatus(((c==="upstream"||c==="server")&&e.message)?e.message:(m[c]||"The analysis was interrupted. Check your connection and analyze again."),{err:c!=="cancelled"});
       if(c==="images_unavailable")imagesOK=false;
     }finally{busy=false;ctl=null;stopBtn.hidden=true;refresh();}
-  };
+  }
   stopBtn.onclick=()=>ctl?.abort();
   clearBtn.onclick=()=>{
     files=[];$("samePtChk").checked=false;renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
@@ -1629,7 +1691,7 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
       report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
 
     const p=d.primary||{};const h=el("div","card head");
-    h.appendChild(el("p","k","Primary interpretation"));h.appendChild(el("div","r",S(p.rhythm)||"Interpretation unavailable"));
+    h.appendChild(el("p","k","Primary interpretation"+(d._mode==="fast"?" · fast read":d._mode==="thorough"?" · thorough read":"")));h.appendChild(el("div","r",S(p.rhythm)||"Interpretation unavailable"));
     if(p.summary)h.appendChild(el("p",null,S(p.summary)));
     const cc=d._conf;if(cc){h.appendChild(el("span","pill"+(cc.level==="Low"?" low":""),"Confidence: "+cc.level+" ("+cc.score+"%)"));
       const det=document.createElement("details");det.className="conf-d";const sm=document.createElement("summary");sm.textContent="Why this confidence?";det.appendChild(sm);det.appendChild(list(cc.why));h.appendChild(det);}
@@ -1680,6 +1742,10 @@ Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
     const q=d.quality||{};const qc=el("div");qc.appendChild(el("p",null,S(q.summary)||"No quality notes."));const lm=arr(q.limitations);if(lm.length)qc.appendChild(list(lm));
     report.appendChild(card("Image quality and limits",qc));
 
+    if(d._mode==="fast"&&isNetlify){const tc=el("div","card thorough");const st2=d.stemi||{};const need=st2.decision==="consult"||(d._conf&&d._conf.score<70)||(st2.omi&&st2.omi.length)||(d._disagree&&d._disagree.length);
+      tc.appendChild(el("h3",null,need?"Borderline or complex: run a thorough read":"Want a second, deeper read?"));
+      tc.appendChild(el("p","lbl",(need?"This fast read found something that deserves more care. ":"")+"The thorough read uses full reasoning and longer notes per lead. It takes about 45–70 s and costs about 3× more."));
+      const tb=el("button","btn","Run thorough read");tb.type="button";tb.onclick=()=>{tc.remove();runRead("thorough");};tc.appendChild(tb);report.appendChild(tc);}
     if(isNetlify)report.appendChild(reviewCard(d));
     report.hidden=false;report.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
   }

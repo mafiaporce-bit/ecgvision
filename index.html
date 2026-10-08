@@ -142,7 +142,7 @@ textarea{min-height:64px;resize:vertical}
 
 /* Lead map */
 .leadmap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.lead{border-radius:10px;padding:7px 6px;text-align:center;background:var(--field);border:2px solid transparent;min-width:0}
+.lead{border-radius:10px;padding:7px 3px;text-align:center;background:var(--field);border:2px solid transparent;min-width:0}
 .lead b{display:block;font-size:.95rem}
 .lead span{display:block;font-size:.72rem;line-height:1.2;color:var(--soft);overflow-wrap:anywhere}
 .lead.ste{background:var(--crit);border-color:var(--crit)}.lead.ste b,.lead.ste span{color:#fff}
@@ -150,6 +150,20 @@ textarea{min-height:64px;resize:vertical}
 .lead.tw{border-color:var(--accent)}
 .lead.sub{background:#F2EAFB;border-color:#7B3FC4}.lead.sub b,.lead.sub span{color:#5B2A99}
 .lead.unclear{opacity:.55}
+.lead span.tok{font-style:italic}
+.lead span.tl{overflow-wrap:normal;word-break:normal;font-size:.7rem}
+.lead span.jv{font-size:clamp(.76rem,3.6vw,.9rem);font-weight:800;color:var(--ink);margin-top:1px;white-space:nowrap;overflow-wrap:normal}
+.lead span.jv small{font-size:.66rem;font-weight:700}
+.lead span.need{display:block;margin:4px auto 1px;max-width:100%;padding:2px 4px;border-radius:7px;font-size:.68rem;line-height:1.15;font-weight:800;background:#DDE6F0;color:#33475B}
+.lead.ste span.jv{color:#fff}
+.lead.ste span.need{background:#fff;color:var(--crit)}
+.lead.sub span.jv{color:#5B2A99}
+.lead.sub span.need{background:#7B3FC4;color:#fff}
+.lead.std span.jv{color:var(--warn)}
+.lead.std span.need{background:var(--warn);color:#fff}
+.lnote{margin:8px 0 0;font-size:.8rem}
+.lead.stjchk{outline:2px dashed #C27C00;outline-offset:1px}
+.lead span.chkline{color:#8A5A00!important;font-weight:700}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:.78rem;color:var(--soft)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .why{list-style:none;padding:0!important;margin:0}
@@ -1669,12 +1683,14 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
   // Printed STJ Level values are measured by the monitor from the signal itself.
   function applyMonitorSTJ(d){
     const stj=(d.printed||{}).stj;if(!stj||typeof stj!=="object"||!d.leads)return;
-    const cal=Number(d.calibration&&d.calibration.mm_per_mv);const f=(cal>=3&&cal<=25)?10/cal:1;const used=[];
+    const cal=Number(d.calibration&&d.calibration.mm_per_mv);const f=(cal>=3&&cal<=25)?10/cal:1;const used=[],chk=[];
     LEADS.forEach(k=>{const raw=stj[k];if(raw===undefined||raw===null||raw==="")return;const v=parseFloat(String(raw).replace(",","."));if(!isFinite(v)||Math.abs(v)>10)return;
       const o=d.leads[k]||(d.leads[k]={present:true});const cur=typeof o.j_mm==="number"?o.j_mm*f:null;
       if(cur===null||Math.abs(cur-v)>0.5)used.push(k+" "+(v>0?"+":"")+v);
+      // Big gap between the printed number and the trace itself: the small print may have been misread (e.g. 0 read as 9).
+      if(cur!==null&&Math.abs(cur-v)>=0.75){chk.push(k+" (read as "+(v>0?"+":"")+v+" mm, trace looks about "+(Math.round(cur*2)/2)+" mm)");o.stj_check=true;}
       o.present=true;o.j_mm=v/f;o.note=((o.note?S(o.note)+"; ":"")+"J from printed STJ "+v+" mm").slice(0,160);});
-    d._stjUsed=used;
+    d._stjUsed=used;d._stjCheck=chk;
   }
   // Double-check: merge two independent reads; disagreements lower confidence and are shown.
   function mergeReads(a,b){
@@ -1705,6 +1721,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     const stj=!!(d._stjUsed!==undefined&&(d.printed||{}).stj&&Object.keys(d.printed.stj).length);
     if(stj){sc+=10;why.push("J-points from the monitor's STJ measurement");}
     if(d._axisNote){why.push("Limb-lead T waves set from the monitor's T axis");}
+    if(d._stjCheck&&d._stjCheck.length){sc-=Math.min(15,5*d._stjCheck.length);why.push("Printed STJ may be misread in "+d._stjCheck.map(x=>x.split(" ")[0]).join(", "));}
     if(d._double){const ns=(d._settled||[]).length;
       if(d._disagree.length){sc-=Math.min(30,8*d._disagree.length);why.push("Two reads disagreed: "+d._disagree.slice(0,4).join("; "));}
       else{sc+=10;why.push(ns?"Two independent reads agreed (small photo differences settled by the monitor's own measurement)":"Two independent reads agreed on every lead");}
@@ -1786,7 +1803,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     if(ste.length)ev.push({claim:"ST elevation at threshold: "+ste.map(k=>k+" +"+J(k)+" mm").join(", "),leads:ste,criterion:"meets this patient's threshold"});
     if(sub.length)ev.push({claim:"ST elevation below threshold: "+sub.map(k=>k+" +"+J(k)).join(", "),leads:sub,criterion:"below threshold"});
     if(dep.length)ev.push({claim:"ST depression: "+dep.map(k=>k+" "+J(k)).join(", "),leads:dep,criterion:dep.length>=2?"check reciprocal change / posterior leads":""});
-    const inv=LEADS.filter(k=>k!=="aVR"&&/inverted|biphasic/.test(S(L[k]&&L[k].t)));if(inv.length)ev.push({claim:"T-wave inversion / biphasic: "+inv.join(", "),leads:inv,criterion:""});
+    const inv=LEADS.filter(k=>/inverted|biphasic/.test(S(L[k]&&L[k].t))&&!tExpected(d,k));if(inv.length)ev.push({claim:"T-wave inversion / biphasic: "+inv.join(", "),leads:inv,criterion:""});
     const hy=LEADS.filter(k=>S(L[k]&&L[k].t)==="hyperacute");if(hy.length)ev.push({claim:"Hyperacute T waves: "+hy.join(", "),leads:hy,criterion:"OMI pattern check"});
     const c=d.conduction||{};if(c.lvh||(c.bbb&&c.bbb!=="none"))ev.push({claim:[c.lvh?"LVH voltage":"",c.bbb&&c.bbb!=="none"?c.bbb:""].filter(Boolean).join(" + "),leads:[],criterion:"changes how ST criteria apply"});
     return ev.slice(0,6);
@@ -2069,6 +2086,18 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
   const list=items=>{const u=el("ul");items.forEach(t=>u.appendChild(el("li",null,t)));return u;};
   const card=(title,content)=>{const c=el("div","card");c.appendChild(el("h3",null,title));c.appendChild(content);return c;};
 
+  // T-wave inversions that are normal or expected, so they are not shown as abnormal:
+  // aVR (always inverted), V1 (often inverted in healthy adults), III alone (when aVF is upright),
+  // and V1–V3 with right bundle branch block (secondary repolarisation change).
+  function tExpected(d,k){
+    const L=d.leads||{},t=S(L[k]&&L[k].t).toLowerCase();if(t!=="inverted"&&t!=="biphasic")return "";
+    const bbb=S((d.conduction||{}).bbb);
+    if(k==="aVR"&&t==="inverted")return "normal in aVR";
+    if(/RBBB|bifascicular/i.test(bbb)&&["V1","V2","V3"].includes(k))return "expected with RBBB";
+    if(k==="V1"&&t==="inverted")return "can be normal in V1";
+    if(k==="III"&&t==="inverted"&&!/inverted|biphasic/.test(S(L.aVF&&L.aVF.t)))return "can be normal in III alone";
+    return "";
+  }
   function leadMap(d){
     const r=d.stemi||{},J=r.J||(()=>null),thr=r.thr||(()=>1),L=d.leads||{};
     const order=["I","aVR","V1","V4","II","aVL","V2","V5","III","aVF","V3","V6"];
@@ -2077,13 +2106,16 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       const o=L[k]||{},j=J(k),t=S(o.t).toLowerCase();
       let cls="lead",line;
       if(j===null){cls+=" unclear";line="not in photo";}
-      else if(j>=thr(k)){cls+=" ste";line="J +"+j+" mm";}
-      else if(j<=-0.5){cls+=" std";line="J "+j+" mm";}
-      else{line="J "+(j>0?"+":"")+j+" mm";if(j>0)cls+=" sub";}
-      if(j!==null&&["inverted","biphasic","hyperacute"].includes(t))cls+=" tw";
-      const box=el("div",cls);box.appendChild(el("b",null,k));box.appendChild(el("span",null,line));
-      if(j!==null&&(k==="V2"||k==="V3"||j>0))box.appendChild(el("span",null,"needs ≥"+thr(k)));
-      if(j!==null&&t&&t!=="upright"&&t!=="unclear")box.appendChild(el("span",null,"T "+t));
+      else if(j>=thr(k)){cls+=" ste";line="+"+j+" mm";}
+      else if(j<=-0.5){cls+=" std";line="−"+Math.abs(j)+" mm";}
+      else{line=(j>0?"+":"")+j+" mm";if(j>0)cls+=" sub";}
+      const tx=tExpected(d,k);
+      if(j!==null&&["inverted","biphasic","hyperacute"].includes(t)&&!tx)cls+=" tw";
+      if(o.stj_check)cls+=" stjchk";
+      const box=el("div",cls);box.appendChild(el("b",null,k));if(j===null)box.appendChild(el("span",null,line));else{const jv=el("span","jv",line.replace(" mm",""));jv.appendChild(el("small",null," mm"));box.appendChild(jv);}
+      if(j!==null&&(k==="V2"||k==="V3"||j>0))box.appendChild(el("span","need","needs ≥"+thr(k)));
+      if(j!==null&&t&&t!=="upright"&&t!=="unclear"){const sp=el("span",tx?"tl tok":"tl","T "+t+(tx?(/RBBB/.test(tx)?" (RBBB)":" (normal)"):""));if(tx)sp.title=tx;box.appendChild(sp);}
+      if(o.stj_check)box.appendChild(el("span","chkline","⚠ check paper"));
       if(o.note)box.title=S(o.note);
       g.appendChild(box);
     });
@@ -2091,6 +2123,8 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     const lg=el("div","legend");
     [["var(--crit)","Meets threshold"],["#7B3FC4","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--accent)","Abnormal T wave"],["var(--field-b)","Normal / not in photo"]].forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
     wrap.appendChild(lg);
+    if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal) or (RBBB) is expected in that lead and is not counted as abnormal."));
+    if(order.some(k=>(L[k]||{}).stj_check))wrap.appendChild(el("p","lbl lnote","⚠ check paper: the printed STJ number may have been misread from the photo. Read it on the paper."));
     const notes=LEADS.filter(k=>L[k]&&L[k].note).map(k=>k+": "+S(L[k].note));
     if(notes.length){const n=list(notes);n.style.marginTop="10px";n.style.fontSize=".88rem";wrap.appendChild(n);}
     return wrap;
@@ -2179,6 +2213,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       if(mm.length)st.warnings=["Printout shows "+mm.join(" and ")+". The V2–V3 threshold depends on age and sex. Check the patient details and analyze again."].concat(st.warnings||[]);}
     if(d._device&&!(st.warnings||[]).includes(d._device))st.warnings=[d._device].concat(st.warnings||[]);
     if(d._axisNote)st.warnings=(st.warnings||[]).concat([d._axisNote]);
+    if(d._stjCheck&&d._stjCheck.length){const w="Check these printed STJ values on the paper: "+d._stjCheck.join("; ")+". Small print in a photo can be misread. For a sharper read, add a close-up photo of the STJ table.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}
     if(d._stjUsed&&d._stjUsed.length)st.warnings=(st.warnings||[]).concat(["J-points taken from the monitor's printed STJ measurement where the photo read differed: "+d._stjUsed.join(", ")+"."]);
     (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
     if((st.checks||[]).length){const u=el("ul","why");

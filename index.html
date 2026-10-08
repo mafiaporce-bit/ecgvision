@@ -340,6 +340,14 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .omibox .a{font-size:1.5rem;font-weight:900;margin:2px 0 6px;line-height:1.15}
 .omibox p{margin:4px 0}
 .omibox ul{margin:8px 0 0;padding-left:1.2em}
+.omi-hit{margin:10px 0 0;background:#FFFBEA;border:2px solid #C27C00;border-left:7px solid #C3283A;border-radius:12px;padding:9px 11px;box-shadow:0 2px 8px rgba(58,42,0,.18)}
+.omi-hit-top{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px}
+.omi-hit-top b{font-size:1.05rem;font-weight:900;color:#3A2A00}
+.omi-tag{background:#C3283A;color:#fff;font-size:.68rem;font-weight:900;letter-spacing:.04em;border-radius:6px;padding:2px 7px}
+.omi-hit p{margin:4px 0 0!important;font-weight:600;color:#3A2A00}
+.omi-poss{margin-top:10px;opacity:.78}
+.omi-poss-h{margin:0!important;font-size:.8rem;font-weight:700}
+.omi-poss ul{margin-top:2px!important;font-size:.85rem}
 .omibox .call{display:flex;align-items:center;justify-content:center;margin-top:12px;background:#3A2A00;color:#FFE17A;font-weight:900;font-size:1.05rem;border-radius:14px;min-height:52px;text-decoration:none;text-align:center;padding:0 10px}
 
 /* Patient + Quick actions side by side */
@@ -2097,7 +2105,10 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       ob.appendChild(el("p","q","OMI pattern seen"));
       ob.appendChild(el("div","a",conf.length?"Can activate via UMOC":"Possible OMI pattern: discuss with UMOC"));
       ob.appendChild(el("p",null,"Not an automatic activation. These occlusion patterns from your workbook were found; call UMOC to discuss STEMI PPCI activation."));
-      ob.appendChild(list(st.omi.map(x=>(x.confirmed?"✔ ":"? ")+x.n+": "+x.why)));
+      // Confirmed patterns are highlighted; possible ones are listed quietly underneath.
+      conf.forEach(x=>{const h=el("div","omi-hit");const t=el("div","omi-hit-top");t.appendChild(el("span","omi-tag","✔ CONFIRMED"));t.appendChild(el("b",null,x.n));h.appendChild(t);if(x.why)h.appendChild(el("p",null,x.why));ob.appendChild(h);});
+      const poss=st.omi.filter(x=>!x.confirmed);
+      if(poss.length){const pw=el("div","omi-poss");pw.appendChild(el("p","omi-poss-h",conf.length?"Also possible (not confirmed):":"Possible (not confirmed):"));pw.appendChild(list(poss.map(x=>"? "+x.n+(x.why?": "+x.why:""))));ob.appendChild(pw);}
       const a=el("a","call","Call UMOC 02 504 8555 · discuss activation");a.href="tel:+97125048555";a.target="_blank";a.rel="noopener";a.addEventListener("click",()=>toast("Opening dialer: UMOC 02 504 8555"));ob.appendChild(a);
       report.appendChild(ob);}
     {const ns=nextSteps(d);if(ns.length){const x=el("div","xleads");x.appendChild(el("h3",null,"Next ECG steps"));x.appendChild(list(ns));report.appendChild(x);}}

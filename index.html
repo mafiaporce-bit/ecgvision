@@ -216,6 +216,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .fig .tr{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
 .fig .ste{fill:var(--crit);opacity:.3}
 .fig .std{fill:var(--warn);opacity:.35}
+.fig .tfill{fill:#F08A5D;opacity:.55}
 .fig .fn{font-size:.72rem;color:var(--soft);padding:0 7px 5px;line-height:1.2}
 .pat .figs{margin-top:6px}
 :root{--paper:#FFF7F5;--paper-l:#F6D9D3}
@@ -1470,19 +1471,23 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   function beat(b){
     let x=30,d=`M0 ${Y0} L12 ${Y0} Q19 ${Y0-9} 26 ${Y0} L30 ${Y0}`;
     if(b.p===false)d=`M0 ${Y0} L30 ${Y0}`;
-    for(const [dx,amp] of b.qrs){x+=dx;d+=` L${x} ${Y0-amp*K}`;}
-    const st=b.st||0,yJ=Y0-st*K;x+=3;d+=` L${x} ${yJ}`;const jx=x;
+    const q=b.qrs.slice();let carry=0;
+    if((b.st||0)<0&&q.length>1&&q[q.length-1][1]===0)carry=q.pop()[0];
+    for(const [dx,amp] of q){x+=dx;d+=` L${x} ${Y0-amp*K}`;}
+    const st=b.st||0,yJ=Y0-st*K;x+=3+carry;d+=` L${x} ${yJ}`;const jx=x;
     const ys=b.rise?yJ-b.rise*K:yJ;x+=(b.stLen??12);d+=` L${x} ${ys}`;const sx=x;
     const tw=b.tw||26,t=b.t??3;
     if(b.bi){d+=` Q${x+tw/4} ${ys-2*t*K} ${x+tw/2} ${Y0} Q${x+3*tw/4} ${Y0+2*t*K} ${x+tw} ${Y0}`;}
     else d+=` Q${x+tw/2} ${ys-2*t*K} ${x+tw} ${Y0}`;
+    const tArea=b.shadeT?`M${sx} ${Y0} L${sx} ${ys} Q${sx+tw/2} ${ys-2*t*K} ${sx+tw} ${Y0} Z`:"";
     x+=tw;d+=` L${x+10} ${Y0}`;x+=10;
-    return {d,w:x,jx,sx,yJ,ys,st};
+    return {d,w:x,jx,sx,yJ,ys,st,tArea};
   }
   function fig(b){
     const r=beat(b);const box=document.createElement("div");box.className="fig";
     const l=document.createElement("div");l.className="fl";l.textContent=b.label;box.appendChild(l);
     const svg=document.createElementNS(NS,"svg");svg.setAttribute("viewBox",`0 0 ${r.w} 90`);svg.setAttribute("aria-hidden","true");
+    if(r.tArea){const a=document.createElementNS(NS,"path");a.setAttribute("d",r.tArea);a.setAttribute("class","tfill");svg.appendChild(a);}
     if(r.st!==0){const p=document.createElementNS(NS,"polygon");p.setAttribute("points",`${r.jx},${Y0} ${r.jx},${r.yJ} ${r.sx},${r.ys} ${r.sx},${Y0}`);p.setAttribute("class",r.st>0?"ste":"std");svg.appendChild(p);}
     const path=document.createElementNS(NS,"path");path.setAttribute("d",r.d);path.setAttribute("class","tr");svg.appendChild(path);
     box.appendChild(svg);
@@ -1505,8 +1510,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   const OMI=[
     {n:"Wellens pattern A",w:"V2–V3",d:"Biphasic T wave: positive first, then negative.",f:[{label:"V2–V3",qrs:R(8,4),st:0.5,bi:true,t:2}]},
     {n:"Wellens pattern B",w:"V2–V3",d:"Deeply inverted T wave.",f:[{label:"V2–V3",qrs:R(8,4),st:0.5,t:-3.5,tw:30}]},
-    {n:"Hyperacute T wave",w:"Any lead",d:"Broad-based, bulky, disproportionately large T wave for the QRS.",f:[{label:"Any lead",qrs:R(6,2),st:0.5,t:6,tw:38}]},
-    {n:"De Winter T wave",w:"Precordial leads",d:"Upward-sloping 1–3 mm ST depression at the J-point running into a tall positive T wave.",f:[{label:"V1–V6",qrs:R(8,3),st:-2,rise:3,stLen:8,t:5,tw:30}]},
+    {n:"Hyperacute T wave",w:"Any lead",d:"Broad-based, bulky, disproportionately large T wave for the QRS.",f:[{label:"Any lead",qrs:[[3,-0.5],[3,3.5],[3,-1.5],[3,0]],st:0,rise:0.6,stLen:4,t:7.5,tw:36,shadeT:true,note:"T far bigger than the QRS"}]},
+    {n:"De Winter T wave",w:"Precordial leads",d:"Upward-sloping 1–3 mm ST depression at the J-point running into a tall positive T wave.",f:[{label:"V1–V6",qrs:[[3,-0.5],[3,8],[4,-5]],st:-2,rise:2,stLen:9,t:6,tw:22,note:"Upsloping STD 1–3 mm, tall T"}]},
     {n:"Aslanger pattern",w:"III, V4–V6, V1–V2",d:"All three: any ST elevation in III, plus ST depression in any of V4–V6 with a positive or terminally positive T wave, plus ST in V1 higher than in V2.",f:[{label:"III",qrs:R(5,1),st:1,t:2,note:"Any STE"},{label:"V4–V6",qrs:R(9,2),st:-1.5,t:2,note:"STD, positive T"},{label:"V1",qrs:rS(1,6),st:1.5,t:1},{label:"V2",qrs:rS(2,8),st:0.5,t:2,note:"ST lower than V1"}]},
     {n:"South African flag sign",w:"I, aVL, V2, III",d:"ST elevation in I, aVL and V2, with ST depression in III.",f:[{label:"I",qrs:R(6,1),st:1.5,t:2.5},{label:"aVL",qrs:R(5,1),st:1.5,t:2.5},{label:"V2",qrs:rS(2,7),st:2,t:3.5},{label:"III",qrs:R(4,3),st:-1.5,t:1}]},
     {n:"New-onset bifascicular block",w:"V1–V2, V5–V6, II, III, aVF, aVL",d:"RBBB (rsR' in V1–V2, slurred S in V5–V6) plus left anterior fascicular block (rS in II, III, aVF and qR in aVL).",f:[{label:"V1–V2",qrs:[[3,2],[3,-1.5],[5,7],[5,0]],st:-0.5,t:-2},{label:"V5–V6",qrs:[[3,-0.5],[3,8],[3,0],[8,-2.5],[5,0]],t:2},{label:"II, III, aVF",qrs:rS(1.5,8),t:1.5,note:"rS"},{label:"aVL",qrs:[[2,-1.5],[4,8],[3,0]],t:2,note:"qR"}]},
@@ -1611,6 +1616,7 @@ HOW TO MEASURE (follow exactly, lead by lead):
 3. J-point: the exact point where the QRS ends and the ST segment starts, i.e. where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Measure the vertical distance between the J-point and the baseline in SMALL BOXES as seen on this paper, to the nearest 0.5. Positive = above baseline, negative = below.
 4. NEVER measure at the T-wave, at the peak of the ST hump, or in the middle of the ST segment. A tall T wave is not ST elevation.
 5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. This is very common in young men and in early repolarisation. Report the real J-point value.
+5b. WIDE QRS (LBBB, paced, RBBB, IVCD; QRS 120 ms or more): the J-point is the END of the whole wide QRS complex, never a point inside the R or S wave. Measure it against the baseline (TP / PR segment), not against the QRS. In LBBB and paced rhythm the ST segment normally goes the OPPOSITE way to the main QRS ("appropriate discordance"): depressed after an upright QRS (usually I, aVL, V5-V6) and elevated after a deep S (usually V1-V3, often III/aVF). Report that real sign. Only report ST going the SAME way as the QRS (concordant) if you clearly see it in that lead.
 6. ST shape: isoelectric, concave (smiley), straight, convex (frowny/tombstone), horizontal, upsloping or downsloping. Only call it convex or tombstone if the ST segment clearly bows upward above the line from J-point to T peak.
 7. T wave polarity for EVERY lead, judged against the baseline: upright (above), inverted (below), biphasic (both), hyperacute (broad, bulky, disproportionately tall for the QRS) or flat. Report its height in small boxes (negative if inverted). In I, II, aVL, aVF and V4-V6 the T wave is normally upright; if it dips below the baseline there, it is INVERTED and must be reported. aVR normally has an inverted T.
 8. Q waves: none, q (small) or QS. QRS polarity: "qrs" = positive (mainly upright), negative (mainly downward) or isoelectric, and "qrs_mm" = height of the main deflection in small boxes (R height if positive, S depth if negative). In V2 and V3 also report "s_wave" (true if an S wave follows the R) and "j_wave" (true if there is a notch or slur at the J-point).
@@ -1951,7 +1957,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       // Modified Sgarbossa (LBBB / paced only)
       if(lbbb){const c1=LEADS.filter(k=>qp(k)==="positive"&&has(k,x=>x>=1));const c2=["V1","V2","V3"].filter(k=>qp(k)==="negative"&&has(k,x=>x<=-1));
         const c3=LEADS.filter(k=>qp(k)==="negative"&&qm(k)>0&&has(k,x=>x>=1&&x/qm(k)>=0.25));
-        R.push({n:"Modified Sgarbossa (Smith)",hit:c1.length>0||c2.length>0||c3.length>0,why:[c1.length?"concordant STE "+c1.join(", "):"",c2.length?"concordant STD "+c2.join(", "):"",c3.length?"ST/S ≥25% "+c3.join(", "):""].filter(Boolean).join("; "),look:named("sgarbossa"),noBlock:true});}
+        R.push({n:"Modified Sgarbossa (Smith)",hit:c1.length>0||c2.length>0||c3.length>0,why:[c1.length?"concordant STE "+c1.join(", "):"",c2.length?"concordant STD "+c2.join(", "):"",c3.length?"ST/S ≥25% "+c3.join(", "):""].filter(Boolean).join("; "),look:named("sgarbossa"),noBlock:true,needNamed:true});}
       // Precordial swirl
       R.push({n:"Precordial swirl",hit:(has("V1",x=>x>=1)||has("V2",x=>x>=1))&&(has("V5",x=>x<=-0.5)||has("V6",x=>x<=-0.5)),why:"STE V1 "+J("V1")+" / V2 "+J("V2")+" with ST depression V5 "+J("V5")+" / V6 "+J("V6"),look:named("swirl"),block:rbbb?"RBBB":null});
       // Northern OMI
@@ -1961,7 +1967,10 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       let any=false;r.omi=[];
       R.forEach(x=>{
         const blocker=x.noBlock?null:(lbbb?"LBBB / paced rhythm":lvh?"LVH (strain can mimic this)":x.block);
-        if(x.hit&&!blocker){any=true;r.omi.push({n:x.n,why:x.why,confirmed:true});r.checks.push({ok:null,t:"(OMI) "+x.n+" SEEN: "+x.why+"."});}
+        // In a wide QRS the J-point is hard to place, so modified Sgarbossa from the measurements alone stays "possible"
+        // unless the AI's own read also calls it: a measurement slip must not show as CONFIRMED.
+        if(x.hit&&x.needNamed&&!x.look){any=true;const why="measurements suggest "+x.why+", but the AI's overall read did not see it. In a wide QRS the J-point is hard to place: check these leads yourself";r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});}
+        else if(x.hit&&!blocker){any=true;r.omi.push({n:x.n,why:x.why,confirmed:true});r.checks.push({ok:null,t:"(OMI) "+x.n+" SEEN: "+x.why+"."});}
         else if(x.hit||x.look){any=true;const why=x.hit?blocker+" could explain it":"suggested by the AI but not confirmed in every required lead";r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});}
       });
       if(!any)r.checks.push({ok:false,t:"(OMI) None of the 12 OMI patterns found in the measurements."});

@@ -1701,7 +1701,10 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     const stj=!!(d._stjUsed!==undefined&&(d.printed||{}).stj&&Object.keys(d.printed.stj).length);
     if(stj){sc+=10;why.push("J-points from the monitor's STJ measurement");}
     if(d._axisNote){why.push("Limb-lead T waves set from the monitor's T axis");}
-    if(d._double){if(d._disagree.length){sc-=Math.min(30,8*d._disagree.length);why.push("Two reads disagreed: "+d._disagree.slice(0,4).join("; "));}else{sc+=10;why.push("Two independent reads agreed on every lead");}}
+    if(d._double){const ns=(d._settled||[]).length;
+      if(d._disagree.length){sc-=Math.min(30,8*d._disagree.length);why.push("Two reads disagreed: "+d._disagree.slice(0,4).join("; "));}
+      else{sc+=10;why.push(ns?"Two independent reads agreed (small photo differences settled by the monitor's own measurement)":"Two independent reads agreed on every lead");}
+      if(ns&&d._disagree.length)why.push(ns+" photo difference"+(ns>1?"s":"")+" settled by the monitor's own measurement (not counted)");}
     // One read can't confirm itself, so it has a lower ceiling than two reads that agree (95%):
     // 85% when the J-points come from the monitor's own STJ numbers, 75% when they come only from the photo.
     let cap=95;if(!d._double){cap=stj?85:75;why.push("Single read: highest possible is "+cap+"% (Double-check can reach 95%)");}
@@ -1718,6 +1721,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       if(c<=-0.4&&(t==="upright"||t==="flat"||t===""||t==="unclear"))want="inverted";
       else if(c>=0.4&&(t==="inverted"||((t==="flat"||t===""||t==="unclear")&&c>=0.6)))want="upright";
       if(want){fixed.push(k+" → "+want);o.t=want;o.note=((o.note?S(o.note)+"; ":"")+"T polarity from monitor's T axis "+tAx+"°").slice(0,160);}});
+    d._axisFixed=fixed.map(x=>x.split(" ")[0]);
     if(fixed.length)d._axisNote="T waves corrected using the monitor's measured T axis ("+tAx+"°): "+fixed.join(", ")+". The photo read disagreed; the monitor measures the actual signal.";
   }
   // Zoomed halves of a single photo so small waveforms are read at double resolution.
@@ -1969,8 +1973,17 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     if(q>0){d._device=dev+" reported, but the QRS is narrow ("+q+" ms): the device is probably not pacing right now, so the standard STEMI criteria apply.";return;}
     d._device=dev+" reported, but the QRS width couldn't be measured. Look for pacing spikes: if the rhythm is paced, the standard ST criteria don't apply (use modified Sgarbossa).";
   }
+  // Double-check: two reads that differ on a J-point the monitor printed (STJ), or on a limb-lead T wave the
+  // monitor's T axis decided, don't count as a disagreement: the monitor's own measurement is what gets used.
+  function settleDisagreements(d){
+    if(!d._double||!Array.isArray(d._disagree))return;
+    const stj=(d.printed||{}).stj||{};const hasStj=k=>{const v=parseFloat(String(stj[k]??"").replace(",","."));return isFinite(v)&&Math.abs(v)<=10;};
+    const ax=new Set(d._axisFixed||[]);const keep=[],settled=[];
+    d._disagree.forEach(t=>{const m=String(t).match(/^(\w+) (J|T) /);if(m&&((m[2]==="J"&&hasStj(m[1]))||(m[2]==="T"&&ax.has(m[1]))))settled.push(t);else keep.push(t);});
+    d._disagree=keep;d._settled=settled;
+  }
   function finishRead(data,mode,t0){
-    applyMonitorSTJ(data);applyMonitorAxis(data);applyDevice(data);
+    applyMonitorSTJ(data);applyMonitorAxis(data);settleDisagreements(data);applyDevice(data);
     data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
     if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);return data;
   }

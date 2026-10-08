@@ -298,6 +298,12 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
 .dbl{margin-top:12px;background:var(--field);border-radius:12px;padding:10px 12px}
 .thorough{border:2px solid var(--accent)}
+.refining{border-style:dashed;padding:11px 13px}
+.refining h3{font-size:.95rem!important;margin:0 0 4px!important}
+.refining .lbl{font-size:.8rem;margin:0 0 6px}
+.refining .btn{min-height:38px;font-size:.85rem}
+.upd{border-radius:14px;padding:9px 12px;background:var(--ok-bg);color:var(--ok);font-size:.85rem;display:flex;flex-direction:column;gap:2px}
+.upd.changed{background:var(--crit);color:#fff}
 .thorough .btn{width:100%;margin-top:8px}
 .conf-d{margin-top:8px}
 .conf-d summary{cursor:pointer;font-size:.8rem;color:rgba(255,255,255,.85)}
@@ -822,9 +828,11 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
       if(out.reduce((n,x)=>n+x.data.length,0)<4200000)return out;}
     return out;
   }
+  const shrinkMap=new WeakMap();
+  function shrinkCached(images){if(!Array.isArray(images))return shrinkAll(images);let p=shrinkMap.get(images);if(!p){p=shrinkAll(images);shrinkMap.set(images,p);p.catch(()=>shrinkMap.delete(images));}return p;}
   function netlifySample(){return{async json(prompt,{images=[],signal,onText,effort}={}){
     let code=store.get("eqg-code");if(!code){code=await askCode();if(!code)throw{code:"cancelled"};}
-    const imgs=await shrinkAll(images);
+    const imgs=await shrinkCached(images);
     let r;try{r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({prompt,images:imgs,effort:effort||""}),signal});}
     catch(e){throw{code:signal&&signal.aborted?"cancelled":"network"};}
     if(r.status===401){store.set("eqg-code","");throw{code:"bad_code"};}
@@ -1164,7 +1172,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   const drop=$("drop"),thumbs=$("thumbs"),analyzeBtn=$("analyzeBtn"),stopBtn=$("stopBtn"),clearBtn=$("clearBtn"),statusEl=$("status"),report=$("report");
   let files=[],maxCount=5,sample=null,imagesOK=false,ctl=null,busy=false,lastReport=null;
   function setStatus(t,o={}){statusEl.className="status"+(o.err?" err":"");statusEl.textContent="";if(o.pulse){const s=document.createElement("span");s.className="pulse";statusEl.appendChild(s);}statusEl.append(t);}
-  function refresh(){const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);const unchecked=files.some(f=>!window.__cleared(f));analyzeBtn.disabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked)||unchecked;if(unchecked&&!busy)setStatus("Cover the patient details on each photo (tap the red badge).");clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
+  function refresh(){setTimeout(prewarm,0);const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);const unchecked=files.some(f=>!window.__cleared(f));analyzeBtn.disabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked)||unchecked;if(unchecked&&!busy)setStatus("Cover the patient details on each photo (tap the red badge).");clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
   function addFiles(list){
     if(!patientOK()){setStatus("Enter age and sex first.",{err:true});return;}
     const ok=[...list].filter(f=>/^image\//.test(f.type));
@@ -1357,6 +1365,11 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
   }
   function imgSize(file){return new Promise(res=>{const u=URL.createObjectURL(file),img=new Image();img.onload=()=>{URL.revokeObjectURL(u);res({w:img.width,h:img.height});};img.onerror=()=>{URL.revokeObjectURL(u);res({w:1,h:1});};img.src=u;});}
   // One photo -> full image + 4 zoomed parts (quadrants, or 4 strips for very wide printouts).
+  let zoomCache=null;
+  function zoomFor(list){
+    if(zoomCache&&zoomCache.list.length===list.length&&zoomCache.list.every((f,i)=>f===list[i]))return zoomCache.p;
+    const p=withZoom(list);zoomCache={list:list.slice(),p};p.catch(()=>{zoomCache=null;});return p;
+  }
   async function withZoom(list){
     if(list.length!==1)return {imgs:list,zoom:""};
     try{const f=list[0],sz=await imgSize(f);
@@ -1570,26 +1583,62 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
 
   let readMode="fast";
   analyzeBtn.onclick=()=>runRead("fast");
+  function finishRead(data,mode,t0){
+    applyMonitorSTJ(data);applyMonitorAxis(data);
+    data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
+    if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);return data;
+  }
+  function logRead(data){if(!isNetlify)return;const st=data.stemi||{};api("POST",{verdict:"log",entry:{decision:st.decision,criterion:(data._mode==="thorough"?"[thorough] ":"")+S(st.criterion),conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:data._secs||0,missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
+  function needsThorough(d){const st=d.stemi||{};return st.decision==="consult"||(d._conf&&d._conf.score<70)||!!(st.omi&&st.omi.length)||!!(d._disagree&&d._disagree.length);}
+  const DEC_TXT={met:"YES — activate",consult:"consult UMOC",not_met:"NO"};
+  // ---------- Background thorough read for borderline fast results ----------
+  let bg=null;
+  function bgCancel(){if(bg){bg.ctl.abort();clearInterval(bg.timer);bg=null;}}
+  async function bgThorough(fast){
+    bgCancel();const me={ctl:new AbortController(),t0:Date.now(),fast,timer:null};bg=me;
+    me.timer=setInterval(()=>{const e=document.getElementById("bgSecs");if(e)e.textContent=Math.round((Date.now()-me.t0)/1000)+" s";},1000);
+    try{
+      const zz=await zoomFor(files.slice(0,maxCount));
+      const raw=await sample.json(buildPrompt(zz.zoom,"thorough"),{images:zz.imgs,modelTier:"complex",effort:"",signal:me.ctl.signal,cache:false});
+      if(bg!==me||lastReport!==fast)return;
+      const data=finishRead(expandCompact(raw),"thorough",me.t0);
+      data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};
+      clearInterval(me.timer);bg=null;
+      const y=window.scrollY;lastReport=data;render(data);window.scrollTo({top:y});
+      setStatus("Thorough read finished in "+data._secs+" s. "+(data._from.decision===data.stemi.decision?"Decision unchanged.":"Decision CHANGED: see the top of the report."));
+      logRead(data);
+    }catch(e){
+      if(bg!==me)return;clearInterval(me.timer);bg=null;
+      if(e&&e.code==="cancelled")return;
+      const c=document.getElementById("bgCard");if(c){c.textContent="";c.appendChild(el("h3",null,"Thorough read didn't finish"));c.appendChild(el("p","lbl","The fast result above stands. You can try again."));const b=el("button","btn","Run thorough read");b.type="button";b.onclick=()=>runRead("thorough");c.appendChild(b);}
+    }
+  }
+  // Warm the analysis server and prepare the photos before Analyze is tapped.
+  let warmed=false;
+  function prewarm(){
+    if(!isNetlify||!files.length||!files.every(f=>window.__cleared(f)))return;
+    if(!warmed){warmed=true;fetch("/api/read",{method:"GET",cache:"no-store"}).catch(()=>{});}
+    zoomFor(files.slice(0,maxCount)).then(z=>shrinkCached(z.imgs)).catch(()=>{});
+  }
   async function runRead(mode){
     readMode=mode;
     if(!sample||!files.length||busy)return;
+    bgCancel();
     if(isNetlify&&navigator.onLine===false){setStatus("No connection. ECG analysis needs internet. Reference pages, handover and the UMOC call still work offline.",{err:true});return;}
     busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();
     const t0=Date.now();let phase=mode==="fast"?"Fast read":"Thorough read";
     const tick=()=>setStatus(phase+"… "+Math.round((Date.now()-t0)/1000)+" s",{pulse:true});tick();const timer=setInterval(tick,1000);
     let started=false;
     try{
-      const zz=await withZoom(files.slice(0,maxCount));
+      const zz=await zoomFor(files.slice(0,maxCount));
       const dbl=$("dblChk").checked;
       if(dbl&&isNetlify&&!store.get("eqg-code")){const c0=await askCode();if(!c0)throw{code:"cancelled"};}
       if(dbl){phase="Running two independent reads";tick();}
       const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"low":"",signal:ctl.signal,cache:false,onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       let data;
       if(dbl){const [r1,r2]=await Promise.all([one(),one()]);data=mergeReads(expandCompact(r1),expandCompact(r2));}else data=expandCompact(await one());
-      applyMonitorSTJ(data);
-      applyMonitorAxis(data);
-      data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);lastReport=data;render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready in "+data._secs+" s. Confirm against your own reading before acting.");
-      if(isNetlify){const st=data.stemi||{};api("POST",{verdict:"log",entry:{decision:st.decision,criterion:st.criterion,conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:Math.round((Date.now()-t0)/1000),missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
+      finishRead(data,mode,t0);bgCancel();lastReport=data;if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready in "+data._secs+" s. Confirm against your own reading before acting.");
+      logRead(data);
     }catch(e){
       clearInterval(timer);
       const c=e&&e.code;
@@ -1599,7 +1648,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     }finally{busy=false;ctl=null;stopBtn.hidden=true;refresh();}
   }
   stopBtn.onclick=()=>ctl?.abort();
-  clearBtn.onclick=()=>{
+  clearBtn.onclick=()=>{bgCancel();zoomCache=null;
     files=[];$("samePtChk").checked=false;renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
     $("age").value="";$("sex").value="";$("notes").value="";syncPick();window.__cxReset&&window.__cxReset();
     document.querySelectorAll("#page-handover input,#page-handover textarea").forEach(i=>i.value="");$("hout").hidden=true;$("copyBtn").hidden=true;
@@ -1655,7 +1704,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     const box=el("div","stemi "+dec);box.setAttribute("role",dec==="met"?"alert":"note");
     box.appendChild(el("p","q","STEMI PPCI criteria met?"));
     box.appendChild(el("div","a",dec==="met"?"YES — Activate STEMI pathway":dec==="consult"?"Not fully met — consult UMOC":"NO"));
-    if(st.criterion)box.appendChild(el("p",null,S(st.criterion)+(st.territory?" · "+S(st.territory):"")));
+    if(st.criterion)box.appendChild(el("p",null,S(st.criterion)+(st.territory&&!S(st.criterion).includes(S(st.territory))?" · "+S(st.territory):"")));
     if(st.reasoning)box.appendChild(el("p",null,S(st.reasoning)));
     if(dec!=="not_met"){const a=el("a","call",dec==="met"?"Call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d":"Call UMOC 02 504 8555 for conference call");a.href="tel:025048555";box.appendChild(a);}
     else box.appendChild(el("p",null,"Manage per working diagnosis. Transport to the nearest appropriate facility."));
@@ -1696,6 +1745,10 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     const cc=d._conf;if(cc){h.appendChild(el("span","pill"+(cc.level==="Low"?" low":""),"Confidence: "+cc.level+" ("+cc.score+"%)"));
       const det=document.createElement("details");det.className="conf-d";const sm=document.createElement("summary");sm.textContent="Why this confidence?";det.appendChild(sm);det.appendChild(list(cc.why));h.appendChild(det);}
     report.insertBefore(h,report.firstChild);
+    if(d._from){const ch=d._from.decision!==(d.stemi&&d.stemi.decision);const n=el("div","upd"+(ch?" changed":""));
+      n.appendChild(el("b",null,ch?"Updated by thorough read: decision CHANGED":"Confirmed by thorough read"));
+      n.appendChild(el("span",null,ch?"Fast read said "+(DEC_TXT[d._from.decision]||"?")+"; thorough read says "+(DEC_TXT[d.stemi.decision]||"?")+". Follow the thorough result.":"Same decision as the fast read ("+(DEC_TXT[d.stemi.decision]||"?")+")."));
+      report.insertBefore(n,report.firstChild);}
 
     const a=d.alert||{};const lv=["critical","caution"].includes(a.level)?a.level:"none";
     const al=el("div","alert"+(lv==="critical"?"":" "+lv));al.appendChild(el("h3",null,S(a.headline)||(lv==="none"?"No critical EMS alert":"Caution")));
@@ -1742,10 +1795,15 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     const q=d.quality||{};const qc=el("div");qc.appendChild(el("p",null,S(q.summary)||"No quality notes."));const lm=arr(q.limitations);if(lm.length)qc.appendChild(list(lm));
     report.appendChild(card("Image quality and limits",qc));
 
-    if(d._mode==="fast"&&isNetlify){const tc=el("div","card thorough");const st2=d.stemi||{};const need=st2.decision==="consult"||(d._conf&&d._conf.score<70)||(st2.omi&&st2.omi.length)||(d._disagree&&d._disagree.length);
-      tc.appendChild(el("h3",null,need?"Borderline or complex: run a thorough read":"Want a second, deeper read?"));
-      tc.appendChild(el("p","lbl",(need?"This fast read found something that deserves more care. ":"")+"The thorough read uses full reasoning and longer notes per lead. It takes about 45–70 s and costs about 3× more."));
-      const tb=el("button","btn","Run thorough read");tb.type="button";tb.onclick=()=>{tc.remove();runRead("thorough");};tc.appendChild(tb);report.appendChild(tc);}
+    if(d._mode==="fast"&&isNetlify){
+      if(bg&&bg.fast===d){const tc=el("div","card thorough refining");tc.id="bgCard";
+        tc.appendChild(el("h3",null,"Checking with a thorough read…"));
+        const p=el("p","lbl","This fast result was borderline, so a deeper read started automatically. You can act on the result above now; the report updates by itself when the thorough read finishes (usually 45–70 s). ");const t=el("b",null,"0 s");t.id="bgSecs";p.appendChild(t);tc.appendChild(p);
+        const cb=el("button","btn ghost","Cancel thorough read");cb.type="button";cb.onclick=()=>{bgCancel();render(d);};tc.appendChild(cb);report.appendChild(tc);}
+      else{const tc=el("div","card thorough");tc.appendChild(el("h3",null,"Want a second, deeper read?"));
+        tc.appendChild(el("p","lbl","The thorough read uses full reasoning and longer notes per lead. It takes about 45–70 s and costs about 3× more."));
+        const tb=el("button","btn","Run thorough read");tb.type="button";tb.onclick=()=>{tc.remove();runRead("thorough");};tc.appendChild(tb);report.appendChild(tc);}}
+    {const bc=document.getElementById("bgCard");if(bc&&report.children.length>1)report.insertBefore(bc,report.children[1]);}
     if(isNetlify)report.appendChild(reviewCard(d));
     report.hidden=false;report.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
   }

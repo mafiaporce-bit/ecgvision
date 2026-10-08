@@ -11,7 +11,8 @@ function jobs() {
   try { return getStore({ name: "ecg-jobs", consistency: "strong" }); } catch { return getStore("ecg-jobs"); }
 }
 
-// Remove old results and leftovers (results are kept at most 3 hours; photos at most 30 minutes).
+// Remove old results and leftovers (results at most 3 hours; photos about 45 minutes, or sooner when
+// the app taps New patient).
 async function cleanup(st) {
   try {
     const now = Date.now();
@@ -20,7 +21,7 @@ async function cleanup(st) {
     const old = blobs.filter((b) => {
       const a = age(b.key);
       if (!Number.isFinite(a)) return false;
-      return b.key.startsWith("in/") ? a > 0.5 * HOURS : a > 3 * HOURS;
+      return b.key.startsWith("in/") ? a > 0.5 * HOURS : b.key.startsWith("img/") ? a > 0.75 * HOURS : a > 3 * HOURS;
     });
     await Promise.all(old.slice(0, 200).map((b) => st.delete(b.key)));
   } catch {}
@@ -44,9 +45,15 @@ export default async (req) => {
     try { await st.setJSON("done/" + id, { ...o, ms: { queue: Math.max(0, t0 - sent), ai: tAI ? t - tAI : 0, total: Math.max(0, t - sent) } }); } catch {}
   };
   try {
-    const payload = await st.get("in/" + id, { type: "json" });
-    await st.delete("in/" + id); // the photos are not kept
-    if (!payload) return finish({ status: "error", error: "lost" });
+    const job = await st.get("in/" + id, { type: "json" });
+    await st.delete("in/" + id);
+    if (!job) return finish({ status: "error", error: "lost" });
+    // The photos are saved once per patient (img/...) and swapped in here.
+    const payload = job.payload || job;
+    const images = job.img ? await st.get("img/" + job.img, { type: "json" }) : job.images;
+    if (!images) return finish({ status: "error", error: "img_missing" });
+    for (const m of payload.messages)
+      m.content = m.content.flatMap((b) => (b.type === "images_ref" ? images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } })) : [b]));
     const key = (process.env.ANTHROPIC_API_KEY || "").trim();
     if (!key) return finish({ status: "error", error: "no_key" });
 

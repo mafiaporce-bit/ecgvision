@@ -1095,7 +1095,12 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     return "AI service error "+st+": "+String(detail||"").replace(/[{}"]/g," ").slice(0,160);}
   function parseReport(text){const a=text.indexOf("{"),b=text.lastIndexOf("}");if(a<0||b<a)throw{code:text?"invalid_json":"empty_completion"};
     try{return JSON.parse(text.slice(a,b+1));}catch(e){throw{code:"invalid_json"};}}
-  function netlifySample(){return{async json(prompt,{images=[],signal,onText,effort}={}){
+  function netlifySample(){return{async json(prompt,{images=[],signal,onText,onTiming,effort}={}){
+    const tStart=Date.now();let away=0,hidAt=document.visibilityState==="hidden"?tStart:0;
+    const onVis=()=>{if(document.visibilityState==="hidden"){if(!hidAt)hidAt=Date.now();}else if(hidAt){away+=Date.now()-hidAt;hidAt=0;}};
+    document.addEventListener("visibilitychange",onVis);
+    try{return await jobRead();}finally{document.removeEventListener("visibilitychange",onVis);}
+    async function jobRead(){
     let code=store.get("eqg-code");if(!code){code=await askCode();if(!code)throw{code:"cancelled"};}
     const imgs=await shrinkCached(images);
     const H={"content-type":"application/json","x-access-code":code};
@@ -1115,6 +1120,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     // Older server (no background function): read the live stream as before.
     if(!/json/.test(r.headers.get("content-type")||""))return readStream(r,signal,onText);
     const {id}=await r.json();if(!id)throw{code:"server"};
+    const upMs=Date.now()-tStart;
     const q="/api/read?id="+encodeURIComponent(id);
     const stop=()=>{fetch(q+"&cancel=1",{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});};
     signal&&signal.addEventListener("abort",stop,{once:true});
@@ -1132,7 +1138,9 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
           // No signal right now: keep waiting, the server is still working on it.
           if(++fails>40&&Date.now()-t0>180000)throw{code:"network"};continue;}
         if(s.status==="running"&&s.phase==="writing"&&!wrote){wrote=true;onText&&onText({text:"",delta:""});}
-        if(s.status==="done"){fetch(q,{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});return parseReport(s.text||"");}
+        if(s.status==="done"){fetch(q,{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});
+          const ms=s.ms||{};onTiming&&onTiming({up:upMs,queue:ms.queue||0,ai:ms.ai||0,total:ms.total?upMs+ms.total:Date.now()-tStart,away:away+(hidAt?Date.now()-hidAt:0),wait:Date.now()-tStart});
+          return parseReport(s.text||"");}
         if(s.status==="lost")throw{code:"server",message:"The read didn't start on the server. Tap Analyze ECG again."};
         if(s.status==="error"){
           if(s.error==="cancelled")throw{code:"cancelled"};
@@ -1142,6 +1150,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
         if(Date.now()-t0>420000)throw{code:"timeout"};
       }
     }finally{signal&&signal.removeEventListener("abort",stop);}
+    }
   }};}
   async function readStream(r,signal,onText){
     const reader=r.body.getReader(),dec=new TextDecoder();let buf="",text="",stopped=false;
@@ -1877,6 +1886,13 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
 
   let readMode="fast";
   analyzeBtn.onclick=()=>runRead("fast");
+  // Real reading time (tap -> result ready on the server), not counting time spent in another app.
+  function takeTiming(list){if(!list.length)return null;const T=list.reduce((a,b)=>b.total>a.total?b:a);return T;}
+  function applyTiming(data,T){if(!T)return "";data._secs=Math.max(1,Math.round(T.total/1000));data._timing=T;
+    let x="";if(T.away>2000&&T.wait-T.total>3000)x=" It finished while you were in another app.";
+    else if(T.wait-T.total>8000)x=" The result reached the phone "+Math.round((T.wait-T.total)/1000)+" s after it was ready.";
+    if(T.total>45000)x+=" Time: upload "+Math.round(T.up/1000)+" s · server start "+Math.round(T.queue/1000)+" s · AI reading "+Math.round(T.ai/1000)+" s.";
+    return x;}
   function finishRead(data,mode,t0){
     applyMonitorSTJ(data);applyMonitorAxis(data);
     data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
@@ -1893,13 +1909,14 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     me.timer=setInterval(()=>{const e=document.getElementById("bgSecs");if(e)e.textContent=Math.round((Date.now()-me.t0)/1000)+" s";},1000);
     try{
       const zz=await zoomFor(files.slice(0,maxCount));
-      const raw=await sample.json(buildPrompt(zz.zoom,"thorough"),{images:zz.imgs,modelTier:"complex",effort:"",signal:me.ctl.signal,cache:false});
+      const tim=[];
+      const raw=await sample.json(buildPrompt(zz.zoom,"thorough"),{images:zz.imgs,modelTier:"complex",effort:"",signal:me.ctl.signal,cache:false,onTiming:t=>tim.push(t)});
       if(bg!==me||lastReport!==fast)return;
-      const data=finishRead(expandCompact(raw),"thorough",me.t0);
+      const data=finishRead(expandCompact(raw),"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
       data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};
       clearInterval(me.timer);bg=null;
       const y=window.scrollY;lastReport=data;render(data);window.scrollTo({top:y});
-      setStatus("Thorough read finished in "+data._secs+" s. "+(data._from.decision===data.stemi.decision?"Decision unchanged.":"Decision CHANGED: see the top of the report."));
+      setStatus("Thorough read finished in "+data._secs+" s."+tx+" "+(data._from.decision===data.stemi.decision?"Decision unchanged.":"Decision CHANGED: see the top of the report."));
       logRead(data);
     }catch(e){
       if(bg!==me)return;clearInterval(me.timer);bg=null;
@@ -1928,10 +1945,11 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       const dbl=$("dblChk").checked;
       if(dbl&&isNetlify&&!store.get("eqg-code")){const c0=await askCode();if(!c0)throw{code:"cancelled"};}
       if(dbl){phase="Running two independent reads";tick();}
-      const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"low":"",signal:ctl.signal,cache:false,onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
+      const tim=[];
+      const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"low":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       let data;
       if(dbl){const [r1,r2]=await Promise.all([one(),one()]);data=mergeReads(expandCompact(r1),expandCompact(r2));}else data=expandCompact(await one());
-      finishRead(data,mode,t0);bgCancel();lastReport=data;if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready in "+data._secs+" s. Confirm against your own reading before acting.");
+      finishRead(data,mode,t0);const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready in "+data._secs+" s."+tx+" Confirm against your own reading before acting.");
       logRead(data);
     }catch(e){
       clearInterval(timer);

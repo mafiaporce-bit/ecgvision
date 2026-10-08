@@ -1,11 +1,21 @@
-// ECG analysis proxy as an Edge Function.
-// Edge functions only need to start the reply within 40 seconds and can then stream
-// for as long as Claude needs, so long, careful reads aren't cut off at 60 seconds.
+// ECG analysis entry point (Edge Function, /api/read).
+// POST   -> saves the read as a "job" and starts it in a Netlify background function
+//           (netlify/functions/read-background.mjs), which keeps running even if the phone
+//           switches to another app or the screen turns off. Replies { id } straight away.
+//           If the background function isn't deployed, it streams the read directly (old behaviour).
+// GET ?id= -> the job's status: queued / running / done (with the report text) / error.
+// DELETE ?id=&cancel=1 -> asks the job to stop (Stop / New patient). DELETE ?id= -> removes the finished result.
 import { getStore } from "@netlify/blobs";
 
-const json = (o, s) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json" } });
+const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 const TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const env = (k) => (Netlify.env.get(k) || "").trim();
+const ID = /^[a-z0-9]{6,12}-[a-z0-9]{4,16}$/;
+const BG = "/.netlify/functions/read-background";
+
+function jobs() {
+  try { return getStore({ name: "ecg-jobs", consistency: "strong" }); } catch { return getStore("ecg-jobs"); }
+}
 
 // Reviewed corrections from this service, sent with every read.
 async function lessonsBlock() {
@@ -20,10 +30,55 @@ async function lessonsBlock() {
   }
 }
 
+async function streamDirect(key, payload) {
+  const up = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ ...payload, stream: true }),
+  });
+  if (!up.ok) return json({ error: "upstream", status: up.status, detail: (await up.text()).slice(0, 300) }, 502);
+  return new Response(up.body, { headers: { "content-type": "text/event-stream", "cache-control": "no-cache" } });
+}
+
 export default async (req) => {
-  if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
+  const url = new URL(req.url);
   const code = env("APP_ACCESS_CODE");
+
+  // Warm-up ping from the app (no id): wake this function and the background function.
+  if (req.method === "GET" && !url.searchParams.get("id")) {
+    try {
+      await Promise.race([
+        fetch(new URL(BG, req.url), { method: "POST", headers: { "content-type": "application/json" }, body: '{"warm":1}' }),
+        new Promise((r) => setTimeout(r, 1500)),
+      ]);
+    } catch {}
+    return new Response(null, { status: 204 });
+  }
+
   if (!code || req.headers.get("x-access-code") !== code) return json({ error: "bad_code" }, 401);
+
+  if (req.method === "GET") {
+    const id = url.searchParams.get("id") || "";
+    if (!ID.test(id)) return json({ error: "bad_request" }, 400);
+    const st = jobs();
+    const done = await st.get("done/" + id, { type: "json" });
+    if (done) return json(done);
+    const w = await st.get("w/" + id, { type: "json" });
+    if (w) return json({ status: "running", phase: w.phase || "thinking" });
+    const age = Date.now() - parseInt(id.split("-")[0], 36);
+    return json({ status: age > 120000 ? "lost" : "queued" });
+  }
+
+  if (req.method === "DELETE") {
+    const id = url.searchParams.get("id") || "";
+    if (!ID.test(id)) return json({ error: "bad_request" }, 400);
+    const st = jobs();
+    if (url.searchParams.get("cancel")) await st.set("x/" + id, "1");
+    else await Promise.all([st.delete("done/" + id), st.delete("w/" + id)]);
+    return json({ ok: true });
+  }
+
+  if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
   const key = env("ANTHROPIC_API_KEY");
   if (!key) return json({ error: "no_key" }, 500);
 
@@ -47,21 +102,31 @@ export default async (req) => {
     ...images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } })),
     { type: "text", text: (dynamicText ? dynamicText + "\n" : "") + "Now measure the attached tracing exactly as instructed above." + (await lessonsBlock()) },
   ];
+  const payload = {
+    model: env("CLAUDE_MODEL") || "claude-sonnet-5",
+    max_tokens: 24000,
+    // The app asks for "low" on a fast read; the thorough read uses the Netlify setting (default medium).
+    output_config: { effort: ["low", "medium", "high"].includes(reqEffort) ? reqEffort : (env("CLAUDE_EFFORT") || "medium") },
+    messages: [{ role: "user", content }],
+  };
 
-  const up = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({
-      model: env("CLAUDE_MODEL") || "claude-sonnet-5",
-      max_tokens: 24000,
-      // The app asks for "low" on a fast read; the thorough read uses the Netlify setting (default medium).
-      output_config: { effort: ["low", "medium", "high"].includes(reqEffort) ? reqEffort : (env("CLAUDE_EFFORT") || "medium") },
-      stream: true,
-      messages: [{ role: "user", content }],
-    }),
-  });
-  if (!up.ok) return json({ error: "upstream", status: up.status, detail: (await up.text()).slice(0, 300) }, 502);
-  return new Response(up.body, { headers: { "content-type": "text/event-stream", "cache-control": "no-cache" } });
+  // Start the read as a background job so it survives the phone leaving the app.
+  const id = Date.now().toString(36) + "-" + crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+  const st = jobs();
+  try {
+    await st.set("in/" + id, JSON.stringify(payload));
+    const r = await fetch(new URL(BG, req.url), {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-access-code": code },
+      body: JSON.stringify({ id }),
+    });
+    if (r.status === 202 || r.ok) return json({ id });
+    await st.delete("in/" + id);
+  } catch {
+    try { await st.delete("in/" + id); } catch {}
+  }
+  // Background function not available: stream the read directly as before.
+  return streamDirect(key, payload);
 };
 
 export const config = { path: "/api/read" };

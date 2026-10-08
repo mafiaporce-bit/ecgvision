@@ -10,7 +10,7 @@ const env = (k) => (Netlify.env.get(k) || "").trim();
 // Reviewed corrections from this service, sent with every read.
 async function lessonsBlock() {
   try {
-    const doc = await getStore("ecg-learning").get("doc", { type: "json" });
+    const doc = await Promise.race([getStore("ecg-learning").get("doc", { type: "json" }), new Promise((r) => setTimeout(() => r(null), 1500))]);
     const ls = (doc && doc.lessons ? doc.lessons : []).slice(-25);
     if (!ls.length) return "";
     const lines = ls.map((l) => `- ${l.leads && l.leads.length ? "Leads " + l.leads.join(", ") + ": " : ""}${l.text}${l.final ? " (Reviewed correct reading: " + l.final + ")" : ""}`);
@@ -31,7 +31,7 @@ export default async (req) => {
   if (raw.length > 8000000) return json({ error: "too_large" }, 413);
   let body;
   try { body = JSON.parse(raw); } catch { return json({ error: "bad_request" }, 400); }
-  const { prompt, images } = body || {};
+  const { prompt, images, effort: reqEffort } = body || {};
   if (typeof prompt !== "string" || prompt.length > 30000) return json({ error: "bad_request" }, 400);
   if (!Array.isArray(images) || images.length < 1 || images.length > 5) return json({ error: "bad_request" }, 400);
   for (const im of images) if (!im || !TYPES.has(im.media_type) || typeof im.data !== "string") return json({ error: "bad_request" }, 400);
@@ -54,7 +54,8 @@ export default async (req) => {
     body: JSON.stringify({
       model: env("CLAUDE_MODEL") || "claude-sonnet-5",
       max_tokens: 24000,
-      output_config: { effort: env("CLAUDE_EFFORT") || "medium" },
+      // The app asks for "low" on a fast read; the thorough read uses the Netlify setting (default medium).
+      output_config: { effort: ["low", "medium", "high"].includes(reqEffort) ? reqEffort : (env("CLAUDE_EFFORT") || "medium") },
       stream: true,
       messages: [{ role: "user", content }],
     }),

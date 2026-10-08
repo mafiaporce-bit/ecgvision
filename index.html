@@ -1081,36 +1081,79 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   }
   const shrinkMap=new WeakMap();
   function shrinkCached(images){if(!Array.isArray(images))return shrinkAll(images);let p=shrinkMap.get(images);if(!p){p=shrinkAll(images);shrinkMap.set(images,p);p.catch(()=>shrinkMap.delete(images));}return p;}
+  // Reads run as a job on the server, so they keep going if the phone switches to another app
+  // or the screen turns off. The app checks for the result, and checks again the moment you come back.
+  const sleep=(ms,signal)=>new Promise(res=>{let t;const done=()=>{clearTimeout(t);document.removeEventListener("visibilitychange",vis);signal&&signal.removeEventListener("abort",done);res();};
+    const vis=()=>{if(document.visibilityState==="visible")done();};t=setTimeout(done,ms);document.addEventListener("visibilitychange",vis);signal&&signal.addEventListener("abort",done);});
+  const whenVisible=signal=>document.visibilityState==="visible"?Promise.resolve():new Promise(res=>{const f=()=>{if(document.visibilityState==="visible"||(signal&&signal.aborted)){document.removeEventListener("visibilitychange",f);res();}};document.addEventListener("visibilitychange",f);signal&&signal.addEventListener("abort",f);});
+  function upstreamMsg(st,detail){const d=String(detail||"").toLowerCase();
+    if(st===401)return "API key rejected (401). Re-copy the full sk-ant key into ANTHROPIC_API_KEY in Netlify, then trigger a new deploy.";
+    if(/credit|billing|balance/.test(d))return "Not enough API credit. Add credit at platform.claude.com.";
+    if(st===404||/model/.test(d))return "Model not available on this API key ("+st+"). Check CLAUDE_MODEL in Netlify or remove it.";
+    if(st===429||st===529)return "The AI service is busy. Wait a minute and try again.";
+    if(st===413||/too large|size/.test(d))return "Photo too large. Retake it a little further away.";
+    return "AI service error "+st+": "+String(detail||"").replace(/[{}"]/g," ").slice(0,160);}
+  function parseReport(text){const a=text.indexOf("{"),b=text.lastIndexOf("}");if(a<0||b<a)throw{code:text?"invalid_json":"empty_completion"};
+    try{return JSON.parse(text.slice(a,b+1));}catch(e){throw{code:"invalid_json"};}}
   function netlifySample(){return{async json(prompt,{images=[],signal,onText,effort}={}){
     let code=store.get("eqg-code");if(!code){code=await askCode();if(!code)throw{code:"cancelled"};}
     const imgs=await shrinkCached(images);
-    let r;try{r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({prompt,images:imgs,effort:effort||""}),signal});}
-    catch(e){throw{code:signal&&signal.aborted?"cancelled":"network"};}
+    const H={"content-type":"application/json","x-access-code":code};
+    const body=JSON.stringify({prompt,images:imgs,effort:effort||""});
+    // Send the photos. If the phone left the app during the upload, send once more on return.
+    let r;
+    for(let tries=0;;tries++){
+      try{r=await fetch("/api/read",{method:"POST",headers:H,body,signal});break;}
+      catch(e){if(signal&&signal.aborted)throw{code:"cancelled"};if(tries>=1)throw{code:"network"};await whenVisible(signal);await sleep(600,signal);if(signal&&signal.aborted)throw{code:"cancelled"};}
+    }
     if(r.status===401){store.set("eqg-code","");throw{code:"bad_code"};}
     if(!r.ok){let j={};try{j=await r.json();}catch(e){}
       if(j.error==="no_key")throw{code:"no_key"};
       if(r.status===404)throw{code:"no_function"};
-      if(j.error==="upstream"){const d=String(j.detail||"").toLowerCase();let msg;
-        if(j.status===401)msg="API key rejected (401). Re-copy the full sk-ant key into ANTHROPIC_API_KEY in Netlify, then trigger a new deploy.";
-        else if(/credit|billing|balance/.test(d))msg="Not enough API credit. Add credit at platform.claude.com.";
-        else if(j.status===404||/model/.test(d))msg="Model not available on this API key ("+j.status+"). Check CLAUDE_MODEL in Netlify or remove it.";
-        else if(j.status===429||j.status===529)msg="The AI service is busy. Wait a minute and try again.";
-        else if(j.status===413||/too large|size/.test(d))msg="Photo too large. Retake it a little further away.";
-        else msg="AI service error "+j.status+": "+String(j.detail||"").replace(/[{}"]/g," ").slice(0,160);
-        throw{code:"upstream",message:msg};}
+      if(j.error==="upstream")throw{code:"upstream",message:upstreamMsg(j.status,j.detail)};
       throw{code:"server",message:"Server error "+r.status+(j.error?" ("+j.error+")":"")+". Try again."};}
-    const reader=r.body.getReader(),dec=new TextDecoder();let buf="",text="",thought=false,stopped=false;
+    // Older server (no background function): read the live stream as before.
+    if(!/json/.test(r.headers.get("content-type")||""))return readStream(r,signal,onText);
+    const {id}=await r.json();if(!id)throw{code:"server"};
+    const q="/api/read?id="+encodeURIComponent(id);
+    const stop=()=>{fetch(q+"&cancel=1",{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});};
+    signal&&signal.addEventListener("abort",stop,{once:true});
+    const t0=Date.now();let wrote=false,fails=0;
+    try{
+      for(;;){
+        await sleep(wrote?900:1200,signal);
+        if(signal&&signal.aborted)throw{code:"cancelled"};
+        if(document.visibilityState!=="visible")continue;
+        let s;
+        try{const g=await fetch(q,{headers:H,cache:"no-store",signal});
+          if(g.status===401){store.set("eqg-code","");throw{code:"bad_code"};}
+          s=await g.json();fails=0;}
+        catch(e){if(e&&e.code)throw e;if(signal&&signal.aborted)throw{code:"cancelled"};
+          // No signal right now: keep waiting, the server is still working on it.
+          if(++fails>40&&Date.now()-t0>180000)throw{code:"network"};continue;}
+        if(s.status==="running"&&s.phase==="writing"&&!wrote){wrote=true;onText&&onText({text:"",delta:""});}
+        if(s.status==="done"){fetch(q,{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});return parseReport(s.text||"");}
+        if(s.status==="lost")throw{code:"server",message:"The read didn't start on the server. Tap Analyze ECG again."};
+        if(s.status==="error"){
+          if(s.error==="cancelled")throw{code:"cancelled"};
+          if(s.error==="upstream")throw{code:"upstream",message:upstreamMsg(s.http,s.detail)};
+          if(["no_key","rate_limited","timeout"].includes(s.error))throw{code:s.error};
+          throw{code:"server",message:"The analysis server hit an error"+(s.detail?" ("+String(s.detail).slice(0,80)+")":"")+". Try again."};}
+        if(Date.now()-t0>420000)throw{code:"timeout"};
+      }
+    }finally{signal&&signal.removeEventListener("abort",stop);}
+  }};}
+  async function readStream(r,signal,onText){
+    const reader=r.body.getReader(),dec=new TextDecoder();let buf="",text="",stopped=false;
     for(;;){let chunk;try{chunk=await reader.read();}catch(e){throw{code:signal&&signal.aborted?"cancelled":"network"};}
       if(chunk.done)break;buf+=dec.decode(chunk.value,{stream:true});let i;
       while((i=buf.indexOf("\n"))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);if(!line.startsWith("data:"))continue;let ev;try{ev=JSON.parse(line.slice(5));}catch(e){continue;}
-        if(ev.type==="content_block_delta"&&ev.delta&&ev.delta.type==="thinking_delta"){thought=true;}
-        else if(ev.type==="message_stop"){stopped=true;}
+        if(ev.type==="message_stop"){stopped=true;}
         else if(ev.type==="content_block_delta"&&ev.delta&&ev.delta.type==="text_delta"){text+=ev.delta.text;onText&&onText({text,delta:ev.delta.text});}
         else if(ev.type==="error")throw{code:ev.error&&ev.error.type==="overloaded_error"?"rate_limited":"server"};}}
     if(!stopped)throw{code:"timeout"};
-    const a=text.indexOf("{"),b=text.lastIndexOf("}");if(a<0||b<a)throw{code:text?"invalid_json":"empty_completion"};
-    try{return JSON.parse(text.slice(a,b+1));}catch(e){throw{code:"invalid_json"};}
-  }};}
+    return parseReport(text);
+  }
 
 
   // ---------- Learning: ACP-reviewed corrections (Netlify only) ----------
@@ -1878,7 +1921,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     if(isNetlify&&navigator.onLine===false){setStatus("No connection. ECG analysis needs internet. Reference pages and the UMOC call still work offline.",{err:true});return;}
     busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();
     const t0=Date.now();let phase=mode==="fast"?"Fast read":"Thorough read";
-    const tick=()=>setStatus(phase+"… "+Math.round((Date.now()-t0)/1000)+" s",{pulse:true});tick();const timer=setInterval(tick,1000);
+    const tick=()=>setStatus(phase+"… "+Math.round((Date.now()-t0)/1000)+" s"+(isNetlify?" · you can switch apps, it keeps reading":""),{pulse:true});tick();const timer=setInterval(tick,1000);
     let started=false;
     try{
       const zz=await zoomFor(files.slice(0,maxCount));
@@ -1893,7 +1936,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     }catch(e){
       clearInterval(timer);
       const c=e&&e.code;
-      const m={timeout:"The connection was cut off before the report finished. Check your signal and tap Analyze ECG again.",bad_code:"Access code incorrect. Tap Analyze ECG to enter it again.",no_key:"The server has no API key. Add ANTHROPIC_API_KEY in Netlify site settings.",no_function:"The analysis server isn't deployed yet (netlify/edge-functions/read.js). Check the files on GitHub.",network:"No connection to the analysis server. Check signal and try again.",server:"The analysis server returned an error. Try again.",cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
+      const m={timeout:"The read took too long or the connection was cut off. Check your signal and tap Analyze ECG again.",bad_code:"Access code incorrect. Tap Analyze ECG to enter it again.",no_key:"The server has no API key. Add ANTHROPIC_API_KEY in Netlify site settings.",no_function:"The analysis server isn't deployed yet (netlify/edge-functions/read.js). Check the files on GitHub.",network:"No connection to the analysis server. Check signal and try again.",server:"The analysis server returned an error. Try again.",cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
       setStatus(((c==="upstream"||c==="server")&&e.message)?e.message:(m[c]||"The analysis was interrupted. Check your connection and analyze again."),{err:c!=="cancelled"});
       if(c==="images_unavailable")imagesOK=false;
     }finally{busy=false;ctl=null;stopBtn.hidden=true;refresh();}

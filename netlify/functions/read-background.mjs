@@ -36,7 +36,13 @@ export default async (req) => {
   if (!ID.test(id)) return;
 
   const st = jobs();
-  const finish = async (o) => { try { await st.setJSON("done/" + id, o); } catch {} };
+  const t0 = Date.now(), sent = parseInt(id.split("-")[0], 36);
+  let tAI = 0;
+  // Timings (ms): queue = phone's job saved -> this function started; ai = Claude's reading time.
+  const finish = async (o) => {
+    const t = Date.now();
+    try { await st.setJSON("done/" + id, { ...o, ms: { queue: Math.max(0, t0 - sent), ai: tAI ? t - tAI : 0, total: Math.max(0, t - sent) } }); } catch {}
+  };
   try {
     const payload = await st.get("in/" + id, { type: "json" });
     await st.delete("in/" + id); // the photos are not kept
@@ -45,6 +51,7 @@ export default async (req) => {
     if (!key) return finish({ status: "error", error: "no_key" });
 
     const ctl = new AbortController();
+    tAI = Date.now();
     const up = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },

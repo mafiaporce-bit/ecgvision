@@ -1,10 +1,14 @@
 // ECG analysis entry point (Edge Function, /api/read).
-// POST   -> saves the read as a "job" and starts it in a Netlify background function
+// POST {upload:true, images} -> saves the photos once per patient and replies { img }. Every read for
+//           that patient (fast, double-check, thorough) then sends only { prompt, img }, so the photos
+//           cross the phone's connection once. The app starts this upload as soon as the photo is covered.
+// POST {prompt, img} -> saves the read as a "job" and starts it in a Netlify background function
 //           (netlify/functions/read-background.mjs), which keeps running even if the phone
 //           switches to another app or the screen turns off. Replies { id } straight away.
 //           If the background function isn't deployed, it streams the read directly (old behaviour).
 // GET ?id= -> the job's status: queued / running / done (with the report text) / error.
 // DELETE ?id=&cancel=1 -> asks the job to stop (Stop / New patient). DELETE ?id= -> removes the finished result.
+// DELETE ?img= -> removes the patient's photos (New patient).
 import { getStore } from "@netlify/blobs";
 
 const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
@@ -29,6 +33,16 @@ async function lessonsBlock() {
     return "";
   }
 }
+
+const newId = () => Date.now().toString(36) + "-" + crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+function badImages(images) {
+  if (!Array.isArray(images) || images.length < 1 || images.length > 5) return true;
+  for (const im of images) if (!im || !TYPES.has(im.media_type) || typeof im.data !== "string") return true;
+  return false;
+}
+// The job stores a placeholder where the photos go; the background function swaps the saved photos in.
+const expandImages = (content, images) =>
+  content.flatMap((b) => (b.type === "images_ref" ? images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } })) : [b]));
 
 async function streamDirect(key, payload) {
   const up = await fetch("https://api.anthropic.com/v1/messages", {
@@ -70,6 +84,12 @@ export default async (req) => {
   }
 
   if (req.method === "DELETE") {
+    const img = url.searchParams.get("img") || "";
+    if (img) {
+      if (!ID.test(img)) return json({ error: "bad_request" }, 400);
+      await jobs().delete("img/" + img);
+      return json({ ok: true });
+    }
     const id = url.searchParams.get("id") || "";
     if (!ID.test(id)) return json({ error: "bad_request" }, 400);
     const st = jobs();
@@ -86,10 +106,24 @@ export default async (req) => {
   if (raw.length > 8000000) return json({ error: "too_large" }, 413);
   let body;
   try { body = JSON.parse(raw); } catch { return json({ error: "bad_request" }, 400); }
-  const { prompt, images, effort: reqEffort } = body || {};
+  const { prompt, images, img, effort: reqEffort } = body || {};
+
+  // Photo upload (once per patient).
+  if (body && body.upload === true) {
+    if (badImages(images)) return json({ error: "bad_request" }, 400);
+    const key = newId();
+    await jobs().set("img/" + key, JSON.stringify(images));
+    return json({ img: key });
+  }
+
   if (typeof prompt !== "string" || prompt.length > 30000) return json({ error: "bad_request" }, 400);
-  if (!Array.isArray(images) || images.length < 1 || images.length > 5) return json({ error: "bad_request" }, 400);
-  for (const im of images) if (!im || !TYPES.has(im.media_type) || typeof im.data !== "string") return json({ error: "bad_request" }, 400);
+  const byRef = typeof img === "string" && img !== "";
+  if (byRef) {
+    if (!ID.test(img)) return json({ error: "bad_request" }, 400);
+    let has = true;
+    try { has = !!(await jobs().getMetadata("img/" + img)); } catch {}
+    if (!has) return json({ error: "img_missing" }, 409);
+  } else if (badImages(images)) return json({ error: "bad_request" }, 400);
 
   // The protocol instructions (before #DYNAMIC) are identical on every read, so they are cached
   // by Anthropic for a few minutes: cheaper and a little faster. Only the tail changes per read.
@@ -99,7 +133,7 @@ export default async (req) => {
   const dynamicText = (cut >= 0 ? prompt.slice(cut + marker.length) : "").trim();
   const content = [
     { type: "text", text: staticText, cache_control: { type: "ephemeral" } },
-    ...images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } })),
+    { type: "images_ref" },
     { type: "text", text: (dynamicText ? dynamicText + "\n" : "") + "Now measure the attached tracing exactly as instructed above." + (await lessonsBlock()) },
   ];
   const payload = {
@@ -111,10 +145,10 @@ export default async (req) => {
   };
 
   // Start the read as a background job so it survives the phone leaving the app.
-  const id = Date.now().toString(36) + "-" + crypto.randomUUID().replace(/-/g, "").slice(0, 10);
+  const id = newId();
   const st = jobs();
   try {
-    await st.set("in/" + id, JSON.stringify(payload));
+    await st.set("in/" + id, JSON.stringify(byRef ? { payload, img } : { payload, images }));
     const r = await fetch(new URL(BG, req.url), {
       method: "POST",
       headers: { "content-type": "application/json", "x-access-code": code },
@@ -126,7 +160,9 @@ export default async (req) => {
     try { await st.delete("in/" + id); } catch {}
   }
   // Background function not available: stream the read directly as before.
-  return streamDirect(key, payload);
+  const ims = byRef ? await st.get("img/" + img, { type: "json" }) : images;
+  if (!ims) return json({ error: "img_missing" }, 409);
+  return streamDirect(key, { ...payload, messages: [{ role: "user", content: expandImages(content, ims) }] });
 };
 
 export const config = { path: "/api/read" };

@@ -252,6 +252,18 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .sw input:checked+i::after{transform:translateX(20px)}
 .sw input:focus-visible+i{outline:2px solid var(--accent);outline-offset:2px}
 .sec-off{display:none!important}
+.chlog{margin:18px 0 6px}
+.chlog h3{margin:0;font-size:1.1rem}
+.chlog>.lbl{margin:2px 0 10px}
+.chv{border:1px solid var(--line);border-radius:12px;margin-top:8px;background:var(--field)}
+.chv summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;cursor:pointer;list-style:none}
+.chv summary::-webkit-details-marker{display:none}
+.chv summary b{flex:1;min-width:140px;font-size:.92rem}
+.chv summary small{color:var(--soft);font-size:.75rem}
+.chtag{background:var(--accent);color:var(--on-accent);font-weight:800;font-size:.72rem;border-radius:6px;padding:2px 7px}
+.chv ul.chitems{list-style:none;margin:0;padding:0 12px 12px;font-size:.86rem}
+.chv ul.chitems li{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+.chcode{flex:none;min-width:40px;text-align:center;background:var(--card);border:1px solid var(--field-b);color:var(--accent);font-weight:800;font-size:.72rem;border-radius:6px;padding:1px 5px;margin-top:1px}
 .sexopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .sexopt{border:2px solid var(--line);background:var(--field);border-radius:18px;padding:16px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
 .sexopt .sx{width:56px;height:56px;border-radius:50%;background:var(--card);display:grid;place-items:center;color:var(--accent)}
@@ -544,7 +556,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   <div class="hero-in">
     <div class="top" id="homeBar">
       <div>
-        <div class="brand">EMS Quick ECG Guide<small>by JPS · Version 1.0</small></div>
+        <div class="brand">EMS Quick ECG Guide<small>by JPS</small></div>
         <p class="copy">© 2026 JPS_dev. All rights reserved.<i>(Always follow your local protocols)</i></p>
       </div>
       <div class="icons">
@@ -1013,7 +1025,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="1.0";
+  const APP_VERSION="2.8";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2179,8 +2191,97 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       const sw=el("span","sw");const inp=document.createElement("input");inp.type="checkbox";inp.checked=isOn(k);inp.setAttribute("aria-label",t);
       inp.onchange=()=>{secOn[k]=inp.checked;saveSec();if(lastReport&&!report.hidden)applySections(lastReport);};
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
-  $("settingsBtn").onclick=()=>{renderSettings();sheetOpen("setSheet");};
-  $("setAll").onclick=()=>{secOn={};saveSec();renderSettings();if(lastReport&&!report.hidden)applySections(lastReport);};
+  // ---------- Update log (shown under Settings) ----------
+  const CHANGELOG=[
+    {v:"2.8",d:"9 Oct 2026",t:"Smarter OMI checks and workbook drawings",i:[
+      "Wide QRS (LBBB, paced, RBBB): the AI measures the J-point at the end of the whole QRS, against the baseline.",
+      "Modified Sgarbossa is only CONFIRMED when the AI's own read agrees; otherwise 'possible: check these leads yourself'.",
+      "Hyperacute T drawing redrawn to match the workbook: small QRS, broad bulky shaded T.",
+      "De Winter drawing redrawn: J-point below the baseline, upsloping ST into a tall T (extra notch removed).",
+      "Cleaner ST-depression drawings (posterior OMI, Aslanger, precordial swirl, Sgarbossa, LBBB).",
+      "Update log added under Settings.",
+      "'Version 1.0' removed from the title box."]},
+    {v:"2.7",d:"9 Oct 2026",t:"Settings, clearer lead colours, fewer false alarms",i:[
+      "Always the light (white and blue) theme; night mode removed.",
+      "Settings ⚙️ at the top right: show or hide 14 parts of the result.",
+      "If the OMI box is hidden, a one-line OMI warning still shows.",
+      "Lead colours: meets threshold = solid red; elevated but below threshold = purple.",
+      "Lead grid always fits small phone screens.",
+      "Normal T inversions (aVR, V1, V1–V3 with RBBB, III alone) no longer flagged as abnormal.",
+      "'⚠ check paper' when a printed STJ number was probably misread from the photo.",
+      "J-point value in bold with a coloured 'needs ≥' badge in every lead box."]},
+    {v:"2.6",d:"9 Oct 2026",t:"Honest confidence and highlighted OMI",i:[
+      "Single read tops out at 85% (75% without the monitor's STJ numbers); Double-check can reach 95%.",
+      "Double-check no longer marked down for differences the monitor's own measurements settle.",
+      "Confirmed OMI patterns highlighted with a red CONFIRMED tag; possible ones listed underneath."]},
+    {v:"2.5",d:"8 Oct 2026",t:"Cleaner analyze screen",i:[
+      "Animated green ECG monitor while the app reads.",
+      "Caption that a slow internet connection can slow the reading.",
+      "Complaint / vitals / history box removed (it didn't change the reading).",
+      "Cover-patient-details step removed (LP15 / corpuls print no names); blur and glare check kept.",
+      "Double-check, Pacemaker and ICD as one row of buttons.",
+      "Automatic thorough read only for the riskiest case: NO STEMI but an OMI pattern seen."]},
+    {v:"2.4",d:"8 Oct 2026",t:"Pacemaker / ICD",i:[
+      "Pacemaker and ICD buttons on the Analyze screen.",
+      "Device + wide QRS: treated as paced and checked with modified Sgarbossa, even if spikes are too small to see.",
+      "Fixed: saving the symptoms sheet with vitals no longer crashes."]},
+    {v:"2.3",d:"8 Oct 2026",t:"Faster uploads",i:[
+      "Photos upload once per patient and every read reuses them (Double-check and thorough read included).",
+      "Upload starts as soon as the photo is added.",
+      "'Uploading photo %' shown while it sends.",
+      "Photos deleted from the server when New patient is tapped."]},
+    {v:"2.2",d:"8 Oct 2026",t:"Keeps reading in the background",i:[
+      "Reads run on the server and keep going when you switch apps or the screen turns off.",
+      "The app collects the result the moment you come back.",
+      "Stop / New patient also cancels the read on the server (no wasted cost).",
+      "Real reading time shown, with an upload / server / AI breakdown when a read is slow."]},
+    {v:"2.1",d:"8 Oct 2026",t:"Learn ECG",i:[
+      "OMI patterns card in yellow with a big 'See all 12 OMI patterns' button.",
+      "Handover removed (not used on calls).",
+      "New Learn ECG page: 15 easy steps with drawings, from P-QRS-T to heart blocks.",
+      "Progress ticks and a 6-question practice quiz."]},
+    {v:"2.0",d:"8 Oct 2026",t:"Fast reads",i:[
+      "Fast read in about 20–30 seconds instead of 60–80 (compact report format).",
+      "Quicker first read; the deeper thorough read runs in the background only when needed.",
+      "Photo preparation cached and the server warmed up before you tap Analyze.",
+      "Refining card and 'decision confirmed / CHANGED' banner when the thorough read finishes."]},
+    {v:"1.2",d:"Sep 2026",t:"Learning and safety",i:[
+      "Renamed EMS Quick ECG Guide (from PRIME ECG Vision EMS) with the blue theme.",
+      "Learning page: ACP / physician-reviewed lessons that guide future reads.",
+      "Validation tally and anonymous usage log with CSV download.",
+      "'Review this reading' card for reviewers.",
+      "Photo blur and glare check."]},
+    {v:"1.1",d:"Sep 2026",t:"Smarter reading",i:[
+      "Guided camera with a framing guide.",
+      "Zoomed close-ups of the photo sent with each read so small waves are read in detail.",
+      "Uses the monitor's printed STJ numbers and T axis (LP15 / corpuls).",
+      "Double-check: two independent reads compared lead by lead.",
+      "Confidence score with 'Why this confidence?'.",
+      "Rhythm alerts: VT, VF, heart blocks, paced rhythm, wide-complex tachycardia.",
+      "Lead-by-lead map, protocol check with drawings, field actions and next ECG steps.",
+      "Up to 5 photos per patient (multi-page or serial ECGs) with a same-patient check."]},
+    {v:"1.0",d:"Sep 2026",t:"First release",i:[
+      "ECG photo reading: take or choose a photo of the 12-lead.",
+      "Service STEMI PPCI pathway and ESC 2023 activation criteria (i)–(vi), with age / sex V2–V3 thresholds.",
+      "UMOC hotline one tap away, plus 'STEMI on the monitor? Call UMOC now'.",
+      "Criteria pages: standard, enhanced (ii–vi), LBBB vs RBBB.",
+      "The 12 OMI patterns from the service workbook, with drawings.",
+      "STEMI PPCI pathway page.",
+      "CASMEET / I-MIST-AMBO handover builder (later removed in v2.1).",
+      "Installable on the phone; reference pages work offline.",
+      "Team access code."]}
+  ];
+  function renderLog(){
+    const w=el("div","chlog");w.appendChild(el("h3",null,"Update log"));
+    const n=CHANGELOG.reduce((a,c)=>a+c.i.length,0);
+    w.appendChild(el("p","lbl","Built by JPS · "+n+" updates in "+CHANGELOG.length+" versions"));
+    CHANGELOG.forEach((c,ix)=>{const det=document.createElement("details");det.className="chv";if(ix===0)det.open=true;
+      const sm=document.createElement("summary");sm.append(el("span","chtag","v"+c.v),el("b",null,c.t),el("small",null,c.d+" · "+c.i.length+" update"+(c.i.length>1?"s":"")));det.appendChild(sm);
+      const ul=el("ul","chitems");c.i.forEach((t,k)=>{const li=el("li");li.append(el("span","chcode",c.v+String.fromCharCode(97+k)),el("span",null,t));ul.appendChild(li);});
+      det.appendChild(ul);w.appendChild(det);});
+    return w;}
+  $("settingsBtn").onclick=()=>{renderSettings();$("setList").appendChild(renderLog());sheetOpen("setSheet");};
+  $("setAll").onclick=()=>{secOn={};saveSec();renderSettings();$("setList").appendChild(renderLog());if(lastReport&&!report.hidden)applySections(lastReport);};
 
   function render(d){
     report.textContent="";

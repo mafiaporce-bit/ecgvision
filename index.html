@@ -8,6 +8,7 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
 <meta name="theme-color" content="#1D4B75">
+<meta name="color-scheme" content="light only">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -22,22 +23,6 @@
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
   color-scheme:light;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --h1:#1B3552; --h2:#25486E;
-    --bg:#18212C; --card:#212D3B; --field:#2A394A; --field-b:#37495E;
-    --ink:#DDE6EF; --soft:#9DAABA; --line:#2F3E50; --accent:#86B8E8; --on-accent:#10202F;
-    --crit:#FF8E9A; --crit-bg:#43222A; --warn:#F2C069; --warn-bg:#3B3020; --ok:#7FD3AA; --ok-bg:#1D3A2F;
-    --shadow:none; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --h1:#1B3552; --h2:#25486E;
-  --bg:#18212C; --card:#212D3B; --field:#2A394A; --field-b:#37495E;
-  --ink:#DDE6EF; --soft:#9DAABA; --line:#2F3E50; --accent:#86B8E8; --on-accent:#10202F;
-  --crit:#FF8E9A; --crit-bg:#43222A; --warn:#F2C069; --warn-bg:#3B3020; --ok:#7FD3AA; --ok-bg:#1D3A2F;
-  --shadow:none; color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
@@ -220,8 +205,6 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .fig .fn{font-size:.72rem;color:var(--soft);padding:0 7px 5px;line-height:1.2}
 .pat .figs{margin-top:6px}
 :root{--paper:#FFF7F5;--paper-l:#F6D9D3}
-:root[data-theme="dark"]{--paper:#1C2733;--paper-l:#2C3B4C}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#1C2733;--paper-l:#2C3B4C}}
 
 .qa{gap:4px 4px!important}
 .qa>*{align-self:start}
@@ -536,9 +519,6 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
         <p class="copy">© 2026 JPS_dev. All rights reserved.<i>(Always follow your local protocols)</i></p>
       </div>
       <div class="icons">
-        <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-        </button>
       </div>
     </div>
     <div class="ecgstrip" id="ecgStrip" aria-hidden="true">
@@ -1001,8 +981,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
   function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1800);}
 
-  const th=store.get("eqg-theme");if(th)root.setAttribute("data-theme",th);
-  $("themeBtn").onclick=()=>{const cur=root.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");const n=cur==="dark"?"light":"dark";root.setAttribute("data-theme",n);store.set("eqg-theme",n);};
+  // Always the light theme (white background, blue header). Clear any old dark-mode choice saved on the phone.
+  root.setAttribute("data-theme","light");store.set("eqg-theme","");
 
   function threshold(){
     const age=parseInt($("age").value,10),sex=$("sex").value;

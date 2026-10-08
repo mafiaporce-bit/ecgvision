@@ -1690,11 +1690,14 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     if(d.quality&&d.quality.adequate===false){sc-=20;why.push("Image quality limited");}
     if(/Borderline|Possible|suspected/i.test(S(st.criterion))){sc-=20;why.push("Values near the threshold");}
     const self=S(d.primary&&d.primary.confidence).toLowerCase();if(self==="low"){sc-=15;why.push("AI unsure of its own read");}else if(self==="moderate")sc-=5;
-    if(d._stjUsed!==undefined&&(d.printed||{}).stj&&Object.keys(d.printed.stj).length){sc+=10;why.push("J-points from the monitor's STJ measurement");}
+    const stj=!!(d._stjUsed!==undefined&&(d.printed||{}).stj&&Object.keys(d.printed.stj).length);
+    if(stj){sc+=10;why.push("J-points from the monitor's STJ measurement");}
     if(d._axisNote){why.push("Limb-lead T waves set from the monitor's T axis");}
     if(d._double){if(d._disagree.length){sc-=Math.min(30,8*d._disagree.length);why.push("Two reads disagreed: "+d._disagree.slice(0,4).join("; "));}else{sc+=10;why.push("Two independent reads agreed on every lead");}}
-    else why.push("Single read (turn on Double-check for more certainty)");
-    sc=Math.max(5,Math.min(95,sc));
+    // One read can't confirm itself, so it has a lower ceiling than two reads that agree (95%):
+    // 85% when the J-points come from the monitor's own STJ numbers, 75% when they come only from the photo.
+    let cap=95;if(!d._double){cap=stj?85:75;why.push("Single read: highest possible is "+cap+"% (Double-check can reach 95%)");}
+    sc=Math.max(5,Math.min(cap,sc));
     return {score:sc,level:sc>=80?"High":sc>=55?"Moderate":"Low",why};
   }
   function applyMonitorAxis(d){

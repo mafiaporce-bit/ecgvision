@@ -1095,6 +1095,32 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     return "AI service error "+st+": "+String(detail||"").replace(/[{}"]/g," ").slice(0,160);}
   function parseReport(text){const a=text.indexOf("{"),b=text.lastIndexOf("}");if(a<0||b<a)throw{code:text?"invalid_json":"empty_completion"};
     try{return JSON.parse(text.slice(a,b+1));}catch(e){throw{code:"invalid_json"};}}
+  // Photos are uploaded ONCE per patient (fast read, double-check and thorough read all reuse them),
+  // and the upload starts as soon as the photo is covered, while age, sex and symptoms are entered.
+  let upCache=null;
+  function uploadPct(){return upCache&&!upCache.done?upCache.pct:null;}
+  function dropUpload(){const c=upCache;upCache=null;if(!c)return;if(!c.done)try{c.xhr.abort();}catch(e){}
+    const code=store.get("eqg-code");if(c.key&&code)fetch("/api/read?img="+encodeURIComponent(c.key),{method:"DELETE",headers:{"x-access-code":code},keepalive:true}).catch(()=>{});}
+  function uploadImgs(imgs,code){
+    if(upCache&&upCache.imgs===imgs&&upCache.code===code)return upCache.p;
+    dropUpload();
+    const c={imgs,code,done:false,pct:0,key:null};upCache=c;
+    c.p=new Promise((res,rej)=>{
+      const x=new XMLHttpRequest();c.xhr=x;
+      const fail=e=>{c.done=true;if(upCache===c)upCache=null;rej(e);};
+      x.open("POST","/api/read");x.setRequestHeader("content-type","application/json");x.setRequestHeader("x-access-code",code);
+      x.upload.onprogress=e=>{if(e.lengthComputable)c.pct=Math.min(99,Math.round(e.loaded/e.total*100));};
+      x.onload=()=>{let j={};try{j=JSON.parse(x.responseText);}catch(e){}
+        if(x.status===200&&j.img){c.done=true;c.pct=100;c.key=j.img;res(j.img);return;}
+        if(x.status===401){store.set("eqg-code","");fail({code:"bad_code"});return;}
+        if(x.status===400||x.status===404&&!j.error)fail({code:"legacy"}); // older server without photo upload
+        else fail({code:"server",message:"Photo upload failed (server "+x.status+"). Try again."});};
+      x.onerror=()=>fail({code:"network"});x.onabort=()=>fail({code:"cancelled"});
+      x.send(JSON.stringify({upload:true,images:imgs}));
+    });
+    c.p.catch(()=>{});return c.p;
+  }
+  const raceAbort=(p,signal)=>!signal?p:new Promise((res,rej)=>{if(signal.aborted)return rej({code:"cancelled"});const f=()=>rej({code:"cancelled"});signal.addEventListener("abort",f,{once:true});p.then(v=>{signal.removeEventListener("abort",f);res(v);},e=>{signal.removeEventListener("abort",f);rej(e);});});
   function netlifySample(){return{async json(prompt,{images=[],signal,onText,onTiming,effort}={}){
     const tStart=Date.now();let away=0,hidAt=document.visibilityState==="hidden"?tStart:0;
     const onVis=()=>{if(document.visibilityState==="hidden"){if(!hidAt)hidAt=Date.now();}else if(hidAt){away+=Date.now()-hidAt;hidAt=0;}};
@@ -1104,12 +1130,23 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     let code=store.get("eqg-code");if(!code){code=await askCode();if(!code)throw{code:"cancelled"};}
     const imgs=await shrinkCached(images);
     const H={"content-type":"application/json","x-access-code":code};
-    const body=JSON.stringify({prompt,images:imgs,effort:effort||""});
-    // Send the photos. If the phone left the app during the upload, send once more on return.
+    // 1) Photos: reuse this patient's upload, or upload now. If the phone left the app mid-upload, retry on return.
+    let key=null;
+    for(let tries=0;;tries++){
+      try{key=await raceAbort(uploadImgs(imgs,code),signal);break;}
+      catch(e){if(e&&e.code==="legacy"){key=null;break;}
+        if(signal&&signal.aborted)throw{code:"cancelled"};
+        if(!e||e.code!=="network"||tries>=2)throw e;
+        await whenVisible(signal);await sleep(600,signal);if(signal&&signal.aborted)throw{code:"cancelled"};}
+    }
+    // 2) Start the read (a small request: the photos are already on the server).
     let r;
     for(let tries=0;;tries++){
-      try{r=await fetch("/api/read",{method:"POST",headers:H,body,signal});break;}
-      catch(e){if(signal&&signal.aborted)throw{code:"cancelled"};if(tries>=1)throw{code:"network"};await whenVisible(signal);await sleep(600,signal);if(signal&&signal.aborted)throw{code:"cancelled"};}
+      const body=JSON.stringify(key?{prompt,img:key,effort:effort||""}:{prompt,images:imgs,effort:effort||""});
+      try{r=await fetch("/api/read",{method:"POST",headers:H,body,signal});}
+      catch(e){if(signal&&signal.aborted)throw{code:"cancelled"};if(tries>=1)throw{code:"network"};await whenVisible(signal);await sleep(600,signal);if(signal&&signal.aborted)throw{code:"cancelled"};continue;}
+      if(r.status===409&&key&&tries<1){if(upCache&&upCache.key===key)upCache=null;key=await raceAbort(uploadImgs(imgs,code),signal);continue;}
+      break;
     }
     if(r.status===401){store.set("eqg-code","");throw{code:"bad_code"};}
     if(!r.ok){let j={};try{j=await r.json();}catch(e){}
@@ -1929,7 +1966,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
   function prewarm(){
     if(!isNetlify||!files.length||!files.every(f=>window.__cleared(f)))return;
     if(!warmed){warmed=true;fetch("/api/read",{method:"GET",cache:"no-store"}).catch(()=>{});}
-    zoomFor(files.slice(0,maxCount)).then(z=>shrinkCached(z.imgs)).catch(()=>{});
+    zoomFor(files.slice(0,maxCount)).then(z=>shrinkCached(z.imgs)).then(imgs=>{const c=store.get("eqg-code");if(c&&!busy)uploadImgs(imgs,c).catch(()=>{});}).catch(()=>{});
   }
   async function runRead(mode){
     readMode=mode;
@@ -1938,7 +1975,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     if(isNetlify&&navigator.onLine===false){setStatus("No connection. ECG analysis needs internet. Reference pages and the UMOC call still work offline.",{err:true});return;}
     busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();
     const t0=Date.now();let phase=mode==="fast"?"Fast read":"Thorough read";
-    const tick=()=>setStatus(phase+"… "+Math.round((Date.now()-t0)/1000)+" s"+(isNetlify?" · you can switch apps, it keeps reading":""),{pulse:true});tick();const timer=setInterval(tick,1000);
+    const tick=()=>{const u=uploadPct();setStatus((u!=null?"Uploading photo "+u+"%":phase)+"… "+Math.round((Date.now()-t0)/1000)+" s"+(isNetlify?" · you can switch apps, it keeps reading":""),{pulse:true});};tick();const timer=setInterval(tick,1000);
     let started=false;
     try{
       const zz=await zoomFor(files.slice(0,maxCount));
@@ -1960,7 +1997,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     }finally{busy=false;ctl=null;stopBtn.hidden=true;refresh();}
   }
   stopBtn.onclick=()=>ctl?.abort();
-  clearBtn.onclick=()=>{bgCancel();zoomCache=null;
+  clearBtn.onclick=()=>{bgCancel();zoomCache=null;dropUpload();
     files=[];$("samePtChk").checked=false;renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
     $("age").value="";$("sex").value="";$("notes").value="";syncPick();window.__cxReset&&window.__cxReset();
     setStatus("Enter age and sex, then add an ECG image.");refresh();window.scrollTo({top:0});

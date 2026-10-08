@@ -1964,7 +1964,8 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);return data;
   }
   function logRead(data){if(!isNetlify)return;const st=data.stemi||{};api("POST",{verdict:"log",entry:{decision:st.decision,criterion:(data._mode==="thorough"?"[thorough] ":"")+S(st.criterion),conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:data._secs||0,missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
-  function needsThorough(d){const st=d.stemi||{};return st.decision==="consult"||(d._conf&&d._conf.score<70)||!!(st.omi&&st.omi.length)||!!(d._disagree&&d._disagree.length);}
+  // Automatic thorough read only for the riskiest miss: the fast read says NO, but it saw an OMI pattern.
+  function needsThorough(d){const st=d.stemi||{};return st.decision==="not_met"&&!!(st.omi&&st.omi.length);}
   const DEC_TXT={met:"YES — activate",consult:"consult UMOC",not_met:"NO"};
   // ---------- Background thorough read for borderline fast results ----------
   let bg=null;
@@ -2179,11 +2180,9 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       if(bg&&bg.fast===d){const tc=el("div","card thorough refining");tc.id="bgCard";
         tc.appendChild(el("h3",null,"Checking with a thorough read…"));
         const mm=makeMonitor(true);mm.querySelector(".rm-secs").id="bgSecs";mm.querySelector(".rm-secs").textContent=Math.round((Date.now()-bg.t0)/1000)+" s";tc.appendChild(mm);
-        const p=el("p","lbl","This fast result was borderline, so a deeper read started automatically. You can act on the result above now; the report updates by itself when the thorough read finishes (usually 45–70 s).");tc.appendChild(p);
+        const p=el("p","lbl","The fast read says NO but saw an OMI pattern, so a deeper read started automatically to make sure nothing is missed. You can act on the result above now; the report updates by itself when the thorough read finishes (usually 45–70 s).");tc.appendChild(p);
         const cb=el("button","btn ghost","Cancel thorough read");cb.type="button";cb.onclick=()=>{bgCancel();render(d);};tc.appendChild(cb);report.appendChild(tc);}
-      else{const tc=el("div","card thorough");tc.appendChild(el("h3",null,"Want a second, deeper read?"));
-        tc.appendChild(el("p","lbl","The thorough read uses full reasoning and longer notes per lead. It takes about 45–70 s and costs about 3× more."));
-        const tb=el("button","btn","Run thorough read");tb.type="button";tb.onclick=()=>{tc.remove();runRead("thorough");};tc.appendChild(tb);report.appendChild(tc);}}
+}
     {const bc=document.getElementById("bgCard");if(bc&&report.children.length>1)report.insertBefore(bc,report.children[1]);}
     if(isNetlify)report.appendChild(reviewCard(d));
     report.hidden=false;report.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});

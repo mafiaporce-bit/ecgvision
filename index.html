@@ -141,14 +141,14 @@ textarea{min-height:64px;resize:vertical}
 .omi span{background:var(--crit-bg);color:var(--crit);font-weight:700;font-size:.85rem;padding:5px 10px;border-radius:10px}
 
 /* Lead map */
-.leadmap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.leadmap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .lead{border-radius:10px;padding:7px 6px;text-align:center;background:var(--field);border:2px solid transparent;min-width:0}
 .lead b{display:block;font-size:.95rem}
 .lead span{display:block;font-size:.72rem;line-height:1.2;color:var(--soft);overflow-wrap:anywhere}
-.lead.ste{background:var(--crit-bg);border-color:var(--crit)}.lead.ste b,.lead.ste span{color:var(--crit)}
+.lead.ste{background:var(--crit);border-color:var(--crit)}.lead.ste b,.lead.ste span{color:#fff}
 .lead.std{background:var(--warn-bg);border-color:var(--warn)}.lead.std b,.lead.std span{color:var(--warn)}
 .lead.tw{border-color:var(--accent)}
-.lead.sub{border-color:#E7A0A8}
+.lead.sub{background:#F2EAFB;border-color:#7B3FC4}.lead.sub b,.lead.sub span{color:#5B2A99}
 .lead.unclear{opacity:.55}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:.78rem;color:var(--soft)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
@@ -223,6 +223,20 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
 .sheet h2{margin:0;font-size:1.3rem;font-weight:900}
 .sh-sub{margin:4px 0 14px;color:var(--soft);font-size:.9rem}
+.setsheet{max-height:88vh;display:flex;flex-direction:column}
+.setlist{overflow:auto;flex:1;min-height:0;margin:0 -4px;padding:0 4px}
+.setrow{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.setrow .tx{flex:1;min-width:0}
+.setrow b{display:block;font-size:.95rem}
+.setrow small{display:block;color:var(--soft);font-size:.78rem;margin-top:1px}
+.sw{position:relative;width:48px;height:28px;flex:none}
+.sw input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;z-index:1}
+.sw i{position:absolute;inset:0;border-radius:999px;background:var(--field-b);transition:background .15s}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}
+.sw input:checked+i{background:var(--accent)}
+.sw input:checked+i::after{transform:translateX(20px)}
+.sw input:focus-visible+i{outline:2px solid var(--accent);outline-offset:2px}
+.sec-off{display:none!important}
 .sexopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .sexopt{border:2px solid var(--line);background:var(--field);border-radius:18px;padding:16px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
 .sexopt .sx{width:56px;height:56px;border-radius:50%;background:var(--card);display:grid;place-items:center;color:var(--accent)}
@@ -519,6 +533,9 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
         <p class="copy">© 2026 JPS_dev. All rights reserved.<i>(Always follow your local protocols)</i></p>
       </div>
       <div class="icons">
+        <button class="icon-btn" id="settingsBtn" aria-label="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
       </div>
     </div>
     <div class="ecgstrip" id="ecgStrip" aria-hidden="true">
@@ -931,6 +948,13 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     <button type="button" class="sexopt" data-sex="Female"><span class="sx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M12 15v7M9 19h6"/></svg></span><b>Female</b><small>≥1.5 mm any age</small></button>
   </div>
   <button type="button" class="btn ghost sh-full" data-close>Cancel</button>
+</div>
+<div class="sheet setsheet" id="setSheet" role="dialog" aria-modal="true" aria-labelledby="setT" hidden>
+  <div class="grab"></div>
+  <h2 id="setT">Settings</h2>
+  <p class="sh-sub">Choose which parts of the result to show. The STEMI decision, warnings and critical rhythm alerts always show.</p>
+  <div class="setlist" id="setList"></div>
+  <div class="actions"><button type="button" class="btn ghost" id="setAll">Show all</button><button type="button" class="btn" data-close>Done</button></div>
 </div>
 <div class="sheet" id="ageSheet" role="dialog" aria-modal="true" aria-labelledby="ageT" hidden>
   <div class="grab"></div>
@@ -2065,12 +2089,55 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     });
     wrap.appendChild(g);
     const lg=el("div","legend");
-    [["var(--crit)","Meets threshold"],["#E7A0A8","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--accent)","Abnormal T wave"],["var(--field-b)","Normal / not in photo"]].forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
+    [["var(--crit)","Meets threshold"],["#7B3FC4","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--accent)","Abnormal T wave"],["var(--field-b)","Normal / not in photo"]].forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
     wrap.appendChild(lg);
     const notes=LEADS.filter(k=>L[k]&&L[k].note).map(k=>k+": "+S(L[k].note));
     if(notes.length){const n=list(notes);n.style.marginTop="10px";n.style.fontSize=".88rem";wrap.appendChild(n);}
     return wrap;
   }
+
+  // ---------- Settings: choose which parts of the result to show (saved on this phone) ----------
+  const SECTIONS=[
+    ["omi","OMI pattern alert","Yellow box. If off, a one-line OMI warning still shows."],
+    ["rhythm","Rhythm details","Critical rhythm alerts always show."],
+    ["alert","EMS alert summary",""],
+    ["leads","Lead-by-lead read","The 12 coloured lead boxes."],
+    ["protocol","Protocol check","Criteria (i)–(vi) with drawings."],
+    ["next","Next ECG steps","Posterior / right-sided leads, repeat ECG."],
+    ["actions","Field actions","Service protocol steps."],
+    ["why","Why this reading",""],
+    ["params","Measured parameters","Rate, PR, QRS, QT, axis."],
+    ["printout","Monitor printout","Values printed by the LP15 / corpuls."],
+    ["omilist","AI-named OMI patterns",""],
+    ["diff","Differential",""],
+    ["quality","Image quality and limits",""],
+    ["review","Review this reading","Reviewer feedback for the Learning page."]];
+  let secOn={};try{secOn=JSON.parse(localStorage.getItem("eqg-sections")||"{}")||{};}catch(e){secOn={};}
+  const isOn=k=>secOn[k]!==false;
+  function saveSec(){try{localStorage.setItem("eqg-sections",JSON.stringify(secOn));}catch(e){}}
+  const TITLE_KEY=[["Protocol check","protocol"],["Why this reading","why"],["Lead-by-lead","leads"],["Monitor printout","printout"],["OMI patterns present","omilist"],["Measured parameters","params"],["Field actions","actions"],["Differential","diff"],["Image quality","quality"]];
+  function secKey(n){const c=n.classList;if(!c)return null;
+    if(c.contains("omibox"))return "omi";if(c.contains("xleads"))return "next";if(c.contains("review"))return "review";
+    if(c.contains("rhythm"))return c.contains("critical")?null:"rhythm";if(c.contains("alert"))return "alert";
+    if(c.contains("card")){const h=n.querySelector(":scope>h3");const t=h?h.textContent:"";const m=TITLE_KEY.find(([p])=>t.startsWith(p));return m?m[1]:null;}
+    return null;}
+  function applySections(d){
+    report.querySelectorAll(".omi-mini").forEach(x=>x.remove());
+    [...report.children].forEach(n=>{const k=secKey(n);n.classList.toggle("sec-off",!!k&&!isOn(k));});
+    const st=(d||{}).stemi||{};
+    if(!isOn("omi")&&st.omi&&st.omi.length){const n=el("div","notice omi-mini");
+      const cf=st.omi.filter(x=>x.confirmed).map(x=>x.n),ps=st.omi.filter(x=>!x.confirmed).map(x=>x.n);
+      n.textContent="⚠ "+(cf.length?"OMI pattern found: "+cf.join(", ")+"."+(ps.length?" Possible: "+ps.join(", ")+".":""):"Possible OMI pattern: "+ps.join(", ")+".")+" Not an automatic activation: call UMOC 02 504 8555 to discuss. (The full OMI box is off in Settings.)";
+      const box=report.querySelector(".stemi");if(box&&box.nextSibling)report.insertBefore(n,box.nextSibling);else report.appendChild(n);}
+  }
+  function renderSettings(){const L=$("setList");L.textContent="";
+    SECTIONS.forEach(([k,t,sub])=>{const r=document.createElement("label");r.className="setrow";
+      const tx=el("span","tx");tx.appendChild(el("b",null,t));if(sub)tx.appendChild(el("small",null,sub));
+      const sw=el("span","sw");const inp=document.createElement("input");inp.type="checkbox";inp.checked=isOn(k);inp.setAttribute("aria-label",t);
+      inp.onchange=()=>{secOn[k]=inp.checked;saveSec();if(lastReport&&!report.hidden)applySections(lastReport);};
+      sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
+  $("settingsBtn").onclick=()=>{renderSettings();sheetOpen("setSheet");};
+  $("setAll").onclick=()=>{secOn={};saveSec();renderSettings();if(lastReport&&!report.hidden)applySections(lastReport);};
 
   function render(d){
     report.textContent="";
@@ -2192,6 +2259,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
 }
     {const bc=document.getElementById("bgCard");if(bc&&report.children.length>1)report.insertBefore(bc,report.children[1]);}
     if(isNetlify)report.appendChild(reviewCard(d));
+    applySections(d);
     report.hidden=false;report.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
   }
 

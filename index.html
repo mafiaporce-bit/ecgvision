@@ -132,7 +132,9 @@ textarea{min-height:64px;resize:vertical}
 /* Report */
 .rep{display:grid;gap:12px;margin-top:16px}
 .stemi{border-radius:20px;padding:16px;color:#fff}
-.stemi.met{background:#C3283A}.stemi.consult{background:#A86200}.stemi.not_met{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.stemi.met{background:#C3283A}
+.stemi.met.pending{background:linear-gradient(160deg,#B4495A,#8E2F3E)}
+.stemi .pend{margin-top:8px!important;background:rgba(255,255,255,.16);border-radius:12px;padding:8px 10px;font-size:.85rem;font-weight:600}.stemi.consult{background:#A86200}.stemi.not_met{background:var(--card);color:var(--ink);border:1px solid var(--line)}
 .stemi .q{font-size:.85rem;opacity:.92;margin:0}
 .stemi .a{font-size:1.8rem;font-weight:900;margin:2px 0 4px;line-height:1.1}
 .stemi p{margin:4px 0 0}
@@ -1862,7 +1864,7 @@ HOW TO MEASURE (follow exactly, lead by lead):
 2. Baseline: the TP segment (flat line between end of T and next P). Use the PR segment only if TP is not visible.
 3. J-point: the exact point where the QRS ends and the ST segment starts, i.e. where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Measure the vertical distance between the J-point and the baseline in SMALL BOXES as seen on this paper, to the nearest 0.5. Positive = above baseline, negative = below.
 4. NEVER measure at the T-wave, at the peak of the ST hump, or in the middle of the ST segment. A tall T wave is not ST elevation.
-5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. This is very common in young men and in early repolarisation. Report the real J-point value.
+5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. In V4-V6, I and II a concave ST that rises smoothly into an upright T wave usually starts AT the baseline: the J-point there is normally 0 to +0.5 mm; do not measure the rising ST or the T wave. This is very common in young men and in early repolarisation. Report the real J-point value.
 5b. WIDE QRS (LBBB, paced, RBBB, IVCD; QRS 120 ms or more): the J-point is the END of the whole wide QRS complex, never a point inside the R or S wave. Measure it against the baseline (TP / PR segment), not against the QRS. In LBBB and paced rhythm the ST segment normally goes the OPPOSITE way to the main QRS ("appropriate discordance"): depressed after an upright QRS (usually I, aVL, V5-V6) and elevated after a deep S (usually V1-V3, often III/aVF). Report that real sign. Only report ST going the SAME way as the QRS (concordant) if you clearly see it in that lead.
 6. ST shape: isoelectric, concave (smiley), straight, convex (frowny/tombstone), horizontal, upsloping or downsloping. Only call it convex or tombstone if the ST segment clearly bows upward above the line from J-point to T peak.
 7. T wave polarity for EVERY lead, judged against the baseline: upright (above), inverted (below), biphasic (both), hyperacute (broad, bulky, disproportionately tall for the QRS) or flat. Report its height in small boxes (negative if inverted). In I, II, aVL, aVF and V4-V6 the T wave is normally upright; if it dips below the baseline there, it is INVERTED and must be reported. aVR normally has an inverted T.
@@ -2002,10 +2004,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(fixed.length)d._axisNote="T waves corrected using the monitor's measured T axis ("+tAx+"°): "+fixed.join(", ")+". The photo read disagreed; the monitor measures the actual signal.";
   }
   // Zoomed halves of a single photo so small waveforms are read at double resolution.
-  function cropPart(file,x0,x1,y0,y1){
+  function cropPart(file,x0,x1,y0,y1,maxSide){
     y0=y0||0;y1=y1||1;
     return new Promise((res,rej)=>{const u=URL.createObjectURL(file),img=new Image();
-      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0)),sy=Math.round(img.height*y0),sh=Math.round(img.height*(y1-y0));const M=1200,sc=Math.min(1,M/Math.max(sw,sh));
+      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0)),sy=Math.round(img.height*y0),sh=Math.round(img.height*(y1-y0));const M=maxSide||1200,sc=Math.min(1,M/Math.max(sw,sh));
         const c=document.createElement("canvas");c.width=Math.round(sw*sc);c.height=Math.round(sh*sc);
         c.getContext("2d").drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);URL.revokeObjectURL(u);
         c.toBlob(b=>b?res(new File([b],"zoom.jpg",{type:"image/jpeg"})):rej(new Error("crop")),"image/jpeg",0.82);};
@@ -2018,7 +2020,25 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(zoomCache&&zoomCache.list.length===list.length&&zoomCache.list.every((f,i)=>f===list[i]))return zoomCache.p;
     const p=withZoom(list);zoomCache={list:list.slice(),p};p.catch(()=>{zoomCache=null;});return p;
   }
+  // Paper area of a photo: trim plain background (wood, table) above and below the printout.
+  // Conservative: a row is kept if even a little of it looks like paper, so labels are never cut off.
+  function paperRows(file){return new Promise(res=>{const u=URL.createObjectURL(file),img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(u);try{const sc=Math.min(1,400/Math.max(img.width,img.height)),w=Math.max(4,Math.round(img.width*sc)),h=Math.max(4,Math.round(img.height*sc));
+      const c=document.createElement("canvas");c.width=w;c.height=h;const x=c.getContext("2d");x.drawImage(img,0,0,w,h);const d=x.getImageData(0,0,w,h).data;
+      const rows=new Array(h).fill(0);for(let yy=0;yy<h;yy++){let n=0;for(let xx=0;xx<w;xx++){const i=(yy*w+xx)*4,mx=Math.max(d[i],d[i+1],d[i+2]),mn=Math.min(d[i],d[i+1],d[i+2]),L=(d[i]+d[i+1]+d[i+2])/3;if(L>95&&(mx-mn)/(mx+1)<0.2)n++;}rows[yy]=n/w;}
+      let y0=0,y1=h-1;while(y0<h&&rows[y0]<0.12)y0++;while(y1>0&&rows[y1]<0.12)y1--;
+      if(y1-y0<h*0.2){res({y0:0,y1:1,w:img.width,h:img.height});return;}
+      res({y0:Math.max(0,y0/h-0.03),y1:Math.min(1,(y1+1)/h+0.03),w:img.width,h:img.height});}catch(e){res({y0:0,y1:1,w:img.width,h:img.height});}};
+    img.onerror=()=>{URL.revokeObjectURL(u);res({y0:0,y1:1,w:1,h:1});};img.src=u;});}
   async function withZoom(list){
+    // Two photos (e.g. corpuls strips, 2 pages per photo): send each photo as its LEFT and RIGHT half,
+    // trimmed to the paper, so every printed page is read at about twice the resolution.
+    if(list.length===2){try{const imgs=[],desc=[];let n=0;
+      for(let i=0;i<2;i++){const f=list[i],pr=await paperRows(f),pw=pr.w,ph=pr.h*(pr.y1-pr.y0);
+        if(pw/ph>1.6){imgs.push(await cropPart(f,0,0.53,pr.y0,pr.y1,1400));imgs.push(await cropPart(f,0.47,1,pr.y0,pr.y1,1400));desc.push("images "+(n+1)+" and "+(n+2)+" are the LEFT and RIGHT halves of photo "+(i+1));n+=2;}
+        else{imgs.push(f);desc.push("image "+(n+1)+" is photo "+(i+1)+" in full");n+=1;}}
+      if(n>2)return {imgs,zoom:desc.join("; ")+" (halves overlap slightly; each half usually shows one printed page with its own lead labels; read every lead from the page that shows its label)"};
+    }catch(e){}return {imgs:list,zoom:""};}
     if(list.length!==1)return {imgs:list,zoom:""};
     try{const f=list[0],sz=await imgSize(f);
       if(sz.w/sz.h>2.0){const parts=[[0,0.3],[0.23,0.53],[0.47,0.77],[0.7,1]];const imgs=[f];for(const [a,b] of parts)imgs.push(await cropPart(f,a,b));
@@ -2305,6 +2325,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     }catch(e){
       if(bg!==me)return;clearInterval(me.timer);bg=null;
       if(e&&e.code==="cancelled")return;
+      if(lastReport===fast&&yesFromPhoto(fast)){fast._verifyFailed=true;const y=window.scrollY;render(fast);window.scrollTo({top:y});}
       const c=document.getElementById("bgCard");if(c){c.textContent="";c.appendChild(el("h3",null,"Thorough read didn't finish"));c.appendChild(el("p","lbl","The fast result above stands. You can try again."));const b=el("button","btn","Run thorough read");b.type="button";b.onclick=()=>runRead("thorough");c.appendChild(b);}
     }
   }
@@ -2336,7 +2357,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"low":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       let data;
       if(dbl){const [r1,r2]=await Promise.all([one(),one()]);data=mergeReads(expandCompact(r1),expandCompact(r2));}else data=expandCompact(await one());
-      finishRead(data,mode,t0);const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready in "+data._secs+" s."+tx+" Confirm against your own reading before acting.");
+      finishRead(data,mode,t0);const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready in "+data._secs+" s."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
       logRead(data);
     }catch(e){
       clearInterval(timer);
@@ -2472,7 +2493,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       "AI rules for corpuls strip pages (3 leads per page), small low-voltage limb leads and noisy baselines.",
       "Every YES based only on the photo is double-checked automatically by a second, deeper read.",
       "If the deeper read doesn't confirm the YES, the decision becomes 'consult UMOC' (never a silent NO).",
-      "Warning and lower confidence when ST elevation is only in leads with small complexes."]},
+      "Warning and lower confidence when ST elevation is only in leads with small complexes.",
+      "Two-photo uploads (e.g. corpuls pages) are sent as left and right halves, trimmed to the paper: each page is read at about twice the resolution.",
+      "AI rule: in V4–V6, I and II a concave ST rising into the T wave starts at the baseline (J-point 0 to +0.5 mm).",
+      "A YES read only from the photo now shows 'Possible STEMI — confirming…' until the second read agrees; then 'YES (confirmed by 2 reads)' or 'consult UMOC'."]},
     {v:"3.1",d:"9 Oct 2026",t:"Clearer options",i:[
       "'STEMI on the monitor?' redrawn as a call card: red phone icon, the UMOC number, and a Call button.",
       "'⚠ check paper' is now a yellow badge, readable on red boxes too.",
@@ -2599,9 +2623,13 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       report.appendChild(card2);}
       const mn=mimicNote(d);if(mn){d.stemi.warnings=(d.stemi.warnings||[]).concat([mn]);}}
     const st=d.stemi||{};const dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult";
-    const box=el("div","stemi "+dec);box.setAttribute("role",dec==="met"?"alert":"note");
+    // A YES read only from the photo is shown as "Possible STEMI — confirming" until the second read agrees.
+    const pending=dec==="met"&&d._mode==="fast"&&!!bg&&bg.fast===d&&yesFromPhoto(d);
+    const box=el("div","stemi "+dec+(pending?" pending":""));box.setAttribute("role",dec==="met"?"alert":"note");
     box.appendChild(el("p","q","STEMI PPCI criteria met?"));
-    box.appendChild(el("div","a",dec==="met"?"YES — Activate STEMI pathway":dec==="consult"?"Not fully met — consult UMOC":"NO"));
+    box.appendChild(el("div","a",pending?"Possible STEMI — confirming…":dec==="met"?(d._confirmedYes?"YES — Activate STEMI pathway (confirmed by 2 reads)":"YES — Activate STEMI pathway"):dec==="consult"?"Not fully met — consult UMOC":"NO"));
+    if(pending)box.appendChild(el("p","pend",'A second, deeper read is checking this photo (about 45 s). If the monitor\'s own report says STEMI, or the patient is unstable, call UMOC now.'));
+    if(d._verifyFailed&&dec==="met")box.appendChild(el("p","pend","The second read didn't finish, so this YES is not double-checked. Check the leads on the paper."));
     if(st.criterion)box.appendChild(el("p",null,S(st.criterion)+(st.territory&&!S(st.criterion).includes(S(st.territory))?" · "+S(st.territory):"")));
     if(st.reasoning)box.appendChild(el("p",null,S(st.reasoning)));
     if(dec!=="not_met"){const a=el("a","call",dec==="met"?"Call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d":"Call UMOC 02 504 8555 for conference call");a.href="tel:025048555";box.appendChild(a);}
@@ -2704,10 +2732,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       if(bg&&bg.fast===d){const tc=el("div","card thorough refining");tc.id="bgCard";
         tc.appendChild(el("h3",null,(d.stemi&&d.stemi.decision==="met")?"Double-checking this YES…":"Checking with a thorough read…"));
         const mm=makeMonitor(true);mm.querySelector(".rm-secs").id="bgSecs";mm.querySelector(".rm-secs").textContent=Math.round((Date.now()-bg.t0)/1000)+" s";tc.appendChild(mm);
-        const p=el("p","lbl",(d.stemi&&d.stemi.decision==="met")?"The fast read says YES from the photo, so a second, deeper read is checking it. If your monitor shows STEMI, call UMOC now; this report updates by itself (usually 45–70 s).":"The fast read says NO but saw an OMI pattern, so a deeper read started automatically to make sure nothing is missed. You can act on the result above now; the report updates by itself when the thorough read finishes (usually 45–70 s).");tc.appendChild(p);
-        const cb=el("button","btn ghost","Cancel thorough read");cb.type="button";cb.onclick=()=>{bgCancel();render(d);};tc.appendChild(cb);report.appendChild(tc);}
+        const p=el("p","lbl",(d.stemi&&d.stemi.decision==="met")?"Checking the YES above with a second, deeper read of the same photo. The report updates by itself.":"The fast read says NO but saw an OMI pattern, so a deeper read started automatically to make sure nothing is missed. You can act on the result above now; the report updates by itself when the thorough read finishes (usually 45–70 s).");tc.appendChild(p);
+        const cb=el("button","btn ghost","Cancel thorough read");cb.type="button";cb.onclick=()=>{bgCancel();if(yesFromPhoto(d))d._verifyFailed=true;render(d);};tc.appendChild(cb);report.appendChild(tc);}
 }
-    {const bc=document.getElementById("bgCard");if(bc&&report.children.length>1)report.insertBefore(bc,report.children[1]);}
+    {const bc=document.getElementById("bgCard");const sb=report.querySelector(".stemi");if(bc&&sb)sb.after(bc);else if(bc&&report.children.length>1)report.insertBefore(bc,report.children[1]);}
     if(isNetlify)report.appendChild(reviewCard(d));
     applySections(d);
     report.hidden=false;report.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});

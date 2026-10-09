@@ -165,7 +165,7 @@ textarea{min-height:64px;resize:vertical}
 .lead.ste{background:var(--crit);border-color:var(--crit)}.lead.ste b,.lead.ste span{color:#fff}
 .lead.std{background:var(--warn-bg);border-color:var(--warn)}.lead.std b,.lead.std span{color:var(--warn)}
 .lead.disc{background:#EEF2F6;border:2px dashed #9AA9BA}.lead.disc span.jv{color:#4A5A6C}
-.lead span.need{overflow-wrap:normal;word-break:keep-all}
+.lead span.need{overflow-wrap:normal;word-break:keep-all;font-size:clamp(.54rem,2.5vw,.68rem);padding:2px 3px;letter-spacing:-.01em}
 .lead span.need.dexp{background:#9AA9BA;color:#fff;font-size:clamp(.54rem,2.5vw,.66rem);padding:2px 3px;letter-spacing:-.01em}
 .lead span.tl.tabn{display:inline-block;margin-top:3px;background:#1F5E98;color:#fff!important;border-radius:6px;padding:1px 5px;font-weight:700;font-style:normal}
 .legend .tkey{display:inline-block;font-style:normal;font-weight:800;font-size:.7rem;background:#1F5E98;color:#fff;border-radius:4px;padding:0 4px;margin-right:4px}
@@ -184,7 +184,7 @@ textarea{min-height:64px;resize:vertical}
 .lead.std span.need{background:var(--warn);color:#fff}
 .lnote{margin:8px 0 0;font-size:.8rem}
 .lead.stjchk{outline:2px dashed #C27C00;outline-offset:1px}
-.lead span.chkline{color:#8A5A00!important;font-weight:700}
+.lead span.chkline{display:inline-block;margin:4px auto 1px;background:#FFE17A;color:#3A2A00!important;border:1px solid #E0A800;border-radius:7px;padding:1px 4px;font-size:clamp(.54rem,2.5vw,.64rem);line-height:1.25;font-weight:800;overflow-wrap:normal;word-break:keep-all}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:.78rem;color:var(--soft)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .why{list-style:none;padding:0!important;margin:0}
@@ -651,6 +651,8 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 .drop .thumbs{margin-top:8px;gap:8px}
 .drop .thumb{width:92px;height:64px}
 .drop.locked .btn-row{min-height:66px}
+@media (max-width:370px){.leadmap{gap:4px!important}.leadmap .lead{padding-left:1px!important;padding-right:1px!important}}
+.leadmap .lead span.need{font-size:clamp(.5rem,2.4vw,.68rem);padding:2px 2px;letter-spacing:-.01em;max-width:100%;overflow-wrap:normal;word-break:keep-all}
 </style>
 </head>
 <body>
@@ -2369,6 +2371,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
   const CHANGELOG=[
     {v:"3.1",d:"9 Oct 2026",t:"Clearer options",i:[
       "'STEMI on the monitor?' redrawn as a call card: red phone icon, the UMOC number, and a Call button.",
+      "'⚠ check paper' is now a yellow badge, readable on red boxes too.",
       "Double-check now sits in its own 'Accuracy' box, separate from the 'Patient device' box with Pacemaker and ICD.",
       "Each box has a short explanation underneath.",
       "'Age and sex required' redrawn as a clean card in the app's style (person icon, arrow), replacing the red stamp.",

@@ -1202,7 +1202,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="3.9";
+  const APP_VERSION="4.0";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2130,6 +2130,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     // One read can't confirm itself, so it has a lower ceiling than two reads that agree (95%):
     // 85% when the J-points come from the monitor's own STJ numbers, 75% when they come only from the photo.
     let cap=95;if(!d._double){cap=stj?85:75;why.push("Single read: highest possible is "+cap+"% (Double-check can reach 95%)");}
+    // LBBB / paced: the J-point is hard to place in a wide QRS from a photo, and harder still when fast
+    // (short baseline between beats). Lower ceiling (4.0).
+    {const wide=/LBBB|paced/i.test(S((d.conduction||{}).bbb)),rate=Number(d.rate_bpm)||0;
+      if(wide){const c2=rate>100?55:65;if(c2<cap){cap=c2;why.push((/paced/i.test(S((d.conduction||{}).bbb))?"Paced rhythm":"LBBB")+(rate>100?" with a fast rate ("+rate+"/min)":"")+": ST is hard to measure from a photo in a wide QRS; highest possible is "+cap+"%");}}}
     sc=Math.max(5,Math.min(cap,sc));
     return {score:sc,level:sc>=80?"High":sc>=55?"Moderate":"Low",why};
   }
@@ -2375,9 +2379,12 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       {const tq=k=>L[k]&&L[k].s_wave===false&&L[k].j_wave===false&&has(k,x=>x>=1);
         R.push({n:"Terminal QRS distortion",hit:tq("V2")||tq("V3"),why:"no S wave and no J wave with STE in "+["V2","V3"].filter(tq).join(", "),look:named("terminal qrs"),block:(lbbb||rbbb)?"bundle branch block":null});}
       // Modified Sgarbossa (LBBB / paced only)
-      if(lbbb){const c1=LEADS.filter(k=>qp(k)==="positive"&&has(k,x=>x>=1));const c2=["V1","V2","V3"].filter(k=>qp(k)==="negative"&&has(k,x=>x<=-1));
-        const c3=LEADS.filter(k=>qp(k)==="negative"&&qm(k)>0&&has(k,x=>x>=1&&x/qm(k)>=0.25));
-        R.push({n:"Modified Sgarbossa (Smith)",hit:c1.length>0||c2.length>0||c3.length>0,why:[c1.length?"concordant STE "+c1.join(", "):"",c2.length?"concordant STD "+c2.join(", "):"",c3.length?"ST/S ≥25% "+c3.join(", "):""].filter(Boolean).join("; "),look:named("sgarbossa"),noBlock:true,needNamed:true});}
+      // Sanity check (4.0): concordance needs a clear QRS direction (main deflection ≥3 small boxes) AND the ST
+      // going the same way in the AI's OWN numbers; a label that its numbers don't support is thrown out.
+      if(lbbb){const clear=k=>qm(k)>=3;const jv=k=>{const v=J(k);return (v>0?"+":"")+v;};
+        const c1=LEADS.filter(k=>qp(k)==="positive"&&clear(k)&&has(k,x=>x>=1));const c2=["V1","V2","V3"].filter(k=>qp(k)==="negative"&&clear(k)&&has(k,x=>x<=-1));
+        const c3=LEADS.filter(k=>qp(k)==="negative"&&clear(k)&&has(k,x=>x>=1&&x/qm(k)>=0.25));
+        R.push({n:"Modified Sgarbossa (Smith)",hit:c1.length>0||c2.length>0||c3.length>0,why:[c1.length?"concordant STE "+c1.map(k=>k+" "+jv(k)).join(", ")+" (upright QRS)":"",c2.length?"concordant STD "+c2.map(k=>k+" "+jv(k)).join(", ")+" (negative QRS)":"",c3.length?"ST/S ≥25% "+c3.map(k=>k+" "+jv(k)+"/S "+qm(k)).join(", "):""].filter(Boolean).join("; "),look:named("sgarbossa"),noBlock:true,needNamed:true,sgb:true});}
       // Precordial swirl
       R.push({n:"Precordial swirl",hit:(has("V1",x=>x>=1)||has("V2",x=>x>=1))&&(has("V5",x=>x<=-0.5)||has("V6",x=>x<=-0.5)),why:"STE V1 "+J("V1")+" / V2 "+J("V2")+" with ST depression V5 "+J("V5")+" / V6 "+J("V6"),look:named("swirl"),block:rbbb?"RBBB":null});
       // Northern OMI
@@ -2389,6 +2396,13 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
         const blocker=x.noBlock?null:(lbbb?"LBBB / paced rhythm":lvh?"LVH (strain can mimic this)":x.block);
         // In a wide QRS the J-point is hard to place, so modified Sgarbossa from the measurements alone stays "possible"
         // unless the AI's own read also calls it: a measurement slip must not show as CONFIRMED.
+        // Modified Sgarbossa: one read can't confirm it. CONFIRMED only when two reads each found it
+        // (Double-check, or the fast read + the automatic second read). Otherwise "possible".
+        if(x.sgb){if(x.hit&&x.look)r.sgbCandidate=true;
+          const votes=(x.hit&&x.look?1:0)+(Number(d._sgbVotesOther)||0);
+          if(x.hit&&x.look&&votes>=2){any=true;r.omi.push({n:x.n,why:x.why+" (found by 2 reads)",confirmed:true});r.checks.push({ok:null,t:"(OMI) "+x.n+" SEEN by 2 reads: "+x.why+"."});return;}
+          if(x.hit&&x.look){any=true;const why=x.why+". Found by one read only: check these leads on the paper and discuss with UMOC"+(d._sgbPending?" (a second read is checking it now)":"");r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});return;}
+          if(x.look&&!x.hit){r.checks.push({ok:null,t:"(OMI) The AI named "+x.n+", but its own measurements don't show concordant ST or ST/S ≥25%, so it was not used."});return;}}
         if(x.hit&&x.needNamed&&!x.look){any=true;const why="measurements suggest "+x.why+", but the AI's overall read did not see it. In a wide QRS the J-point is hard to place: check these leads yourself";r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});}
         else if(x.hit&&!blocker){any=true;r.omi.push({n:x.n,why:x.why,confirmed:true});r.checks.push({ok:null,t:"(OMI) "+x.n+" SEEN: "+x.why+"."});}
         else if(x.hit||x.look){any=true;const why=x.hit?blocker+" could explain it":"suggested by the AI but not confirmed in every required lead";r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});}
@@ -2462,7 +2476,8 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   function yesFromPhoto(d){const st=d.stemi||{};if(st.decision!=="met")return false;const stj=(d.printed||{}).stj||{};
     const ls=st.metLeads&&st.metLeads.length?st.metLeads:LEADS;return !ls.every(k=>isFinite(parseFloat(String(stj[k]??"").replace(",","."))));}
   // Automatic thorough read: (1) NO STEMI but an OMI pattern seen; (2) YES STEMI based only on the photo.
-  function needsThorough(d){const st=d.stemi||{};return (st.decision==="not_met"&&!!(st.omi&&st.omi.length))||yesFromPhoto(d);}
+  function needsThorough(d){const st=d.stemi||{};const sgbOpen=!!st.sgbCandidate&&!(st.omi||[]).some(x=>x.confirmed&&/Sgarbossa/.test(x.n));
+    return (st.decision==="not_met"&&!!(st.omi&&st.omi.length))||yesFromPhoto(d)||sgbOpen;}
   // ST elevation claimed only in leads with small complexes is easy to misread from a photo.
   function lowVoltageNote(d){const st=d.stemi||{};if(st.decision!=="met"||!st.metLeads||!st.metLeads.length)return null;const L=d.leads||{};
     const small=st.metLeads.filter(k=>{const q=Number(L[k]&&L[k].qrs_mm)||0;return q>0&&q<=5;});
@@ -2479,7 +2494,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const tim=[];
       const raw=await sample.json(buildPrompt(zz.zoom,"thorough"),{images:zz.imgs,modelTier:"complex",effort:"",signal:me.ctl.signal,cache:false,onTiming:t=>tim.push(t)});
       if(bg!==me||lastReport!==fast)return;
-      const ex=expandCompact(raw);ex._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);if(bg!==me||lastReport!==fast)return;
+      const ex=expandCompact(raw);ex._sgbVotesOther=fast.stemi&&fast.stemi.sgbCandidate?1:0;ex._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);if(bg!==me||lastReport!==fast)return;
       const data=finishRead(ex,"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
       data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};
       if(data._from.decision==="met"&&data.stemi.decision!=="met"){const fl=(fast.stemi.metLeads||[]).join(", ");
@@ -2560,8 +2575,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     }finally{sessPend(null);monStop();busy=false;ctl=null;stopBtn.hidden=true;refresh();}
   }
   // Turn the AI's raw answer(s) into the report (also used when picking up a read after the app was closed).
+  // Did this one read, on its own, find modified Sgarbossa (numbers + named)? Used to require 2 reads.
+  function sgbCand(d){try{const c=JSON.parse(JSON.stringify(d));applyMonitorSTJ(c);applyDevice(c);return !!evaluate(c,{age:parseInt($("age").value,10),sex:$("sex").value}).sgbCandidate;}catch(e){return false;}}
   async function settleReads(raws,mode,t0){let data;
-    if(raws.length>1){const a=applyVisible(expandCompact(raws[0])),b=applyVisible(expandCompact(raws[1]));data=mergeReads(a,b);
+    if(raws.length>1){const a=applyVisible(expandCompact(raws[0])),b=applyVisible(expandCompact(raws[1]));const va=sgbCand(a),vb=sgbCand(b);data=mergeReads(a,b);data._sgbVotesOther=va&&vb?1:0;
       if(Array.isArray(a.visible_leads)&&Array.isArray(b.visible_leads))data.visible_leads=[...new Set([...(a._vis||[]),...(b._vis||[])])];else data.visible_leads=null;
       data._invented=[...new Set([...(a._invented||[]),...(b._invented||[])])];}else data=expandCompact(raws[0]);
     data._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);
@@ -2736,6 +2753,13 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"4.0",d:"9 Oct 2026",t:"Safer modified Sgarbossa, faster first read",i:[
+      "Modified Sgarbossa (LBBB / paced) is only CONFIRMED when two reads each find it: Double-check, or the fast read plus the automatic second read. One read alone shows 'Possible: check these leads on the paper and discuss with UMOC'.",
+      "When the fast read finds modified Sgarbossa, the second read now starts automatically to check it.",
+      "Sanity check: concordant ST elevation needs a clearly upright QRS with ST above the baseline, and concordant ST depression in V1–V3 a clearly negative QRS with ST below, in the AI's own numbers. If the AI names Sgarbossa but its numbers don't show it, it is not used.",
+      "The Sgarbossa box now shows each lead's number (e.g. 'V2 −1.5') so it can be checked on the paper.",
+      "Confidence ceiling for LBBB / paced rhythm: 65%, or 55% with a heart rate over 100 (ST is hard to measure from a photo in a wide QRS).",
+      "First read is faster again: about 20–25 s (thinking level low by default; CLAUDE_FAST_EFFORT in Netlify can change it)."]},
     {v:"3.9",d:"9 Oct 2026",t:"Back to the simple camera, no automatic turning",i:[
       "Photos are no longer turned automatically (the crew found the earlier way more reliable). The 'Checking which way is up…' step is gone, so photos upload straight away.",
       "Sideways or upside-down photos can be uploaded as they are: the AI works out which way is up itself (lead names and the calibration pulse) before measuring.",

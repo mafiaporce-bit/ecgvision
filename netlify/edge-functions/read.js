@@ -9,6 +9,7 @@
 // GET ?id= -> the job's status: queued / running / done (with the report text) / error.
 // DELETE ?id=&cancel=1 -> asks the job to stop (Stop / New patient). DELETE ?id= -> removes the finished result.
 // DELETE ?img= -> removes the patient's photos (New patient).
+// POST {leads:true, images} -> { leads: [...] }: the leads two models can see in the photos (or null).
 // POST {orient:true, images:[2-4 small copies of one photo, each turned a different way]} -> { pick }:
 //           which copy is the right way up (index), or -1 if it can't be told. Used to turn photos
 //           upright automatically when they are added. Two models must agree (the fast one, set with
@@ -94,6 +95,44 @@ async function pickUpright(key, images, order, models) {
   return -1;
 }
 
+// Which leads are actually in the photo? Asked separately from the reading, as one simple question,
+// to two models. The app ignores any lead that neither model can find (an invented lead can trigger a
+// false STEMI: "ST elevation V2-V6" once came back for a photo that only showed limb leads).
+const LEAD_NAMES = ["I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"];
+const LEADS_TEXT =
+  "These photos show an ECG printout (possibly only part of it, e.g. some pages of a strip printout). " +
+  "List every lead whose printed LABEL (I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6) you can read in the photos AND that has its own tracing (at least 2 beats) next to it. " +
+  "Do not list a lead just because the usual layout would have it, and do not list a label at the cut-off edge with no tracing. " +
+  'Reply with only a JSON array of the lead names, for example ["I","II","III"].';
+
+async function listLeads(key, images, model) {
+  const content = images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
+  content.push({ type: "text", text: LEADS_TEXT });
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 20000);
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model, max_tokens: 600, messages: [{ role: "user", content }] }),
+      signal: ctl.signal,
+    });
+    if (!r.ok) return { err: r.status };
+    const j = await r.json();
+    const txt = (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join(" ");
+    const m = txt.match(/\[[^\]]*\]/);
+    if (!m) return null;
+    const arr = JSON.parse(m[0]);
+    if (!Array.isArray(arr)) return null;
+    const norm = (x) => LEAD_NAMES.find((n) => n.toLowerCase() === String(x).trim().toLowerCase());
+    return [...new Set(arr.map(norm).filter(Boolean))];
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 async function streamDirect(key, payload) {
   const up = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -173,6 +212,17 @@ export default async (req) => {
     const fast = env("CLAUDE_ORIENT_MODEL") || "claude-haiku-5-5", main = env("CLAUDE_MODEL") || "claude-sonnet-5";
     const [a, b] = await Promise.all([pickUpright(key, images, idx, [fast, main]), pickUpright(key, images, idx.slice().reverse(), [main])]);
     return json({ pick: a >= 0 && a === b ? a : -1, a, b });
+  }
+
+  // Which leads are in the photo (asked once per patient, while the photo uploads).
+  if (body && body.leads === true) {
+    if (badImages(images)) return json({ error: "bad_request" }, 400);
+    const fast = env("CLAUDE_ORIENT_MODEL") || "claude-haiku-5-5", main = env("CLAUDE_MODEL") || "claude-sonnet-5";
+    let [a, b] = await Promise.all([listLeads(key, images, fast), listLeads(key, images, main)]);
+    if (a && a.err) a = null; // e.g. fast model not on this key: rely on the main model
+    if (b && b.err) b = null;
+    const ok = [a, b].filter(Array.isArray);
+    return json({ leads: ok.length ? [...new Set(ok.flat())] : null, a, b });
   }
 
   if (typeof prompt !== "string" || prompt.length > 30000) return json({ error: "bad_request" }, 400);

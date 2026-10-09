@@ -620,7 +620,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 
 /* Options: Accuracy and Patient device as two separate groups */
 .optgrid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:10px;margin-top:14px}
-@media (max-width:345px){.optgrid{grid-template-columns:1fr}}
+@media (max-width:320px){.optgrid{grid-template-columns:1fr}}
 .optgrp{background:var(--field);border:1px solid var(--line);border-radius:18px;padding:10px 10px 8px;min-width:0;display:flex;flex-direction:column}
 .optlbl{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 2px 7px}
 .optgrp .optrow{margin:0;display:flex;gap:6px}
@@ -670,6 +670,14 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 .optgrp .optrow .tog{flex:1 1 auto;min-width:0;padding:0 10px}
 .optgrp .tog.on span,.optgrp .devchip[aria-pressed="true"]{color:#fff!important}
 .actions .btn{white-space:nowrap;padding:0 12px}
+/* Compact Accuracy / Patient device boxes (about 60% of the old height) */
+.optgrid{gap:8px!important;margin-top:10px!important}
+.optgrp{padding:6px 7px 5px!important;border-radius:14px!important}
+.optlbl{font-size:.58rem!important;line-height:1.1!important;margin:0 2px 4px!important;letter-spacing:.07em!important}
+.optgrp .tog{min-height:30px!important;font-size:.76rem!important}
+.optgrp .optrow{gap:5px!important}
+.optgrp .optrow .tog{padding:0 8px!important}
+.optgrp .optcap{margin:3px 2px 0!important;font-size:.6rem!important;line-height:1.2!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -740,7 +748,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       <div class="optgrp" role="group" aria-label="Accuracy">
         <div class="optlbl">Accuracy</div>
         <label class="tog dbltog"><input type="checkbox" id="dblChk" class="vh"><span>Double‑check</span></label>
-        <p class="optcap">2 independent reads compared. About 2× cost.</p>
+        <p class="optcap">2 reads · 2× cost</p>
       </div>
       <div class="optgrp" role="group" aria-label="Patient device">
         <div class="optlbl">Patient device</div>
@@ -748,7 +756,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
           <button type="button" class="tog devchip" data-dev="Pacemaker" aria-pressed="false">Pacemaker</button>
           <button type="button" class="tog devchip" data-dev="ICD" aria-pressed="false">ICD</button>
         </div>
-        <p class="optcap">Tap only if the patient has one.</p>
+        <p class="optcap">Only if the patient has one</p>
       </div>
     </div>
     <div class="actions">
@@ -2392,6 +2400,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       "Possible OMI patterns now get their own box too (dashed, '? POSSIBLE · NOT CONFIRMED' tag); confirmed ones keep the red CONFIRMED tag.",
       "'STEMI on the monitor?' card moved below the Analyze ECG buttons and the read status, and made about half the size.",
       "Fixed: tapping Double-check, Pacemaker or ICD no longer turns the button text invisible.",
+      "Accuracy and Patient device boxes made more compact (about 60% of the old height).",
       "Double-check now sits in its own 'Accuracy' box, separate from the 'Patient device' box with Pacemaker and ICD.",
       "Each box has a short explanation underneath.",
       "'Age and sex required' redrawn as a clean card in the app's style (person icon, arrow), replacing the red stamp.",

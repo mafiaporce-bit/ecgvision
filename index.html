@@ -487,6 +487,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .us-ev{display:flex;gap:8px;font-size:.78rem;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.07)}
 .us-ev time{flex:none;opacity:.6;font-variant-numeric:tabular-nums}.us-ev b{font-weight:600}
 .us-ev .yes{color:#FF8A8A}.us-ev .con{color:#FFD27A}.us-ev .no{color:#8FE3B0}
+.usagebox.mini p{font-size:.72rem;margin:0}
 .usagebox{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
 .usagebox h3{margin:0 0 4px;font-size:1rem}.usagebox .in{width:100%;margin:6px 0}
 .fullov{position:fixed;inset:0;z-index:50;background:#0B1624;color:#fff;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
@@ -1230,7 +1231,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="4.1";
+  const APP_VERSION="4.2";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2697,7 +2698,12 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")hiddenAt=Date.now();else{if(hiddenAt&&Date.now()-hiddenAt>60000)track("back");hiddenAt=0;}});
   setInterval(()=>{if(document.visibilityState==="visible")track("ping");},120000);
   // Settings: notice, optional name, and the live view.
-  function renderUsage(){const w=el("div","usagebox");w.appendChild(el("h3",null,"Usage log"));
+  // Only the admin's phone shows the usage box (name + live view button). Other phones get one short privacy line.
+  // A phone becomes the admin phone after the admin code is entered once; on a new phone, tap
+  // "Built by JPS" in the Update log 5 times to open the admin login.
+  function renderUsage(){
+    if(store.get("eqg-isadmin")!=="1")return document.createDocumentFragment();
+    const w=el("div","usagebox");w.appendChild(el("h3",null,"Usage log"));
     w.appendChild(el("p","lbl","This app records which phone uses it (phone model, system, browser, app version, when it's opened and readings made). No photos and no patient details. Your team lead can see it live."));
     const l=el("label","lbl","Your name on the usage log (optional)");const inp=document.createElement("input");inp.className="in";inp.maxLength=40;inp.placeholder="e.g. JPS / Ambulance 12";inp.value=store.get("eqg-name")||"";
     inp.onchange=()=>{store.set("eqg-name",inp.value.trim());track("ping");toast("Saved.");};l.appendChild(inp);w.appendChild(l);
@@ -2717,7 +2723,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(r.status===403){const j=await r.json().catch(()=>({}));try{sessionStorage.removeItem("eqg-admin");}catch(e){}clearInterval(usTimer);usTimer=null;
       $("usErr").textContent=j.error==="no_admin_code"?"Set ADMIN_CODE in Netlify (Environment variables) and redeploy first.":"Admin code incorrect.";$("usLogin").hidden=false;$("usBody").hidden=true;return;}
     if(!r.ok){$("usErr").textContent="Server error "+r.status+".";return;}
-    const j=await r.json();try{sessionStorage.setItem("eqg-admin",code);}catch(e){}
+    const j=await r.json();try{sessionStorage.setItem("eqg-admin",code);}catch(e){}store.set("eqg-isadmin","1");
     $("usLogin").hidden=true;$("usBody").hidden=false;usRender(j,code);
     if(!usTimer)usTimer=setInterval(()=>{if(!$("usageOv").hidden&&document.visibilityState==="visible")usLoad(code);},5000);}
   function usRender(j,code){const now=j.now||Date.now(),act=j.devices.filter(d=>now-d.last<150000).length;
@@ -2858,12 +2864,8 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
-    {v:"4.1",d:"9 Oct 2026",t:"Live usage log",i:[
-      "Live usage log: which phones use the app (model such as Galaxy S24 Ultra or iPhone size, system, browser, app version, installed or not).",
-      "Shows who is active right now, phones and readings today, and the latest activity (opened, photo added, reading started, result, failed), updating every 5 s.",
-      "Opened from Settings → 'Open live usage (admin)' with the admin code (ADMIN_CODE in Netlify).",
-      "Each phone can be given a name in the live view (e.g. 'Ambulance 12'); users can also type their own name in Settings.",
-      "No photos and no patient details are recorded; the notice is shown in Settings. Activity older than 30 days is removed."]},
+    {v:"4.2",d:"9 Oct 2026",t:"Small improvements",i:[
+      "Behind-the-scenes improvements and a tidier Settings page."]},
     {v:"4.0",d:"9 Oct 2026",t:"Safer modified Sgarbossa, faster first read",i:[
       "Modified Sgarbossa (LBBB / paced) is only CONFIRMED when two reads each find it: Double-check, or the fast read plus the automatic second read. One read alone shows 'Possible: check these leads on the paper and discuss with UMOC'.",
       "When the fast read finds modified Sgarbossa, the second read now starts automatically to check it.",
@@ -3031,7 +3033,8 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   function renderLog(){
     const w=el("div","chlog");w.appendChild(el("h3",null,"Update log"));
     const n=CHANGELOG.reduce((a,c)=>a+c.i.length,0);
-    w.appendChild(el("p","lbl","Built by JPS · "+n+" updates in "+CHANGELOG.length+" versions"));
+    {const by=el("p","lbl","Built by JPS · "+n+" updates in "+CHANGELOG.length+" versions");let taps=0,tt=0;
+      by.onclick=()=>{clearTimeout(tt);tt=setTimeout(()=>{taps=0;},1500);if(++taps>=5){taps=0;sheetClose();usOpen();}};w.appendChild(by);}
     CHANGELOG.forEach((c,ix)=>{const det=document.createElement("details");det.className="chv";if(ix===0)det.open=true;
       const sm=document.createElement("summary");sm.append(el("span","chtag","v"+c.v),el("b",null,c.t),el("small",null,c.d+" · "+c.i.length+" update"+(c.i.length>1?"s":"")));det.appendChild(sm);
       const ul=el("ul","chitems");c.i.forEach((t,k)=>{const li=el("li");li.append(el("span","chcode",c.v+String.fromCharCode(97+k)),el("span",null,t));ul.appendChild(li);});

@@ -212,7 +212,7 @@ textarea{min-height:64px;resize:vertical}
 .hg label{display:flex;flex-direction:column;gap:3px;font-size:.8rem;color:var(--soft)}
 .out{white-space:pre-wrap;background:var(--field);border-radius:12px;padding:12px;font-size:.92rem;margin-top:10px}
 
-nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:10}
+nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px;padding-bottom:calc(6px + min(env(safe-area-inset-bottom,0px),34px));z-index:10;will-change:transform}
 nav.bottom button{flex:1;max-width:120px;min-width:0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.8rem;font-weight:500;color:var(--soft);padding:6px 0}
 nav.bottom svg{width:26px;height:26px}
 nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
@@ -486,29 +486,12 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .qwarn{background:#FFE17A;color:#3A2A00;border-radius:10px;padding:8px 10px;font-size:.85rem;font-weight:700;margin-top:8px}
 .cam{padding:0;background:#000}
 #camVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-/* Camera guide (3.6): a tall frame for a sideways printout. Yellow = the paper's TOP edge. */
-.camhint{position:absolute;left:10px;right:10px;top:calc(8px + env(safe-area-inset-top,0px));display:flex;gap:10px;align-items:center;background:rgba(8,16,28,.78);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:7px 10px;z-index:2}
-.cam-ico{width:30px;height:44px;flex:none}
-.cam-txt b{display:block;font-size:.9rem;font-weight:800;letter-spacing:.01em}
-.cam-txt span{display:block;font-size:.74rem;line-height:1.3;opacity:.9;margin-top:1px}
-.cam-txt u{text-decoration:none;color:#FFE17A;font-weight:800}
-.cam-txt .cam-l{display:none}
-.camframe{position:absolute;left:max(22px,6%);right:max(22px,6%);top:calc(106px + env(safe-area-inset-top,0px));bottom:calc(108px + env(safe-area-inset-bottom,0px));border:2px solid rgba(255,255,255,.8);border-left:5px solid #FFE17A;border-radius:12px;box-shadow:0 0 0 2000px rgba(0,0,0,.38)}
-.cf-lab{position:absolute;top:50%;white-space:nowrap;pointer-events:none}
-.cf-lab span{display:block;font-size:.72rem;font-weight:800;letter-spacing:.03em;padding:4px 11px;border-radius:999px;box-shadow:0 1px 6px rgba(0,0,0,.45)}
-.cf-top{left:-3px;transform:translate(-50%,-50%) rotate(-90deg)}
-.cf-top span{background:#FFE17A;color:#0B1624}
-.cf-bot{right:-1px;transform:translate(50%,-50%) rotate(-90deg)}
-.cf-bot span{background:rgba(255,255,255,.92);color:#0B1624}
-@media (orientation:landscape){
-  .camhint{left:calc(14px + env(safe-area-inset-left,0px));right:calc(146px + env(safe-area-inset-right,0px));justify-content:center;padding:5px 10px}
-  .cam-ico{display:none}.cam-txt .cam-p{display:none}.cam-txt .cam-l{display:block}.cam-txt span{display:inline;margin-left:6px}.cam-txt b{display:inline}
-  .camframe{left:calc(14px + env(safe-area-inset-left,0px));right:calc(146px + env(safe-area-inset-right,0px));top:calc(66px + env(safe-area-inset-top,0px));bottom:calc(22px + env(safe-area-inset-bottom,0px));border-left:2px solid rgba(255,255,255,.8);border-top:5px solid #FFE17A}
-  .cam .cambtns{left:auto;right:calc(12px + env(safe-area-inset-right,0px));top:50%;bottom:auto;transform:translateY(-50%);width:120px;grid-template-columns:1fr;justify-items:stretch;gap:12px}
-  .cam #camNative{order:1}.cam #camShot{order:2;justify-self:center}.cam #camCancel{order:3}
-  .cf-top{left:50%;top:-3px;transform:translate(-50%,-50%)}
-  .cf-bot{left:50%;right:auto;top:auto;bottom:-1px;transform:translate(-50%,50%)}
-}
+.camframe{position:absolute;left:4%;right:4%;top:max(18%,calc(150px + env(safe-area-inset-top,0px)));bottom:26%;border:3px solid #FFE17A;border-radius:14px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+.camframe span{position:absolute;left:0;right:0;top:-54px;text-align:center;font-size:.8rem;font-weight:700;padding:0 8px;text-shadow:0 1px 3px #000}
+.camtip{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));display:flex;gap:10px;align-items:center;background:rgba(255,225,122,.96);color:#0B1624;border-radius:12px;padding:8px 10px;z-index:2;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.camtip p{margin:0;font-size:.78rem;line-height:1.3;flex:1}
+.camtip b{display:block;font-size:.86rem}
+.camtip button{flex:none;border:0;border-radius:10px;background:#0B1624;color:#fff;font-weight:700;font-size:.78rem;padding:8px 10px;cursor:pointer}
 .cambtns{position:absolute;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));grid-template-columns:1fr 1fr 1fr;align-items:center}
 .camshot{width:70px;height:70px;border-radius:50%!important;background:#fff!important;border:5px solid rgba(255,255,255,.4)!important;justify-self:center;padding:0!important}
 .thumb .chk-badge{position:absolute;left:4px;bottom:4px;font-size:.68rem;font-weight:700;border-radius:6px;padding:2px 6px;border:0;cursor:pointer}
@@ -1199,17 +1182,8 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 </div>
 <div class="fullov cam" id="camOv" hidden>
   <video id="camVid" playsinline muted></video>
-  <div class="camhint">
-    <svg class="cam-ico" viewBox="0 0 44 64" aria-hidden="true"><rect x="2" y="2" width="40" height="60" rx="8" fill="none" stroke="#fff" stroke-width="2.5"/><rect x="9" y="9" width="26" height="46" rx="2" fill="#fff" opacity=".92"/><rect x="9" y="9" width="7" height="46" rx="2" fill="#FFE17A"/><path d="M21 13v6l-2 2 4 2-2 2v8l-2 2 4 2-2 2v8l-2 2 4 2-2 2v2M29 13v6l-2 2 4 2-2 2v8l-2 2 4 2-2 2v8l-2 2 4 2-2 2v2" fill="none" stroke="#2A6FD6" stroke-width="1.4" stroke-linejoin="round"/></svg>
-    <div class="cam-txt">
-      <b class="cam-p">Turn the printout sideways</b><span class="cam-p">Phone upright. Paper's <u>TOP</u> edge (lead names, 25 mm/s) on the <u>LEFT</u>, at the yellow line. Fill the frame: include the header and STJ table.</span>
-      <b class="cam-l">Keep the printout upright</b><span class="cam-l">Paper's <u>TOP</u> edge (lead names) at the yellow line. Fill the frame.</span>
-    </div>
-  </div>
-  <div class="camframe" id="camFrame">
-    <div class="cf-lab cf-top"><span>▲ TOP of printout · lead names</span></div>
-    <div class="cf-lab cf-bot"><span>BOTTOM of printout ▼</span></div>
-  </div>
+  <div class="camtip"><p><b>Tip: uploading is better</b>Use your phone's camera app, then <u>Choose file</u>: sharper photo, more reliable reading.</p><button type="button" id="camUpload">Upload instead</button></div>
+  <div class="camframe"><span>Fit the whole printout inside the frame. Include the header (axes) and the STJ table. Hold the phone flat above the paper.</span></div>
   <div class="ov-btns cambtns">
     <button type="button" class="btn ghost" id="camCancel">Cancel</button>
     <button type="button" class="btn ghost" id="camNative">Phone camera</button>
@@ -1228,7 +1202,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="3.7";
+  const APP_VERSION="3.9";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -1295,6 +1269,31 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     if(b.closest("nav.bottom")){hist.length=0;if(b.dataset.go!=="analyze")hist.push("analyze");show(b.dataset.go);}else go(b.dataset.go);
   }));
   $("backBtn").onclick=back;
+  // iPhone (Safari / home-screen app) sometimes leaves the bottom bar floating mid-screen after the
+  // keyboard closes or the toolbar shrinks. Keep it pinned to the visible bottom edge (3.8).
+  (()=>{const nav=document.querySelector("nav.bottom"),vv=window.visualViewport;if(!nav||!vv)return;let raf=0;
+    const fix=()=>{raf=0;const off=Math.round(window.innerHeight-(vv.height+vv.offsetTop));
+      nav.style.transform=(off<-2&&off>-1200)||(off>2&&off<=120)?"translateY("+(-off)+"px)":"";};
+    const q=()=>{if(!raf)raf=requestAnimationFrame(fix);};
+    vv.addEventListener("resize",q);vv.addEventListener("scroll",q);window.addEventListener("scroll",q,{passive:true});window.addEventListener("resize",q);
+    window.addEventListener("orientationchange",()=>setTimeout(q,300));
+    // After the keyboard or the iPhone photo picker closes, Safari can leave fixed bars out of place until the
+    // page moves: nudge it by 1 px and back so it lays the bar out again.
+    const nudge=()=>{[150,600].forEach(ms=>setTimeout(()=>{const y=window.scrollY;window.scrollTo(window.scrollX,y+1);window.scrollTo(window.scrollX,y);q();},ms));};
+    document.addEventListener("focusout",nudge);window.addEventListener("focus",nudge);window.addEventListener("pageshow",nudge);
+    ["fileInput","camInput"].forEach(id=>{const e=$(id);e&&e.addEventListener("change",nudge);});
+    document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")nudge();});q();})();
+  // Phone Back button / swipe (3.8): go back inside the app instead of closing it in the middle of a patient.
+  try{history.replaceState({eqg:0},"");history.pushState({eqg:1},"");}catch(e){}
+  window.addEventListener("popstate",()=>{
+    const ov=[...document.querySelectorAll(".fullov")].find(x=>!x.hidden);
+    const keep=()=>{try{history.pushState({eqg:1},"");}catch(e){}};
+    if(openSheet){sheetClose();keep();return;}
+    if(ov&&ov.id==="camOv"){$("camCancel").click();keep();return;}
+    if(ov){keep();return;}
+    if(current!=="analyze"){back();keep();return;}
+    if(window.__inPatient&&window.__inPatient()){keep();toast("Use Home or the app switcher to leave. Your patient and reading are kept.");return;}
+    history.back();});
 
 
 
@@ -1410,6 +1409,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   // and the upload starts as soon as the photo is added, while the rest is filled in.
   let upCache=null,baseDisabled=true,prepping=false,upFiles=null,upErr="";
   const orienting=new Set(); // photos still being checked for which way is up (3.6)
+  let photoSave=null,sessReady=false; // patient kept when the app closes (3.8)
   function uploadPct(){return upCache&&!upCache.done?upCache.pct:null;}
   // Photo upload status: shown under the photos and on the Analyze button. Analyze ECG unlocks at 100%,
   // so the reading starts straight away when it is tapped.
@@ -1456,7 +1456,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   }
   const raceAbort=(p,signal)=>!signal?p:new Promise((res,rej)=>{if(signal.aborted)return rej({code:"cancelled"});const f=()=>rej({code:"cancelled"});signal.addEventListener("abort",f,{once:true});p.then(v=>{signal.removeEventListener("abort",f);res(v);},e=>{signal.removeEventListener("abort",f);rej(e);});});
   const readClock={t0:0,up:0};
-  function netlifySample(){return{async json(prompt,{images=[],signal,onText,onTiming,effort}={}){
+  function netlifySample(){return{async json(prompt,{images=[],signal,onText,onTiming,effort,onJob}={}){
     const tStart=Date.now();let away=0,hidAt=document.visibilityState==="hidden"?tStart:0;
     const onVis=()=>{if(document.visibilityState==="hidden"){if(!hidAt)hidAt=Date.now();}else if(hidAt){away+=Date.now()-hidAt;hidAt=0;}};
     document.addEventListener("visibilitychange",onVis);
@@ -1491,7 +1491,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       throw{code:"server",message:"Server error "+r.status+(j.error?" ("+j.error+")":"")+". Try again."};}
     // Older server (no background function): read the live stream as before.
     if(!/json/.test(r.headers.get("content-type")||""))return readStream(r,signal,onText);
-    const {id}=await r.json();if(!id)throw{code:"server"};
+    const {id}=await r.json();if(!id)throw{code:"server"};onJob&&onJob(id);
     const upMs=Date.now()-tStart;readClock.up=upMs;readClock.t0=Date.now();
     const q="/api/read?id="+encodeURIComponent(id);
     const stop=()=>{fetch(q+"&cancel=1",{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});};
@@ -1775,6 +1775,8 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   const upright=new WeakSet(),camPrior=new WeakMap(),autoTurned=new WeakSet();
   window.__rotOpen=f=>rotOpen(f,false);
   window.__autoTurned=f=>autoTurned.has(f);
+  window.__restored=f=>{cleared.add(f);upright.add(f);};
+  window.__inPatient=()=>busy||files.length>0||!!lastReport;
   // ---------- Automatic upright (3.6) ----------
   // 1. The ink-direction score says whether the traces run across (upright or upside down) or up/down (sideways).
   // 2. The server shows a small AI the photo turned each possible way and asks which one has the printed text
@@ -1819,7 +1821,9 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     upright.add(f);end();
   }
   function checkOrientation(list){list.forEach(f=>{orientOne(f).catch(()=>{if(orienting.delete(f))refresh();});});}
-  window.__rdQueue=list=>{checkPhotos(list);checkOrientation(list);};
+  // 3.9: photos are no longer turned automatically (the crew asked for this after false readings).
+  // The reading AI works out which way is up by itself; ↻ on a photo still turns it by hand.
+  window.__rdQueue=list=>{checkPhotos(list);};
   window.__cleared=f=>cleared.has(f);
 
   // ---------- Guided camera ----------
@@ -1834,6 +1838,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   };
   $("camCancel").onclick=camClose;
   $("camNative").onclick=()=>{camClose();$("camInput").click();};
+  $("camUpload").onclick=()=>{camClose();$("fileInput").click();};
   // The camera guide asks for the paper's TOP edge on the LEFT (phone upright), so a guided photo
   // needs a quarter turn clockwise. The automatic check decides first; the guide is only used to pre-turn
   // the check screen when the automatic check can't tell.
@@ -1936,7 +1941,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   function monUpdate(phase,secs,sub){if(!mon)return;mon.querySelector(".rm-phase").textContent=phase;const e=mon.querySelector(".rm-secs");e.textContent=secs+" s";if(sub)e.dataset.sub=sub;}
   function monStop(){const h=$("readMon");h.hidden=true;h.textContent="";mon=null;statusEl.hidden=false;}
   function setStatus(t,o={}){statusEl.className="status"+(o.err?" err":"");statusEl.textContent="";if(o.pulse){const s=document.createElement("span");s.className="pulse";statusEl.appendChild(s);}statusEl.append(t);}
-  function refresh(){setTimeout(prewarm,0);const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);const unchecked=files.some(f=>!window.__cleared(f));baseDisabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked)||unchecked;upUI();clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
+  function refresh(){setTimeout(prewarm,0);sessPatient();const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);const unchecked=files.some(f=>!window.__cleared(f));baseDisabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked)||unchecked;upUI();clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
   function addFiles(list){
     if(!patientOK()){setStatus("Enter age and sex first.",{err:true});return;}
     const ok=[...list].filter(f=>/^image\//.test(f.type));
@@ -1944,7 +1949,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const before=files.length;const added=[];ok.forEach(f=>{if(files.length<maxCount){files.push(f);added.push(f);}});if(added.length)window.__rdQueue(added);if(files.length!==before)$("samePtChk").checked=false;if(ok.length>files.length-before)setStatus("Maximum "+maxCount+" photos per patient. Extra photos were not added.",{err:true});
     renderThumbs();refresh();if(sample&&imagesOK&&files.length>1&&!$("samePtChk").checked)setStatus("Confirm all photos are from this one patient.");else if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");
   }
-  function renderThumbs(){thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};const rb=document.createElement("button");rb.type="button";rb.className="rot";rb.textContent="↻";rb.setAttribute("aria-label","Turn image "+(i+1));rb.onclick=()=>window.__rotOpen(f);d.append(img,b,rb);if(window.__autoTurned(f)){const tb=document.createElement("span");tb.className="turned";tb.textContent="✓ Turned";tb.title="Turned upright automatically";d.appendChild(tb);}thumbs.appendChild(d);});}
+  function renderThumbs(){sessPhotos();thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};const rb=document.createElement("button");rb.type="button";rb.className="rot";rb.textContent="↻";rb.setAttribute("aria-label","Turn image "+(i+1));rb.onclick=()=>window.__rotOpen(f);d.append(img,b,rb);if(window.__autoTurned(f)){const tb=document.createElement("span");tb.className="turned";tb.textContent="✓ Turned";tb.title="Turned upright automatically";d.appendChild(tb);}thumbs.appendChild(d);});}
   $("camInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   $("fileInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
@@ -1964,7 +1969,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   function unavailable(m){$("unavail").textContent=m;$("unavail").hidden=false;refresh();}
   (async()=>{
     const inClaude=!!(window.claude&&typeof window.claude.use==="function");
-    if(!inClaude){isNetlify=true;sample=netlifySample();imagesOK=true;maxCount=5;refresh();return;}
+    if(!inClaude){isNetlify=true;sample=netlifySample();imagesOK=true;maxCount=5;refresh();setTimeout(()=>{restoreSession().catch(()=>{}).finally(()=>{sessReady=true;sessPatient();sessPhotos();});},0);return;}
     try{sample=await window.claude.use("sample");}catch(e){sample=null;}
     if(!sample){unavailable("The analysis engine isn't available here. Open the app from Claude while signed in.");return;}
     try{const lim=await sample.limits();imagesOK=!!lim?.images;if(imagesOK){maxCount=Math.max(1,Math.min(lim.images.maxCount||5,5));$("fileInput").accept=lim.images.mediaTypes.join(",");}}catch(e){imagesOK=false;}
@@ -1990,7 +1995,7 @@ MEASURE BLIND: you are deliberately NOT told the patient's age, sex, symptoms or
 
 HOW TO MEASURE (follow exactly, lead by lead):
 0. Identify every lead by its GRID POSITION before measuring. Most printouts are 4 columns x 3 rows: column 1 = I, II, III (top to bottom); column 2 = aVR, aVL, aVF; column 3 = V1, V2, V3; column 4 = V4, V5, V6; a long rhythm strip may run underneath. LIFEPAK and several other monitors print a vertical lead-change marker bar immediately before each label, so "| I" is lead I (NOT II), "| II" is lead II and "| III" is lead III. Never count vertical strokes to name a lead; use the grid position. Photos may show only some pages (e.g. corpuls pages 5-7) or be cut off at the edges.
-0b. ORIENTATION: if a photo is sideways or upside down, first work out which way is UP: the printed text reads normally when upright, and the 1 mV calibration pulse always rises UPWARD. Mentally turn the photo upright before measuring. Reading a trace upside down turns ST depression into elevation, so be certain.
+0b. ORIENTATION: if a photo is sideways or upside down, first work out which way is UP: the printed text reads normally when upright, and the 1 mV calibration pulse always rises UPWARD. Mentally turn the photo upright before measuring. Reading a trace upside down turns ST depression into elevation, so be certain. Photos are often uploaded sideways or upside down on purpose; this is normal. Check BOTH clues before measuring: the lead labels and "25 mm/s" must read normally, AND the calibration pulse must rise upward. Report the turn you used in "rot".
 0c. STRIP PRINTOUTS (e.g. corpuls pages): each page may show only 3 leads in rows, each labelled at the left. Take each lead's name from its own printed label, not from a 4x3 grid. A photo often shows only SOME pages (for example only the limb leads I, II, III, aVR, aVL, aVF), so the chest leads may simply not be in the photo.
 0d. LEAD INVENTORY FIRST (before measuring anything): list in "vis" every lead whose printed LABEL you can read in the photo AND whose tracing (at least 2 full beats) is in the photo next to that label. A label at the edge of the photo with no tracing, a page that is cut off, or a lead you only expect from the usual layout is NOT visible. Every lead not in "vis" must be null (compact format) or "present": false (full format). NEVER fill in a lead from the layout, from other leads or from the printed interpretation: inventing a lead can trigger a false STEMI activation.
 0d. SMALL OR NOISY COMPLEXES: limb leads are often low voltage (QRS only 2-5 mm). Measure the J-point against the flat TP baseline in at least 3 beats; a wavy or noisy baseline, a P wave or a T wave is NOT ST elevation. If you cannot clearly see the same ELEVATION in most beats, report 0 for that lead. This caution is about false elevation only: ST DEPRESSION that is visible in most beats must always be reported (rule 3b).
@@ -2540,13 +2545,11 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       if(dbl&&isNetlify&&!store.get("eqg-code")){const c0=await askCode();if(!c0)throw{code:"cancelled"};}
       if(dbl){phase="Running two independent reads";tick();}
       const tim=[];
-      const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"fast":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
-      let data;
-      if(dbl){const [r1,r2]=await Promise.all([one(),one()]);{const a=applyVisible(expandCompact(r1)),b=applyVisible(expandCompact(r2));data=mergeReads(a,b);
-        if(Array.isArray(a.visible_leads)&&Array.isArray(b.visible_leads))data.visible_leads=[...new Set([...(a._vis||[]),...(b._vis||[])])];else data.visible_leads=null;
-        data._invented=[...new Set([...(a._invented||[]),...(b._invented||[])])];}}else data=expandCompact(await one());
-      data._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);
-      finishRead(data,mode,t0);const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
+      sessPend({mode,dbl,ids:[],startedAt:Date.now()});
+      const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"fast":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onJob:id=>sessJob(id),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
+      const raws=dbl?await Promise.all([one(),one()]):[await one()];
+      const data=await settleReads(raws,mode,t0);
+      const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
       logRead(data);
     }catch(e){
       clearInterval(timer);
@@ -2554,10 +2557,68 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const m={timeout:"The read took too long or the connection was cut off. Check your signal and tap Analyze ECG again.",bad_code:"Access code incorrect. Tap Analyze ECG to enter it again.",no_key:"The server has no API key. Add ANTHROPIC_API_KEY in Netlify site settings.",no_function:"The analysis server isn't deployed yet (netlify/edge-functions/read.js). Check the files on GitHub.",network:"No connection to the analysis server. Check signal and try again.",server:"The analysis server returned an error. Try again.",cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
       setStatus(((c==="upstream"||c==="server")&&e.message)?e.message:(m[c]||"The analysis was interrupted. Check your connection and analyze again."),{err:c!=="cancelled"});
       if(c==="images_unavailable")imagesOK=false;
-    }finally{monStop();busy=false;ctl=null;stopBtn.hidden=true;refresh();}
+    }finally{sessPend(null);monStop();busy=false;ctl=null;stopBtn.hidden=true;refresh();}
+  }
+  // Turn the AI's raw answer(s) into the report (also used when picking up a read after the app was closed).
+  async function settleReads(raws,mode,t0){let data;
+    if(raws.length>1){const a=applyVisible(expandCompact(raws[0])),b=applyVisible(expandCompact(raws[1]));data=mergeReads(a,b);
+      if(Array.isArray(a.visible_leads)&&Array.isArray(b.visible_leads))data.visible_leads=[...new Set([...(a._vis||[]),...(b._vis||[])])];else data.visible_leads=null;
+      data._invented=[...new Set([...(a._invented||[]),...(b._invented||[])])];}else data=expandCompact(raws[0]);
+    data._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);
+    return finishRead(data,mode,t0);}
+
+  // ---------- Keep the patient when the phone closes the app (3.8) ----------
+  // Phones (especially iPhone) may close the app in the background. The age/sex, photos, a read in
+  // progress and the last result are kept on this phone, so coming back picks up where it left off.
+  const idb=(()=>{let p=null;const open=()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("eqg",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}catch(e){rej(e);}}));
+    const tx=(mode,fn)=>open().then(db=>new Promise((res,rej)=>{const t=db.transaction("kv",mode);const q=fn(t.objectStore("kv"));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error);}));
+    return {get:k=>tx("readonly",st=>st.get(k)).catch(()=>null),set:(k,v)=>tx("readwrite",st=>st.put(v,k)).catch(()=>{}),del:k=>tx("readwrite",st=>st.delete(k)).catch(()=>{})};})();
+  const SESS="eqg-sess",SESS_MAX=3*3600000;
+  function sessGet(){try{const o=JSON.parse(localStorage.getItem(SESS)||"null");return o&&typeof o==="object"?o:{};}catch(e){return {};}}
+  function sessPut(o){try{localStorage.setItem(SESS,JSON.stringify(o));}catch(e){try{delete o.report;localStorage.setItem(SESS,JSON.stringify(o));}catch(e2){}}}
+  function sessPatient(){if(!sessReady)return;const o=sessGet();o.age=$("age").value;o.sex=$("sex").value;o.pacer=cx.pacer||"";o.at=Date.now();sessPut(o);}
+  function sessPend(pd){const o=sessGet();o.pend=pd;if(pd)o.report=null;sessPut(o);}
+  function sessJob(id){const o=sessGet();if(o.pend){o.pend.ids=(o.pend.ids||[]).concat([id]);sessPut(o);}}
+  function sessReport(d){const o=sessGet();try{o.report={data:JSON.parse(JSON.stringify(d)),at:Date.now()};}catch(e){o.report=null;}sessPut(o);}
+  function sessPhotos(){if(!sessReady)return;clearTimeout(photoSave);photoSave=setTimeout(()=>{idb.set("photos",files.slice(0,maxCount));sessPatient();},300);}
+  function sessClear(){try{localStorage.removeItem(SESS);}catch(e){}idb.del("photos");}
+  // Collect a read that was started before the app was closed.
+  async function pollJob(id,code,signal){const H={"x-access-code":code},q="/api/read?id="+encodeURIComponent(id);let fails=0;const t0=Date.now();
+    for(;;){await sleep(1000,signal);if(signal&&signal.aborted)throw{code:"cancelled"};if(document.visibilityState!=="visible")continue;
+      let st;try{const g=await fetch(q,{headers:H,cache:"no-store",signal});if(g.status===401)throw{code:"bad_code"};st=await g.json();fails=0;}
+      catch(e){if(e&&e.code)throw e;if(signal&&signal.aborted)throw{code:"cancelled"};if(++fails>60)throw{code:"network"};continue;}
+      if(st.status==="done"){fetch(q,{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});return parseReport(st.text||"");}
+      if(st.status==="lost"||st.status==="error")throw{code:"resume_failed"};
+      if(Date.now()-t0>420000)throw{code:"timeout"};}}
+  async function restoreSession(){
+    const o=sessGet();if(!o.at||Date.now()-o.at>SESS_MAX){sessClear();return;}
+    if(o.age&&!$("age").value){$("age").value=o.age;}if(o.sex&&!$("sex").value){$("sex").value=o.sex;}syncPick();
+    if(o.pacer&&!cx.pacer){cx.pacer=o.pacer;try{cxApply();}catch(e){}}
+    const ph=await idb.get("photos");
+    if(Array.isArray(ph)&&ph.length&&!files.length){ph.slice(0,maxCount).forEach(f=>{if(f&&f.size){const nf=f instanceof File?f:new File([f],"ecg-photo.jpg",{type:f.type||"image/jpeg"});files.push(nf);window.__restored(nf);}});
+      if(files.length>1)$("samePtChk").checked=true;renderThumbs();}
+    refresh();
+    const pd=o.pend,code=store.get("eqg-code");
+    if(pd&&pd.ids&&pd.ids.length&&code&&Date.now()-pd.startedAt<15*60000&&isNetlify){
+      busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();const t0=pd.startedAt;
+      const tick=()=>{const secs=Math.round((Date.now()-t0)/1000);setStatus("Picking up your reading… "+secs+" s",{pulse:true});monUpdate("Picking up your reading…",secs,"the app was closed; the server kept reading");};
+      monStart();tick();const timer=setInterval(tick,1000);
+      try{const raws=await Promise.all(pd.ids.slice(0,pd.dbl?2:1).map(id=>pollJob(id,code,ctl.signal)));
+        const data=await settleReads(raws,pd.mode||"fast",t0);lastReport=data;sessReport(data);
+        if(data._mode==="fast"&&needsThorough(data)&&files.length)bgThorough(data);render(data);
+        setStatus("Reading picked up after the app was closed ("+timeTxt(data)+"). Confirm against your own reading before acting.");logRead(data);}
+      catch(e){setStatus(e&&e.code==="cancelled"?"Stopped.":"The app was closed during the reading and it couldn't be picked up. Your photos are still here: tap Analyze ECG.",{err:!(e&&e.code==="cancelled")});}
+      finally{clearInterval(timer);sessPend(null);monStop();busy=false;ctl=null;stopBtn.hidden=true;refresh();}
+      return;}
+    if(pd){sessPend(null);if(files.length)setStatus("The app was closed before the reading started. Your photos are still here: tap Analyze ECG.");return;}
+    const rp=o.report;
+    if(rp&&rp.data&&Date.now()-rp.at<SESS_MAX){const d=rp.data;lastReport=d;
+      if(d._mode==="fast"&&yesFromPhoto(d)&&!d._confirmedYes){if(files.length&&isNetlify)bgThorough(d);else d._verifyFailed=true;}
+      render(d);setStatus("Your last result is back (the app was closed). Tap New patient to start a new one.");return;}
+    if(files.length&&patientOK())setStatus("Your patient is back (the app was closed). Tap Analyze ECG.");
   }
   stopBtn.onclick=()=>ctl?.abort();
-  clearBtn.onclick=()=>{bgCancel();zoomCache=null;dropUpload();
+  clearBtn.onclick=()=>{bgCancel();zoomCache=null;dropUpload();sessClear();
     files=[];$("samePtChk").checked=false;renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
     $("age").value="";$("sex").value="";$("notes").value="";syncPick();window.__cxReset&&window.__cxReset();
     setStatus("Enter age and sex, then add an ECG image.");refresh();window.scrollTo({top:0});
@@ -2675,6 +2736,18 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"3.9",d:"9 Oct 2026",t:"Back to the simple camera, no automatic turning",i:[
+      "Photos are no longer turned automatically (the crew found the earlier way more reliable). The 'Checking which way is up…' step is gone, so photos upload straight away.",
+      "Sideways or upside-down photos can be uploaded as they are: the AI works out which way is up itself (lead names and the calibration pulse) before measuring.",
+      "If a photo was sideways or upside down, the result says so; ↻ on the photo still turns it by hand if the result doesn't match the paper.",
+      "Camera: back to the original frame, without the sideways guide.",
+      "Camera: new tip at the top: uploading a photo from the phone's own camera app gives a sharper, more reliable reading, with an 'Upload instead' button."]},
+    {v:"3.8",d:"9 Oct 2026",t:"Keeps your patient when the app closes",i:[
+      "If the phone closes the app in the background (common on iPhone), the age, sex, device and photos are kept and come back when you reopen it.",
+      "A reading in progress keeps going on the server; reopening the app picks it up ('Picking up your reading…') instead of starting again.",
+      "The last result comes back too (for up to 3 hours) until you tap New patient.",
+      "Phone Back button / swipe: closes a sheet or page inside the app instead of leaving it, and doesn't close the app in the middle of a patient.",
+      "iPhone: the bottom bar (Analyze … Learning) no longer floats in the middle of the screen; it stays pinned to the bottom."]},
     {v:"3.7",d:"9 Oct 2026",t:"No readings for leads that aren't in the photo",i:[
       "Fix: a photo of corpuls pages 4–5 (limb leads only) was read as 'ST elevation V2–V6'. The AI had filled in chest leads that were not in the photo.",
       "The AI must now list which leads it can actually see (label and tracing) before measuring; leads not on that list are never used.",
@@ -2876,7 +2949,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       if(/^(M|MALE)$/.test(ps)&&es==="Female")mm.push("sex M (you entered Female)");if(/^(F|FEMALE)$/.test(ps)&&es==="Male")mm.push("sex F (you entered Male)");
       if(mm.length)st.warnings=["Printout shows "+mm.join(" and ")+". The V2–V3 threshold depends on age and sex. Check the patient details and analyze again."].concat(st.warnings||[]);}
     if(d._lowv&&!(st.warnings||[]).includes(d._lowv))st.warnings=[d._lowv].concat(st.warnings||[]);
-    {const rot=Number(d._rot||d.rot)||0;if([90,180,270].includes(rot)){const w="⚠ The AI saw this photo "+(rot===180?"upside down":"sideways")+". Tap ↻ on the photo, turn it so the lead names read normally, and analyze again: a turned photo can be misread.";if(!(st.warnings||[]).includes(w))st.warnings=[w].concat(st.warnings||[]);}}
+    {const rot=Number(d._rot||d.rot)||0;if([90,180,270].includes(rot)){const w="⚠ This photo was "+(rot===180?"upside down":"sideways")+"; the AI read it turned the right way. Check the leads it flagged on the paper. If the result doesn't match the paper, tap ↻ on the photo and analyze again.";if(!(st.warnings||[]).includes(w))st.warnings=[w].concat(st.warnings||[]);}}
     if(d._device&&!(st.warnings||[]).includes(d._device))st.warnings=[d._device].concat(st.warnings||[]);
     if(d._axisNote)st.warnings=(st.warnings||[]).concat([d._axisNote]);
     if(d._stjCheck&&d._stjCheck.length){const w="Check these printed STJ values on the paper: "+d._stjCheck.join("; ")+". Small print in a photo can be misread. For a sharper read, add a close-up photo of the STJ table.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}

@@ -486,8 +486,29 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .qwarn{background:#FFE17A;color:#3A2A00;border-radius:10px;padding:8px 10px;font-size:.85rem;font-weight:700;margin-top:8px}
 .cam{padding:0;background:#000}
 #camVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.camframe{position:absolute;left:4%;right:4%;top:18%;bottom:26%;border:3px solid #FFE17A;border-radius:14px;box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
-.camframe span{position:absolute;left:0;right:0;top:-54px;text-align:center;font-size:.8rem;font-weight:700;padding:0 8px;text-shadow:0 1px 3px #000}
+/* Camera guide (3.6): a tall frame for a sideways printout. Yellow = the paper's TOP edge. */
+.camhint{position:absolute;left:10px;right:10px;top:calc(8px + env(safe-area-inset-top,0px));display:flex;gap:10px;align-items:center;background:rgba(8,16,28,.78);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:7px 10px;z-index:2}
+.cam-ico{width:30px;height:44px;flex:none}
+.cam-txt b{display:block;font-size:.9rem;font-weight:800;letter-spacing:.01em}
+.cam-txt span{display:block;font-size:.74rem;line-height:1.3;opacity:.9;margin-top:1px}
+.cam-txt u{text-decoration:none;color:#FFE17A;font-weight:800}
+.cam-txt .cam-l{display:none}
+.camframe{position:absolute;left:max(22px,6%);right:max(22px,6%);top:calc(106px + env(safe-area-inset-top,0px));bottom:calc(108px + env(safe-area-inset-bottom,0px));border:2px solid rgba(255,255,255,.8);border-left:5px solid #FFE17A;border-radius:12px;box-shadow:0 0 0 2000px rgba(0,0,0,.38)}
+.cf-lab{position:absolute;top:50%;white-space:nowrap;pointer-events:none}
+.cf-lab span{display:block;font-size:.72rem;font-weight:800;letter-spacing:.03em;padding:4px 11px;border-radius:999px;box-shadow:0 1px 6px rgba(0,0,0,.45)}
+.cf-top{left:-3px;transform:translate(-50%,-50%) rotate(-90deg)}
+.cf-top span{background:#FFE17A;color:#0B1624}
+.cf-bot{right:-1px;transform:translate(50%,-50%) rotate(-90deg)}
+.cf-bot span{background:rgba(255,255,255,.92);color:#0B1624}
+@media (orientation:landscape){
+  .camhint{left:calc(14px + env(safe-area-inset-left,0px));right:calc(146px + env(safe-area-inset-right,0px));justify-content:center;padding:5px 10px}
+  .cam-ico{display:none}.cam-txt .cam-p{display:none}.cam-txt .cam-l{display:block}.cam-txt span{display:inline;margin-left:6px}.cam-txt b{display:inline}
+  .camframe{left:calc(14px + env(safe-area-inset-left,0px));right:calc(146px + env(safe-area-inset-right,0px));top:calc(66px + env(safe-area-inset-top,0px));bottom:calc(22px + env(safe-area-inset-bottom,0px));border-left:2px solid rgba(255,255,255,.8);border-top:5px solid #FFE17A}
+  .cam .cambtns{left:auto;right:calc(12px + env(safe-area-inset-right,0px));top:50%;bottom:auto;transform:translateY(-50%);width:120px;grid-template-columns:1fr;justify-items:stretch;gap:12px}
+  .cam #camNative{order:1}.cam #camShot{order:2;justify-self:center}.cam #camCancel{order:3}
+  .cf-top{left:50%;top:-3px;transform:translate(-50%,-50%)}
+  .cf-bot{left:50%;right:auto;top:auto;bottom:-1px;transform:translate(-50%,50%)}
+}
 .cambtns{position:absolute;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));grid-template-columns:1fr 1fr 1fr;align-items:center}
 .camshot{width:70px;height:70px;border-radius:50%!important;background:#fff!important;border:5px solid rgba(255,255,255,.4)!important;justify-self:center;padding:0!important}
 .thumb .chk-badge{position:absolute;left:4px;bottom:4px;font-size:.68rem;font-weight:700;border-radius:6px;padding:2px 6px;border:0;cursor:pointer}
@@ -684,6 +705,24 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 .optgrp .optrow{gap:5px!important}
 .optgrp .optrow .tog{padding:0 8px!important}
 .optgrp .optcap{margin:3px 2px 0!important;font-size:.6rem!important;line-height:1.2!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Photo upload progress (under the photos and on the Analyze button) */
+.upbar{margin:10px auto 0;max-width:340px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 10px}
+.upbar .up-top{display:flex;flex-direction:column;gap:1px}
+.upbar .up-top b{font-size:.82rem;font-weight:700;color:var(--ink)}
+.upbar .up-top span{font-size:.7rem;color:var(--soft);line-height:1.3}
+.upbar .up-track{height:6px;border-radius:999px;background:var(--field);overflow:hidden;margin-top:6px}
+.upbar .up-track i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#4A6178,#2D4963);transition:width .3s}
+.upbar.ok{border-color:rgba(31,122,85,.35);background:var(--ok-bg)}
+.upbar.ok .up-top b{color:var(--ok)}
+.upbar.ok .up-track i{background:var(--ok)}
+.upbar.err{border-color:rgba(158,94,0,.35);background:var(--warn-bg)}
+.upbar.err .up-top b{color:var(--warn)}
+.upbar.orient .up-track i{background:linear-gradient(90deg,transparent 0,#2A6FD6 35%,#7FB0F0 50%,#2A6FD6 65%,transparent 100%);background-size:45% 100%;background-repeat:no-repeat;animation:orientSweep 1.1s linear infinite;transition:none}
+@keyframes orientSweep{from{background-position:-60% 0}to{background-position:160% 0}}
+.thumb .turned{position:absolute;right:4px;bottom:4px;font-size:.62rem;font-weight:800;background:rgba(31,122,85,.92);color:#fff;border-radius:999px;padding:2px 7px;pointer-events:none}
+#analyzeBtn{flex-direction:column;gap:0;line-height:1.15}
+#analyzeBtn .ab-up{font-size:.66rem;font-weight:600;letter-spacing:.01em;opacity:.95}
+#analyzeBtn.uploading{opacity:1!important;cursor:progress;background:linear-gradient(90deg,#2D4963 var(--p),#8E9BAA var(--p))!important;border-color:#8E9BAA!important;color:#fff}
 </style>
 </head>
 <body>
@@ -746,6 +785,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
         <label class="btn ghost">Choose file<input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
       </div>
       <div class="thumbs" id="thumbs"></div>
+      <div class="upbar" id="upBar" hidden><div class="up-top"><b id="upTxt">Uploading photo 0%</b><span id="upNote">Upload speed depends on your internet connection.</span></div><div class="up-track"><i id="upFill"></i></div></div>
       <p class="imghint" id="imgHint">Up to 5 photos, all from this one patient: pages of the same 12-lead, or serial 12-leads.</p>
       <label class="samept" id="samePt" hidden><input type="checkbox" id="samePtChk"><span>I confirm all photos are from <b>this one patient</b></span></label>
     </div>
@@ -766,7 +806,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       </div>
     </div>
     <div class="actions">
-      <button class="btn" id="analyzeBtn" disabled>Analyze ECG</button>
+      <button class="btn" id="analyzeBtn" disabled><span class="ab-up" id="abUp" hidden></span><span class="ab-main">Analyze ECG</span></button>
       <button class="btn ghost" id="stopBtn" hidden>Stop</button>
       <button class="btn ghost" id="clearBtn" hidden>New patient</button>
     </div>
@@ -1159,7 +1199,17 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 </div>
 <div class="fullov cam" id="camOv" hidden>
   <video id="camVid" playsinline muted></video>
-  <div class="camframe"><span>Fit the whole printout inside the frame. Include the header (axes) and the STJ table. Hold the phone flat above the paper.</span></div>
+  <div class="camhint">
+    <svg class="cam-ico" viewBox="0 0 44 64" aria-hidden="true"><rect x="2" y="2" width="40" height="60" rx="8" fill="none" stroke="#fff" stroke-width="2.5"/><rect x="9" y="9" width="26" height="46" rx="2" fill="#fff" opacity=".92"/><rect x="9" y="9" width="7" height="46" rx="2" fill="#FFE17A"/><path d="M21 13v6l-2 2 4 2-2 2v8l-2 2 4 2-2 2v8l-2 2 4 2-2 2v2M29 13v6l-2 2 4 2-2 2v8l-2 2 4 2-2 2v8l-2 2 4 2-2 2v2" fill="none" stroke="#2A6FD6" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    <div class="cam-txt">
+      <b class="cam-p">Turn the printout sideways</b><span class="cam-p">Phone upright. Paper's <u>TOP</u> edge (lead names, 25 mm/s) on the <u>LEFT</u>, at the yellow line. Fill the frame: include the header and STJ table.</span>
+      <b class="cam-l">Keep the printout upright</b><span class="cam-l">Paper's <u>TOP</u> edge (lead names) at the yellow line. Fill the frame.</span>
+    </div>
+  </div>
+  <div class="camframe" id="camFrame">
+    <div class="cf-lab cf-top"><span>▲ TOP of printout · lead names</span></div>
+    <div class="cf-lab cf-bot"><span>BOTTOM of printout ▼</span></div>
+  </div>
   <div class="ov-btns cambtns">
     <button type="button" class="btn ghost" id="camCancel">Cancel</button>
     <button type="button" class="btn ghost" id="camNative">Phone camera</button>
@@ -1178,7 +1228,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="3.2";
+  const APP_VERSION="3.6";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -1314,9 +1364,9 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   glowAttach($("stripCv"),{mode:"ecg",cursor:0.62,barBoost:0.8,bg:["rgba(5,9,14,0)","rgba(5,9,14,0.28)"],label:g=>g.mix>0.5?["STEMI","ST elevation"]:["Sinus rhythm","Normal ST"]});
 
   // ---------- Netlify backend (used outside Claude) ----------
-  function askCode(){
+  function askCode(btn){
     return new Promise(res=>{
-      const sh=$("codeSheet"),inp=$("codeInput");inp.value="";sheetOpen("codeSheet");setTimeout(()=>inp.focus(),50);
+      const sh=$("codeSheet"),inp=$("codeInput");inp.value="";$("codeSave").textContent=btn||"Save and analyze";sheetOpen("codeSheet");setTimeout(()=>inp.focus(),50);
       const done=v=>{$("codeSave").onclick=null;sh.querySelector("[data-close]").onclick=sheetClose;sheetClose();res(v);};
       $("codeSave").onclick=()=>{const v=inp.value.trim();if(v){store.set("eqg-code",v);done(v);}};
       inp.onkeydown=e=>{if(e.key==="Enter")$("codeSave").click();};
@@ -1326,8 +1376,9 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   function shrink(file,M,Q){
     return new Promise((res,rej)=>{
       const u=URL.createObjectURL(file),img=new Image();
-      img.onload=()=>{const sc=Math.min(1,M/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
-        c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res({media_type:"image/jpeg",data:c.toDataURL("image/jpeg",Q).split(",")[1]});};
+      // Small images (screenshots, web pictures) are enlarged up to 2.5x so small ST shifts span more pixels.
+      img.onload=()=>{const sc=Math.min(2.5,M/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
+        const cx=c.getContext("2d");cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality="high";cx.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res({media_type:"image/jpeg",data:c.toDataURL("image/jpeg",Q).split(",")[1]});};
       img.onerror=()=>{URL.revokeObjectURL(u);rej({code:"image_rejected"});};img.src=u;
     });
   }
@@ -1357,21 +1408,44 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     try{return JSON.parse(text.slice(a,b+1));}catch(e){throw{code:"invalid_json"};}}
   // Photos are uploaded ONCE per patient (fast read, double-check and thorough read all reuse them),
   // and the upload starts as soon as the photo is added, while the rest is filled in.
-  let upCache=null;
+  let upCache=null,baseDisabled=true,prepping=false,upFiles=null,upErr="";
+  const orienting=new Set(); // photos still being checked for which way is up (3.6)
   function uploadPct(){return upCache&&!upCache.done?upCache.pct:null;}
-  function dropUpload(){const c=upCache;upCache=null;if(!c)return;if(!c.done)try{c.xhr.abort();}catch(e){}
+  // Photo upload status: shown under the photos and on the Analyze button. Analyze ECG unlocks at 100%,
+  // so the reading starts straight away when it is tapped.
+  function sameFiles(a,b){return !!a&&!!b&&a.length===b.length&&a.every((f,i)=>f===b[i]);}
+  function upUI(){
+    const cur=files.slice(0,maxCount),hasCode=!!store.get("eqg-code"),track=isNetlify&&hasCode&&cur.length>0&&sameFiles(upFiles,cur);
+    const orient=isNetlify&&!busy&&cur.some(f=>orienting.has(f));
+    const pending=orient||(track&&!busy&&(prepping||(upCache&&!upCache.done)));
+    const done=!orient&&track&&upCache&&upCache.done&&upCache.key&&!prepping;
+    const pct=orient||(prepping&&!(upCache&&!upCache.done))?0:(upCache&&upCache.pct)||0;
+    const bar=$("upBar"),ab=$("abUp");
+    bar.hidden=!(orient||(track&&!busy&&(pending||done||upErr)));bar.className="upbar"+(orient?" orient":done?" ok":upErr&&!pending?" err":"");
+    if(orient){$("upTxt").textContent="Checking which way is up…";$("upNote").textContent="The photo is turned upright automatically. No need to turn it yourself.";$("upFill").style.width="100%";}
+    else if(pending){$("upTxt").textContent=prepping&&pct===0?"Preparing photo…":"Uploading photo "+pct+"%";$("upNote").textContent="Upload speed depends on your internet connection.";$("upFill").style.width=Math.max(3,pct)+"%";}
+    else if(done){$("upTxt").textContent="✓ Photo uploaded (100%)";$("upNote").textContent="Ready: the reading starts as soon as you tap Analyze ECG.";$("upFill").style.width="100%";}
+    else if(upErr){$("upTxt").textContent="Upload didn't finish";$("upNote").textContent="Check your signal. It will try again when you tap Analyze ECG.";$("upFill").style.width="0%";}
+    analyzeBtn.disabled=baseDisabled||!!pending;analyzeBtn.classList.toggle("uploading",!!pending);analyzeBtn.style.setProperty("--p",(pending?pct:0)+"%");
+    ab.hidden=!pending;if(pending)ab.textContent=orient?"Checking photo direction…":prepping&&pct===0?"Preparing photo…":"Uploading photo "+pct+"%";
+    const UPMSG="Uploading photo… Analyze ECG unlocks when it reaches 100%.",ORMSG="Checking which way is up… Analyze ECG unlocks when the photo is ready.";
+    if(!busy&&statusEl&&!statusEl.classList.contains("err")){const t=statusEl.textContent,want=orient?ORMSG:UPMSG;
+      if(pending&&(t==="Ready. Tap Analyze ECG."||t===""||t===UPMSG||t===ORMSG)&&t!==want)setStatus(want);else if(!pending&&(t===UPMSG||t===ORMSG))setStatus(done?"Ready. Tap Analyze ECG.":"Tap Analyze ECG to upload and read.");}
+  }
+  function dropUpload(keepUI){const c=upCache;upCache=null;if(!keepUI){upFiles=null;upErr="";prepping=false;try{upUI();}catch(e){}}if(!c)return;if(!c.done)try{c.xhr.abort();}catch(e){}
     const code=store.get("eqg-code");if(c.key&&code)fetch("/api/read?img="+encodeURIComponent(c.key),{method:"DELETE",headers:{"x-access-code":code},keepalive:true}).catch(()=>{});}
   function uploadImgs(imgs,code){
     if(upCache&&upCache.imgs===imgs&&upCache.code===code)return upCache.p;
-    dropUpload();
+    dropUpload(true);
     const c={imgs,code,done:false,pct:0,key:null};upCache=c;
     c.p=new Promise((res,rej)=>{
       const x=new XMLHttpRequest();c.xhr=x;
-      const fail=e=>{c.done=true;if(upCache===c)upCache=null;rej(e);};
+      const fail=e=>{c.done=true;const mine=upCache===c;if(mine)upCache=null;rej(e);if(mine&&e&&e.code!=="cancelled"){upErr=e.code||"error";upUI();}};
       x.open("POST","/api/read");x.setRequestHeader("content-type","application/json");x.setRequestHeader("x-access-code",code);
-      x.upload.onprogress=e=>{if(e.lengthComputable)c.pct=Math.min(99,Math.round(e.loaded/e.total*100));};
+      x.timeout=120000;x.ontimeout=()=>fail({code:"network"});
+      x.upload.onprogress=e=>{if(e.lengthComputable){c.pct=Math.min(99,Math.round(e.loaded/e.total*100));if(upCache===c)upUI();}};
       x.onload=()=>{let j={};try{j=JSON.parse(x.responseText);}catch(e){}
-        if(x.status===200&&j.img){c.done=true;c.pct=100;c.key=j.img;res(j.img);return;}
+        if(x.status===200&&j.img){c.done=true;c.pct=100;c.key=j.img;upErr="";res(j.img);if(upCache===c)upUI();return;}
         if(x.status===401){store.set("eqg-code","");fail({code:"bad_code"});return;}
         if(x.status===400||x.status===404&&!j.error)fail({code:"legacy"}); // older server without photo upload
         else fail({code:"server",message:"Photo upload failed (server "+x.status+"). Try again."});};
@@ -1381,6 +1455,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     c.p.catch(()=>{});return c.p;
   }
   const raceAbort=(p,signal)=>!signal?p:new Promise((res,rej)=>{if(signal.aborted)return rej({code:"cancelled"});const f=()=>rej({code:"cancelled"});signal.addEventListener("abort",f,{once:true});p.then(v=>{signal.removeEventListener("abort",f);res(v);},e=>{signal.removeEventListener("abort",f);rej(e);});});
+  const readClock={t0:0,up:0};
   function netlifySample(){return{async json(prompt,{images=[],signal,onText,onTiming,effort}={}){
     const tStart=Date.now();let away=0,hidAt=document.visibilityState==="hidden"?tStart:0;
     const onVis=()=>{if(document.visibilityState==="hidden"){if(!hidAt)hidAt=Date.now();}else if(hidAt){away+=Date.now()-hidAt;hidAt=0;}};
@@ -1417,7 +1492,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     // Older server (no background function): read the live stream as before.
     if(!/json/.test(r.headers.get("content-type")||""))return readStream(r,signal,onText);
     const {id}=await r.json();if(!id)throw{code:"server"};
-    const upMs=Date.now()-tStart;
+    const upMs=Date.now()-tStart;readClock.up=upMs;readClock.t0=Date.now();
     const q="/api/read?id="+encodeURIComponent(id);
     const stop=()=>{fetch(q+"&cancel=1",{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});};
     signal&&signal.addEventListener("abort",stop,{once:true});
@@ -1672,24 +1747,69 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const maxW=Math.min(window.innerWidth-24,1000),maxH=Math.max(200,window.innerHeight-230),sc=Math.min(maxW/iw,maxH/ih,1);
     c.width=Math.round(iw*sc);c.height=Math.round(ih*sc);const x=c.getContext("2d");x.save();x.translate(c.width/2,c.height/2);x.rotate(rotDeg*Math.PI/180);
     x.drawImage(rotImg,-rotImg.width*sc/2,-rotImg.height*sc/2,rotImg.width*sc,rotImg.height*sc);x.restore();}
-  function rotOpen(f,auto){rotFile=f;rotDeg=0;const u=URL.createObjectURL(f),img=new Image();
-    img.onload=()=>{URL.revokeObjectURL(u);rotImg=img;$("rotT").textContent=auto?"This photo looks sideways":"Turn the photo upright";$("rotOv").hidden=false;rotDraw();};
-    img.onerror=()=>{URL.revokeObjectURL(u);};img.src=u;}
+  const rotPre=new WeakMap(),ROT_S="The lead names (I, II, V1…) and \"25 mm/s\" should read normally, left to right. A sideways photo can be misread.";
+  function rotOpen(f,auto){rotFile=f;rotDeg=auto?(rotPre.get(f)||0):0;const u=URL.createObjectURL(f),img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(u);rotImg=img;$("rotT").textContent=auto?(rotDeg?"Check the photo direction":"This photo looks sideways"):"Turn the photo upright";
+      $("rotS").textContent=auto&&rotDeg?"Turned the way the camera guide says (TOP on the left). If the lead names read normally, tap Done. If not, use ↺ or ↻ first.":ROT_S;$("rotOv").hidden=false;rotDraw();};
+    img.onerror=()=>{URL.revokeObjectURL(u);if(rotFile===f){rotFile=null;refresh();}};img.src=u;}
   function rotNext(){if(!$("rotOv").hidden)return;const n=rotQueue.shift();if(n&&files.includes(n))rotOpen(n,true);}
   $("rotL").onclick=()=>{rotDeg=(rotDeg+270)%360;rotDraw();};
   $("rotR").onclick=()=>{rotDeg=(rotDeg+90)%360;rotDraw();};
+  // Turn a photo clockwise by deg and swap the turned copy into the photo list.
+  function rotateFile(f,img,deg,auto){return new Promise(res=>{const sw=deg%180!==0,c=document.createElement("canvas");c.width=sw?img.height:img.width;c.height=sw?img.width:img.height;
+    const x=c.getContext("2d");x.translate(c.width/2,c.height/2);x.rotate(deg*Math.PI/180);x.drawImage(img,-img.width/2,-img.height/2);
+    c.toBlob(b=>{if(!b){res(null);return;}const nf=new File([b],"ecg-upright.jpg",{type:"image/jpeg"});cleared.add(nf);upright.add(nf);if(auto)autoTurned.add(nf);
+      const i=files.indexOf(f);if(i>=0)files[i]=nf;res(i>=0?nf:null);},"image/jpeg",0.93);});}
   $("rotDone").onclick=()=>{const f=rotFile,deg=rotDeg;$("rotOv").hidden=true;rotFile=null;
-    if(deg&&f){const sw=deg%180!==0,c=document.createElement("canvas");c.width=sw?rotImg.height:rotImg.width;c.height=sw?rotImg.width:rotImg.height;
-      const x=c.getContext("2d");x.translate(c.width/2,c.height/2);x.rotate(deg*Math.PI/180);x.drawImage(rotImg,-rotImg.width/2,-rotImg.height/2);
-      c.toBlob(b=>{if(!b)return;const nf=new File([b],"ecg-upright.jpg",{type:"image/jpeg"});cleared.add(nf);upright.add(nf);const i=files.indexOf(f);if(i>=0)files[i]=nf;
-        renderThumbs();refresh();toast("Photo turned upright");setTimeout(rotNext,250);},"image/jpeg",0.93);}
-    else{if(f)upright.add(f);setTimeout(rotNext,150);}};
-  const upright=new WeakSet();
+    if(deg&&f){rotateFile(f,rotImg,deg,false).then(nf=>{if(!nf)return;renderThumbs();refresh();toast("Photo turned upright");setTimeout(rotNext,250);});}
+    else{if(f)upright.add(f);refresh();setTimeout(rotNext,150);}};
+  const upright=new WeakSet(),camPrior=new WeakMap(),autoTurned=new WeakSet();
   window.__rotOpen=f=>rotOpen(f,false);
-  function checkOrientation(list){list.forEach(f=>{const u=URL.createObjectURL(f),img=new Image();
-    img.onload=()=>{URL.revokeObjectURL(u);let r=1;try{r=sidewaysScore(img);}catch(e){}
-      if(r<0.85&&files.includes(f)&&!upright.has(f)){rotQueue.push(f);rotNext();}};
-    img.onerror=()=>URL.revokeObjectURL(u);img.src=u;});}
+  window.__autoTurned=f=>autoTurned.has(f);
+  // ---------- Automatic upright (3.6) ----------
+  // 1. The ink-direction score says whether the traces run across (upright or upside down) or up/down (sideways).
+  // 2. The server shows a small AI the photo turned each possible way and asks which one has the printed text
+  //    reading normally. It asks twice with the pictures in opposite order; both answers must agree.
+  // 3. If they agree, the photo is turned for the crew. If not: a guided camera photo uses the guide
+  //    (TOP on the left); any other sideways photo opens the turn screen as before. Upright-looking photos stay.
+  // The reading AI still checks orientation itself and warns if a photo looks sideways or upside down.
+  function loadImg(f){return new Promise((res,rej)=>{const u=URL.createObjectURL(f),img=new Image();img.onload=()=>{URL.revokeObjectURL(u);res(img);};img.onerror=()=>{URL.revokeObjectURL(u);rej();};img.src=u;});}
+  function turnedJpeg(img,deg,M){const sc=Math.min(1,M/Math.max(img.width,img.height)),w=Math.max(1,Math.round(img.width*sc)),h=Math.max(1,Math.round(img.height*sc)),sw=deg%180!==0;
+    const c=document.createElement("canvas");c.width=sw?h:w;c.height=sw?w:h;const x=c.getContext("2d");x.imageSmoothingEnabled=true;x.imageSmoothingQuality="high";
+    x.translate(c.width/2,c.height/2);x.rotate(deg*Math.PI/180);x.drawImage(img,-w/2,-h/2,w,h);return {media_type:"image/jpeg",data:c.toDataURL("image/jpeg",0.72).split(",")[1]};}
+  async function askOrient(img,cands,code){
+    const images=cands.map(d=>turnedJpeg(img,d,cands.length>2?720:880));
+    const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),15000);
+    try{const r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({orient:true,images}),signal:ctl.signal});
+      if(r.status===401){store.set("eqg-code","");return null;}
+      if(!r.ok)return null;const j=await r.json().catch(()=>({}));const k=Number(j.pick);
+      return Number.isInteger(k)&&k>=0&&k<cands.length?cands[k]:null;}
+    catch(e){return null;}finally{clearTimeout(t);}}
+  // The access code is needed for the photo check and the early upload, so it is asked when the first photo is added.
+  let codeAsk=null,codeSkipped=false;
+  function codeForPhotos(){const c=store.get("eqg-code");if(c)return Promise.resolve(c);if(codeSkipped)return Promise.resolve(null);
+    if(!codeAsk)codeAsk=askCode("Save").then(v=>{codeAsk=null;if(!v)codeSkipped=true;return v;});return codeAsk;}
+  async function orientOne(f){
+    if(upright.has(f))return;
+    const live=isNetlify&&navigator.onLine!==false;
+    if(live){orienting.add(f);upUI();}
+    const end=()=>{if(orienting.delete(f))refresh();};
+    let img;try{img=await loadImg(f);}catch(e){end();return;}
+    let r=1;try{r=sidewaysScore(img);}catch(e){}
+    // Only a clear score narrows the choice to two; otherwise all four ways are shown.
+    const side=r<0.85,prior=camPrior.get(f);
+    const cands=r<0.7?[90,270]:r>1.45?[0,180]:[0,90,180,270];
+    let deg=null;
+    if(live){const code=await codeForPhotos();if(code&&files.includes(f))deg=await askOrient(img,cands,code);}
+    if(!files.includes(f)||upright.has(f)){end();return;}
+    if(deg){const nf=await rotateFile(f,img,deg,true);orienting.delete(f);renderThumbs();refresh();if(nf)toast("Photo turned upright automatically");return;}
+    // Couldn't tell which way is up (no signal, old server, checks disagree). A wrong guess could turn the
+    // photo upside down, which flips ST depression into elevation, so a sideways photo is shown to the crew,
+    // already turned the way the camera guide says (usually just tap Done).
+    if(deg==null&&side){rotPre.set(f,prior!=null?prior:0);rotQueue.push(f);rotNext();end();return;}
+    upright.add(f);end();
+  }
+  function checkOrientation(list){list.forEach(f=>{orientOne(f).catch(()=>{if(orienting.delete(f))refresh();});});}
   window.__rdQueue=list=>{checkPhotos(list);checkOrientation(list);};
   window.__cleared=f=>cleared.has(f);
 
@@ -1705,8 +1825,12 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   };
   $("camCancel").onclick=camClose;
   $("camNative").onclick=()=>{camClose();$("camInput").click();};
+  // The camera guide asks for the paper's TOP edge on the LEFT (phone upright), so a guided photo
+  // needs a quarter turn clockwise. The automatic check decides first; the guide is only used to pre-turn
+  // the check screen when the automatic check can't tell.
   $("camShot").onclick=()=>{const v=$("camVid");if(!v.videoWidth)return;const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
-    c.toBlob(b=>{camClose();if(b)addFiles([new File([b],"ecg-photo.jpg",{type:"image/jpeg"})]);},"image/jpeg",0.93);};
+    const land=window.matchMedia&&window.matchMedia("(orientation: landscape)").matches;
+    c.toBlob(b=>{camClose();if(!b)return;const f=new File([b],"ecg-photo.jpg",{type:"image/jpeg"});camPrior.set(f,land?0:90);addFiles([f]);},"image/jpeg",0.93);};
 
   // ---------- Offline mode (Netlify only) ----------
   if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")&&!window.claude){window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{});});}
@@ -1796,14 +1920,14 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const bot=el("div","rm-bot");bot.appendChild(el("p","rm-phase",small?"Deeper read":"Reading the ECG"));
     if(!small)bot.appendChild(el("p","rm-cap","A slow or weak internet connection can make the reading take longer. You can switch apps: it keeps reading."));
     w.appendChild(bot);w.appendChild(el("span","rm-orb"));
-    glowAttach(cv,small?{mode:"sine",cursor:0.62,cy:0.64,amp:0.11,ctop:0.34,cbot:0.92,barBoost:1.6,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s","thorough read"]}:{mode:"sine",cursor:0.62,cy:0.38,amp:0.12,ctop:0.13,cbot:0.6,barBoost:1.7,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s",small?"thorough read":"elapsed"]});
+    glowAttach(cv,small?{mode:"sine",cursor:0.62,cy:0.64,amp:0.11,ctop:0.34,cbot:0.92,barBoost:1.6,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s","thorough read"]}:{mode:"sine",cursor:0.62,cy:0.38,amp:0.12,ctop:0.13,cbot:0.6,barBoost:1.7,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s",sec.dataset.sub||"elapsed"]});
     return w;}
   let mon=null;
   function monStart(){const h=$("readMon");h.textContent="";mon=makeMonitor(false);h.appendChild(mon);h.hidden=false;statusEl.hidden=true;}
-  function monUpdate(phase,secs){if(!mon)return;mon.querySelector(".rm-phase").textContent=phase;mon.querySelector(".rm-secs").textContent=secs+" s";}
+  function monUpdate(phase,secs,sub){if(!mon)return;mon.querySelector(".rm-phase").textContent=phase;const e=mon.querySelector(".rm-secs");e.textContent=secs+" s";if(sub)e.dataset.sub=sub;}
   function monStop(){const h=$("readMon");h.hidden=true;h.textContent="";mon=null;statusEl.hidden=false;}
   function setStatus(t,o={}){statusEl.className="status"+(o.err?" err":"");statusEl.textContent="";if(o.pulse){const s=document.createElement("span");s.className="pulse";statusEl.appendChild(s);}statusEl.append(t);}
-  function refresh(){setTimeout(prewarm,0);const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);const unchecked=files.some(f=>!window.__cleared(f));analyzeBtn.disabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked)||unchecked;clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
+  function refresh(){setTimeout(prewarm,0);const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);const unchecked=files.some(f=>!window.__cleared(f));baseDisabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked)||unchecked;upUI();clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
   function addFiles(list){
     if(!patientOK()){setStatus("Enter age and sex first.",{err:true});return;}
     const ok=[...list].filter(f=>/^image\//.test(f.type));
@@ -1811,7 +1935,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const before=files.length;const added=[];ok.forEach(f=>{if(files.length<maxCount){files.push(f);added.push(f);}});if(added.length)window.__rdQueue(added);if(files.length!==before)$("samePtChk").checked=false;if(ok.length>files.length-before)setStatus("Maximum "+maxCount+" photos per patient. Extra photos were not added.",{err:true});
     renderThumbs();refresh();if(sample&&imagesOK&&files.length>1&&!$("samePtChk").checked)setStatus("Confirm all photos are from this one patient.");else if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");
   }
-  function renderThumbs(){thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};const rb=document.createElement("button");rb.type="button";rb.className="rot";rb.textContent="↻";rb.setAttribute("aria-label","Turn image "+(i+1));rb.onclick=()=>window.__rotOpen(f);d.append(img,b,rb);thumbs.appendChild(d);});}
+  function renderThumbs(){thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};const rb=document.createElement("button");rb.type="button";rb.className="rot";rb.textContent="↻";rb.setAttribute("aria-label","Turn image "+(i+1));rb.onclick=()=>window.__rotOpen(f);d.append(img,b,rb);if(window.__autoTurned(f)){const tb=document.createElement("span");tb.className="turned";tb.textContent="✓ Turned";tb.title="Turned upright automatically";d.appendChild(tb);}thumbs.appendChild(d);});}
   $("camInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   $("fileInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
@@ -1859,12 +1983,13 @@ HOW TO MEASURE (follow exactly, lead by lead):
 0. Identify every lead by its GRID POSITION before measuring. Most printouts are 4 columns x 3 rows: column 1 = I, II, III (top to bottom); column 2 = aVR, aVL, aVF; column 3 = V1, V2, V3; column 4 = V4, V5, V6; a long rhythm strip may run underneath. LIFEPAK and several other monitors print a vertical lead-change marker bar immediately before each label, so "| I" is lead I (NOT II), "| II" is lead II and "| III" is lead III. Never count vertical strokes to name a lead; use the grid position. Photos may show only some pages (e.g. corpuls pages 5-7) or be cut off at the edges.
 0b. ORIENTATION: if a photo is sideways or upside down, first work out which way is UP: the printed text reads normally when upright, and the 1 mV calibration pulse always rises UPWARD. Mentally turn the photo upright before measuring. Reading a trace upside down turns ST depression into elevation, so be certain.
 0c. STRIP PRINTOUTS (e.g. corpuls pages): each page may show only 3 leads in rows, each labelled at the left (e.g. Page 4: I, II, III; Page 5: aVR, aVL, aVF; Page 6: V1-V3; Page 7: V4-V6). Take each lead's name from its own printed label, not from a 4x3 grid.
-0d. SMALL OR NOISY COMPLEXES: limb leads are often low voltage (QRS only 2-5 mm). In those leads, P and T waves are also small and the ST deviation is usually 0. Measure the J-point against the flat TP baseline in at least 3 beats; a wavy or noisy baseline, a P wave or a T wave is NOT ST elevation. If you cannot clearly see the same elevation in most beats, report 0.
+0d. SMALL OR NOISY COMPLEXES: limb leads are often low voltage (QRS only 2-5 mm). Measure the J-point against the flat TP baseline in at least 3 beats; a wavy or noisy baseline, a P wave or a T wave is NOT ST elevation. If you cannot clearly see the same ELEVATION in most beats, report 0 for that lead. This caution is about false elevation only: ST DEPRESSION that is visible in most beats must always be reported (rule 3b).
 1. Calibration: find the 1 mV calibration pulse and count its height in small boxes (normally 10). Report it as calibration.mm_per_mv. Paper speed is printed (normally 25 mm/s).
 2. Baseline: the TP segment (flat line between end of T and next P). Use the PR segment only if TP is not visible.
 3. J-point: the exact point where the QRS ends and the ST segment starts, i.e. where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Measure the vertical distance between the J-point and the baseline in SMALL BOXES as seen on this paper, to the nearest 0.5. Positive = above baseline, negative = below.
+3b. ST DEPRESSION matters as much as ST elevation: missing it misses left main / multivessel ischaemia and posterior MI. In EVERY lead, check whether the J-point sits BELOW the TP baseline. If it does, report the negative value even when the ST then slopes upward into the T wave (upsloping depression is measured at the J-point). Look especially at I, II, III, aVF and V3-V6. When several leads show ST depression, look carefully at aVR and V1 for ST ELEVATION: diffuse ST depression with ST elevation in aVR is a critical pattern. Do not report 0 in a lead where the ST segment clearly starts below the baseline.
 4. NEVER measure at the T-wave, at the peak of the ST hump, or in the middle of the ST segment. A tall T wave is not ST elevation.
-5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. In V4-V6, I and II a concave ST that rises smoothly into an upright T wave usually starts AT the baseline: the J-point there is normally 0 to +0.5 mm; do not measure the rising ST or the T wave. This is very common in young men and in early repolarisation. Report the real J-point value.
+5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. In V4-V6, I and II a concave ST that rises smoothly into an upright T wave and starts AT the baseline has a J-point of 0 to +0.5 mm; do not measure the rising ST or the T wave. If the J-point is BELOW the baseline, that is ST depression: report it (rule 3b). This is very common in young men and in early repolarisation. Report the real J-point value.
 5b. WIDE QRS (LBBB, paced, RBBB, IVCD; QRS 120 ms or more): the J-point is the END of the whole wide QRS complex, never a point inside the R or S wave. Measure it against the baseline (TP / PR segment), not against the QRS. In LBBB and paced rhythm the ST segment normally goes the OPPOSITE way to the main QRS ("appropriate discordance"): depressed after an upright QRS (usually I, aVL, V5-V6) and elevated after a deep S (usually V1-V3, often III/aVF). Report that real sign. Only report ST going the SAME way as the QRS (concordant) if you clearly see it in that lead.
 6. ST shape: isoelectric, concave (smiley), straight, convex (frowny/tombstone), horizontal, upsloping or downsloping. Only call it convex or tombstone if the ST segment clearly bows upward above the line from J-point to T peak.
 7. T wave polarity for EVERY lead, judged against the baseline: upright (above), inverted (below), biphasic (both), hyperacute (broad, bulky, disproportionately tall for the QRS) or flat. Report its height in small boxes (negative if inverted). In I, II, aVL, aVF and V4-V6 the T wave is normally upright; if it dips below the baseline there, it is INVERTED and must be reported. aVR normally has an inverted T.
@@ -1902,13 +2027,13 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
 "dx":"rhythm and key measured findings, 12 words max","conf":"h|m|l",
 "pa":["rate","regularity","P waves","PR","QRS","QT/QTc","axis"],
 "rc":"sinus","rate":75,"qrs_ms":90,"bbb":"none|RBBB|LBBB|paced|LAFB|bifascicular|IVCD","lvh":0,
-"fl":[null,0,0,0,0,0,0,0],
+"fl":[null,0,0,0,0,0,0,0,0],
 "L":{"I":[0,"u","i","n",1,0,"+",8],"II":null,"III":null,"aVR":null,"aVL":null,"aVF":null,"V1":null,"V2":null,"V3":null,"V4":null,"V5":null,"V6":null},
 "xl":{},
 "pm":{"interp":[],"stj":{},"hr":"","pr":"","qrs":"","qtc":"","axes":"","age":"","sex":""},
 "omi":[],
 "al":["critical|caution|none","headline"]}
-"rot" = degrees the photo must be turned CLOCKWISE to be upright (0, 90, 180 or 270; 0 if already upright). Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_repol, pacer_spikes, capture_failure] as 1/0. "xl" holds V7,V8,V9,V3R,V4R as [j, t] only when printed. "pm" copies what is printed on the paper (STJ numbers per lead if present). "omi" lists only patterns fully present.`:`Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
+"rot" = degrees the photo must be turned CLOCKWISE to be upright (0, 90, 180 or 270; 0 if already upright). Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_repol, pacer_spikes, capture_failure, diffuse_std_avr] as 1/0; diffuse_std_avr = 1 if you see ST depression in many leads (about 6 or more) together with ST elevation in aVR and/or V1. "xl" holds V7,V8,V9,V3R,V4R as [j, t] only when printed. "pm" copies what is printed on the paper (STJ numbers per lead if present). "omi" lists only patterns fully present.`:`Reply with ONLY this JSON (no markdown). "leads" MUST contain all 12 keys.
 {"is_ecg":true,
 "same_patient":true,
 "same_patient_reason":"which identifiers matched or conflicted",
@@ -1921,7 +2046,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
 "parameters":{"rate":{"value":"","note":""},"regularity":{"value":"","note":""},"p_waves":{"value":"","note":""},"pr":{"value":"","note":""},"qrs":{"value":"","note":""},"qt":{"value":"","note":""},"axis":{"value":"","note":""}},
 "conduction":{"qrs_ms":90,"bbb":"none|RBBB|LBBB|paced|LAFB|bifascicular|IVCD","lvh":false},
 "rhythm_class":"sinus","rate_bpm":75,
-"flags":{"qtc_ms":null,"delta_wave":false,"brugada":false,"hyperk":false,"pericarditis":false,"early_repol":false,"pacer_spikes":false,"capture_failure":false},
+"flags":{"qtc_ms":null,"delta_wave":false,"brugada":false,"hyperk":false,"pericarditis":false,"early_repol":false,"pacer_spikes":false,"capture_failure":false,"diffuse_std_avr":false},
 "layout":"e.g. 3x4 + rhythm strip; labels confirmed by grid position",
 "leads":{"I":{"present":true,"t_seen":"where the T wave goes after the QRS, in words","j_mm":0,"st_shape":"isoelectric","t":"upright|inverted|biphasic|hyperacute|flat","t_mm":2,"q":"none","qrs":"positive|negative|isoelectric","qrs_mm":8,"s_wave":true,"j_wave":false,"note":""},"II":{},"III":{},"aVR":{},"aVL":{},"aVF":{},"V1":{},"V2":{},"V3":{},"V4":{},"V5":{},"V6":{}},
 "extra_leads":{"V7":null,"V8":null,"V9":null,"V3R":null,"V4R":null},
@@ -1958,7 +2083,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const xt=S(x.t).toLowerCase(),yt=S(y.t).toLowerCase();
       if(xt&&yt&&xt!==yt&&!((xt==="flat"||yt==="flat")&&(xt==="upright"||yt==="upright"))){m._disagree.push(k+" T "+xt+" vs "+yt);o.t="unclear";o.note=((o.note?S(o.note)+"; ":"")+"reads disagree on T").slice(0,160);}});
     {const ra=S(a.rhythm_class),rb=S(b.rhythm_class);if(ra&&rb&&ra!==rb){m._disagree.push("rhythm "+ra+" vs "+rb);if(ra==="undetermined")m.rhythm_class=rb;}
-      const fa=a.flags||{},fb=b.flags||{};m.flags=Object.assign({},fb,fa);["delta_wave","brugada","hyperk","pericarditis","early_repol","capture_failure"].forEach(k=>{if(!!fa[k]!==!!fb[k])m._disagree.push("flag "+k);m.flags[k]=!!(fa[k]||fb[k]);});
+      const fa=a.flags||{},fb=b.flags||{};m.flags=Object.assign({},fb,fa);["delta_wave","brugada","hyperk","pericarditis","early_repol","capture_failure","diffuse_std_avr"].forEach(k=>{if(!!fa[k]!==!!fb[k])m._disagree.push("flag "+k);m.flags[k]=!!(fa[k]||fb[k]);});
       if(!m.rate_bpm&&b.rate_bpm)m.rate_bpm=b.rate_bpm;}
     const pa=a.printed||{},pb=b.printed||{};m.printed=Object.assign({},pb,pa);
     if(!m.printed.axes&&pb.axes)m.printed.axes=pb.axes;if((!pa.stj||!Object.keys(pa.stj).length)&&pb.stj)m.printed.stj=pb.stj;
@@ -2007,9 +2132,9 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   function cropPart(file,x0,x1,y0,y1,maxSide){
     y0=y0||0;y1=y1||1;
     return new Promise((res,rej)=>{const u=URL.createObjectURL(file),img=new Image();
-      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0)),sy=Math.round(img.height*y0),sh=Math.round(img.height*(y1-y0));const M=maxSide||1200,sc=Math.min(1,M/Math.max(sw,sh));
+      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0)),sy=Math.round(img.height*y0),sh=Math.round(img.height*(y1-y0));const M=maxSide||1200,sc=Math.min(3,M/Math.max(sw,sh));
         const c=document.createElement("canvas");c.width=Math.round(sw*sc);c.height=Math.round(sh*sc);
-        c.getContext("2d").drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);URL.revokeObjectURL(u);
+        {const cx=c.getContext("2d");cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality="high";cx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);}URL.revokeObjectURL(u);
         c.toBlob(b=>b?res(new File([b],"zoom.jpg",{type:"image/jpeg"})):rej(new Error("crop")),"image/jpeg",0.82);};
       img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("crop"));};img.src=u;});
   }
@@ -2068,7 +2193,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       primary:{rhythm:S(c.dx),confidence:{h:"high",m:"moderate",l:"low"}[S(c.conf).toLowerCase()]||"moderate",summary:""},
       parameters:P,conduction:{qrs_ms:n(c.qrs_ms)||0,bbb:S(c.bbb)||"none",lvh:c.lvh===1||c.lvh===true},
       rhythm_class:S(c.rc)||"undetermined",rate_bpm:n(c.rate),
-      flags:{qtc_ms:n(fl[0]),delta_wave:b(1),brugada:b(2),hyperk:b(3),pericarditis:b(4),early_repol:b(5),pacer_spikes:b(6),capture_failure:b(7)},
+      flags:{qtc_ms:n(fl[0]),delta_wave:b(1),brugada:b(2),hyperk:b(3),pericarditis:b(4),early_repol:b(5),pacer_spikes:b(6),capture_failure:b(7),diffuse_std_avr:b(8)},
       leads,extra_leads:xl,printed:{interpretation:Array.isArray(pm.interp)?pm.interp:[],stj:pm.stj&&typeof pm.stj==="object"?pm.stj:{},hr:S(pm.hr),pr:S(pm.pr),qrs:S(pm.qrs),qtc:S(pm.qtc),axes:S(pm.axes),age:S(pm.age),sex:S(pm.sex)},
       omi_patterns:Array.isArray(c.omi)?c.omi:[],evidence:[],alert:{level:S(al[0])||"none",headline:S(al[1]),details:[]},differential:[],field:[],_fast:true};
   }
@@ -2189,7 +2314,14 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const aVRe=Math.max(J("aVR")??-9,J("V1")??-9);
     if(dep.length>=6&&aVRe>=1){up("met","(iv) Multivessel ischaemia / left main","ST depression ≥1 mm in "+dep.length+" leads ("+dep.join(", ")+") with ST elevation in aVR/V1.");r.checks.push({ok:true,t:"(iv) Left main / multivessel MET."});}
     else if(dep.length>=6&&aVRe>=0.5){up("consult","(iv) Possible left main / multivessel","ST depression in "+dep.length+" leads with slight STE in aVR/V1.");r.checks.push({ok:null,t:"(iv) Borderline."});}
-    else r.checks.push({ok:false,t:"(iv) Multivessel / left main: ST depression ≥1 mm in "+dep.length+" of 6 required leads."});
+    else{
+      // Safety net: the pattern is seen (by the AI's overall read, or as smaller ST depression in many leads)
+      // but the per-lead numbers don't reach the criterion. Never activate on this; ask the crew to consult.
+      const dep05=LEADS.filter(k=>k!=="aVR"&&J(k)!==null&&J(k)<=-0.5);const seen=!!(d.flags&&d.flags.diffuse_std_avr);
+      if(seen||(dep05.length>=6&&aVRe>=0.5)){
+        up("consult","(iv) Possible left main / multivessel pattern",(seen?"The AI's overall read sees diffuse ST depression with ST elevation in aVR/V1":"ST depression in "+dep05.length+" leads ("+dep05.join(", ")+") with ST elevation in aVR/V1")+", but the measured values are below the criterion (≥1 mm in 6 leads + aVR/V1 elevation). Check these leads on the paper and call UMOC to discuss.");
+        r.checks.push({ok:null,t:"(iv) Possible left main / multivessel pattern: "+(seen?"seen by the AI's overall read":"ST depression in "+dep05.length+" leads")+", measured values below the criterion. Discuss with UMOC."});}
+      else r.checks.push({ok:false,t:"(iv) Multivessel / left main: ST depression ≥1 mm in "+dep.length+" of 6 required leads."});}
     // (v) / (vi) Bundle branch block
     if(lbbb){up("consult","(v) LBBB / paced rhythm","With high clinical suspicion of ongoing ischaemia, manage as STEMI. Discuss with UMOC.");r.checks.push({ok:null,t:"(v) LBBB / paced: manage as STEMI if high clinical suspicion."});}
     if(rbbb){up("consult","(vi) RBBB","With high clinical suspicion of ongoing ischaemia, manage as STEMI. Discuss with UMOC.");r.checks.push({ok:null,t:"(vi) RBBB: manage as STEMI if high clinical suspicion."});}
@@ -2256,11 +2388,13 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   analyzeBtn.onclick=()=>runRead("fast");
   // Real reading time (tap -> result ready on the server), not counting time spent in another app.
   function takeTiming(list){if(!list.length)return null;const T=list.reduce((a,b)=>b.total>a.total?b:a);return T;}
+  // Reading time (server + AI) and upload time are reported separately.
   function applyTiming(data,T){if(!T)return "";data._secs=Math.max(1,Math.round(T.total/1000));data._timing=T;
+    data._readSecs=Math.max(1,Math.round((T.total-T.up)/1000));data._upSecs=Math.round(T.up/1000);
     let x="";if(T.away>2000&&T.wait-T.total>3000)x=" It finished while you were in another app.";
     else if(T.wait-T.total>8000)x=" The result reached the phone "+Math.round((T.wait-T.total)/1000)+" s after it was ready.";
-    if(T.total>45000)x+=" Time: upload "+Math.round(T.up/1000)+" s · server start "+Math.round(T.queue/1000)+" s · AI reading "+Math.round(T.ai/1000)+" s.";
     return x;}
+  const timeTxt=d=>d._readSecs?"reading "+d._readSecs+" s"+(d._upSecs>=1?" · upload "+d._upSecs+" s":" · photo already uploaded"):d._secs+" s";
   // Crew reports a pacemaker / ICD: applied AFTER the AI has measured. A wide QRS is then treated as paced,
   // so the STEMI check uses modified Sgarbossa even if the pacing spikes were too small to see on the photo.
   function applyDevice(d){
@@ -2320,7 +2454,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       else if(data._from.decision==="met"&&data.stemi.decision==="met")data._confirmedYes=true;
       clearInterval(me.timer);bg=null;
       const y=window.scrollY;lastReport=data;render(data);window.scrollTo({top:y});
-      setStatus("Thorough read finished in "+data._secs+" s."+tx+" "+(data._from.decision===data.stemi.decision?"Decision unchanged.":"Decision CHANGED: see the top of the report."));
+      setStatus("Thorough read finished ("+timeTxt(data)+")."+tx+" "+(data._from.decision===data.stemi.decision?"Decision unchanged.":"Decision CHANGED: see the top of the report."));
       logRead(data);
     }catch(e){
       if(bg!==me)return;clearInterval(me.timer);bg=null;
@@ -2333,19 +2467,27 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   let warmed=false;
   function prewarm(){
     if(!isNetlify||!files.length||!files.every(f=>window.__cleared(f)))return;
+    if(files.some(f=>orienting.has(f))||!$("rotOv").hidden||rotFile)return; // wait until every photo is the right way up, then upload once
     if(!warmed){warmed=true;fetch("/api/read",{method:"GET",cache:"no-store"}).catch(()=>{});}
-    zoomFor(files.slice(0,maxCount)).then(z=>shrinkCached(z.imgs)).then(imgs=>{const c=store.get("eqg-code");if(c&&!busy)uploadImgs(imgs,c).catch(()=>{});}).catch(()=>{});
+    const cur=files.slice(0,maxCount);const code0=store.get("eqg-code");
+    if(code0&&!sameFiles(upFiles,cur)){upFiles=cur;upErr="";prepping=true;upUI();}
+    zoomFor(cur).then(z=>shrinkCached(z.imgs)).then(imgs=>{const c=store.get("eqg-code");if(sameFiles(upFiles,cur))prepping=false;
+      if(c&&!busy){const p=uploadImgs(imgs,c);upUI();p.catch(()=>{});}else upUI();}).catch(()=>{if(sameFiles(upFiles,cur)){prepping=false;upUI();}});
   }
   async function runRead(mode){
     readMode=mode;
     if(!sample||!files.length||busy)return;
+    if(files.some(f=>orienting.has(f))){setStatus("Checking which way is up… one moment.");return;}
     bgCancel();
     if(isNetlify&&navigator.onLine===false){setStatus("No connection. ECG analysis needs internet. Reference pages and the UMOC call still work offline.",{err:true});return;}
     busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();
     const t0=Date.now();let phase=mode==="fast"?"Fast read":"Thorough read";
-    const tick=()=>{const u=uploadPct(),secs=Math.round((Date.now()-t0)/1000);
-      const label=u!=null?"Uploading photo "+u+"%":phase==="Fast read"?"Reading the ECG":phase==="Thorough read"?"Thorough read: measuring every lead":phase;
-      setStatus(label+"… "+secs+" s",{pulse:true});monUpdate(label+"…",secs);};
+    readClock.t0=0;readClock.up=0;
+    const tick=()=>{const u=uploadPct(),reading=readClock.t0>=t0&&u==null;
+      const secs=Math.round((Date.now()-(reading?readClock.t0:t0))/1000);
+      const label=u!=null?"Uploading photo "+u+"%":!reading?"Sending photo":phase==="Fast read"?"Reading the ECG":phase==="Thorough read"?"Thorough read: measuring every lead":phase;
+      const sub=reading?"reading"+(readClock.up>=1000?" · upload "+Math.round(readClock.up/1000)+" s":""):"uploading";
+      setStatus(label+"… "+secs+" s"+(reading&&readClock.up>=1000?" (upload took "+Math.round(readClock.up/1000)+" s)":""),{pulse:true});monUpdate(label+"…",secs,sub);};
     monStart();tick();const timer=setInterval(tick,1000);
     let started=false;
     try{
@@ -2354,10 +2496,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       if(dbl&&isNetlify&&!store.get("eqg-code")){const c0=await askCode();if(!c0)throw{code:"cancelled"};}
       if(dbl){phase="Running two independent reads";tick();}
       const tim=[];
-      const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"low":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
+      const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"fast":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       let data;
       if(dbl){const [r1,r2]=await Promise.all([one(),one()]);data=mergeReads(expandCompact(r1),expandCompact(r2));}else data=expandCompact(await one());
-      finishRead(data,mode,t0);const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready in "+data._secs+" s."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
+      finishRead(data,mode,t0);const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
       logRead(data);
     }catch(e){
       clearInterval(timer);
@@ -2486,6 +2628,31 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"3.6",d:"9 Oct 2026",t:"Camera guide and automatic upright",i:[
+      "Bigger camera frame: a tall rectangle that fills most of the screen, so the printout is captured larger.",
+      "The camera tells the medic to turn the printout sideways (phone upright), with a yellow '▲ TOP of printout' label on the left edge and a 'BOTTOM' label on the right.",
+      "Phone held sideways (landscape): the guide switches to TOP at the top, with the buttons on the right.",
+      "Photos are turned upright automatically when added (app camera, phone camera or gallery). No need to turn them by hand.",
+      "How it works: the photo, turned each possible way, is shown to two AI models, which pick the one where the lead names read normally. Both must agree before the photo is turned.",
+      "'Checking which way is up…' shows under the photo; Analyze ECG and the upload wait until the photo is the right way up, so it uploads once.",
+      "'✓ Turned' badge on photos the app turned. ↻ on the photo still turns it by hand.",
+      "If the check can't decide (no signal, checks disagree), a sideways photo opens the turn screen, already turned the way the camera guide says: usually just tap Done.",
+      "The access code is asked when the first photo is added, so the photo check and upload can start straight away."]},
+    {v:"3.5",d:"9 Oct 2026",t:"Upload progress",i:[
+      "Upload percentage shown under the photo, with a note that upload speed depends on your internet connection.",
+      "Analyze ECG shows 'Uploading photo %' and fills up as the photo uploads; it unlocks at 100% so reading starts straight away.",
+      "'✓ Photo uploaded' when ready; if the upload doesn't finish, it retries when Analyze ECG is tapped."]},
+    {v:"3.4",d:"9 Oct 2026",t:"More careful fast read",i:[
+      "The fast read now thinks more before answering (about 20–25 s of reading instead of about 15 s), for more careful measurements.",
+      "Thinking level can be changed in Netlify without new code (CLAUDE_FAST_EFFORT: low, medium or high).",
+      "Upload time and reading time are now shown separately, while reading and in the result."]},
+    {v:"3.3",d:"9 Oct 2026",t:"ST depression no longer missed",i:[
+      "AI rule: ST depression matters as much as elevation; report the J-point when it sits below the baseline, even with upsloping ST.",
+      "AI rule: with ST depression in several leads, check aVR and V1 for ST elevation (left main / multivessel pattern).",
+      "The 'small leads: report 0' caution now applies to false elevation only, not to ST depression.",
+      "Small images (screenshots, web pictures) are enlarged before reading so small ST shifts are clearer.",
+      "New AI flag for diffuse ST depression with aVR elevation.",
+      "Criterion (iv) safety net: if that pattern is seen but the numbers fall short, the result is 'consult UMOC' (never a silent NO)."]},
     {v:"3.2",d:"9 Oct 2026",t:"Fewer false STEMI alarms",i:[
       "Sideways photos are detected when added; a 'Turn the photo upright' screen opens so the lead names read normally.",
       "↻ button on every photo to turn it by hand.",

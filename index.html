@@ -657,6 +657,19 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 .drop.locked .btn-row{min-height:66px}
 @media (max-width:370px){.leadmap{gap:4px!important}.leadmap .lead{padding-left:1px!important;padding-right:1px!important}}
 .leadmap .lead span.need{font-size:clamp(.5rem,2.4vw,.68rem);padding:2px 2px;letter-spacing:-.01em;max-width:100%;overflow-wrap:normal;word-break:keep-all}
+
+/* Compact "STEMI on the monitor?" card (about half the old size) */
+.nowait{gap:8px!important;margin-top:12px!important;padding:6px 6px 6px 8px!important;border-radius:14px!important;box-shadow:none!important}
+.nowait .nw-ic{width:26px!important;height:26px!important;box-shadow:none!important}
+.nowait .nw-ic svg{width:13px!important;height:13px!important}
+.nowait .nw-tx b{font-size:.8rem!important;line-height:1.15!important}
+.nowait .nw-tx small{font-size:.66rem!important;line-height:1.2!important;margin-top:1px!important;white-space:nowrap}
+.nowait .nw-num{font-size:.72rem!important;padding:5px 11px!important;box-shadow:none!important}
+/* Selected option buttons: keep dark background with white text */
+.optgrp .tog.on,.optgrp .devchip[aria-pressed="true"]{background:linear-gradient(160deg,#2D4963,#1C2E40)!important;border-color:#22384D!important;color:#fff!important}
+.optgrp .optrow .tog{flex:1 1 auto;min-width:0;padding:0 10px}
+.optgrp .tog.on span,.optgrp .devchip[aria-pressed="true"]{color:#fff!important}
+.actions .btn{white-space:nowrap;padding:0 12px}
 </style>
 </head>
 <body>
@@ -738,7 +751,6 @@ nav.bottom button[aria-current="page"]{font-weight:700}
         <p class="optcap">Tap only if the patient has one.</p>
       </div>
     </div>
-    <a class="nowait" href="tel:+97125048555" target="_blank" rel="noopener" data-call aria-label="STEMI on the monitor? Call UMOC now on 02 504 8555. Don't wait for this app."><span class="nw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span><span class="nw-tx"><b>STEMI on the monitor?</b><small>Call UMOC now: <strong>02 504 8555</strong></small><small>Don't wait for this app.</small></span><span class="nw-num">Call</span></a>
     <div class="actions">
       <button class="btn" id="analyzeBtn" disabled>Analyze ECG</button>
       <button class="btn ghost" id="stopBtn" hidden>Stop</button>
@@ -747,6 +759,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     <p class="status" id="status" role="status" aria-live="polite">Enter age and sex, then add an ECG image.</p>
     <div id="readMon" hidden></div>
     <div class="notice" id="unavail" hidden></div>
+    <a class="nowait" href="tel:+97125048555" target="_blank" rel="noopener" data-call aria-label="STEMI on the monitor? Call UMOC now on 02 504 8555. Don't wait for this app."><span class="nw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span><span class="nw-tx"><b>STEMI on the monitor?</b><small>Don't wait · Call UMOC <strong>02 504 8555</strong></small></span><span class="nw-num">Call</span></a>
   </div>
   <div class="rep" id="report" hidden aria-live="polite"></div>
 </section>
@@ -2377,6 +2390,8 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       "'STEMI on the monitor?' redrawn as a call card: red phone icon, the UMOC number, and a Call button.",
       "'⚠ check paper' is now a yellow badge, readable on red boxes too.",
       "Possible OMI patterns now get their own box too (dashed, '? POSSIBLE · NOT CONFIRMED' tag); confirmed ones keep the red CONFIRMED tag.",
+      "'STEMI on the monitor?' card moved below the Analyze ECG buttons and the read status, and made about half the size.",
+      "Fixed: tapping Double-check, Pacemaker or ICD no longer turns the button text invisible.",
       "Double-check now sits in its own 'Accuracy' box, separate from the 'Patient device' box with Pacemaker and ICD.",
       "Each box has a short explanation underneath.",
       "'Age and sex required' redrawn as a clean card in the app's style (person icon, arrow), replacing the red stamp.",

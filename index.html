@@ -488,6 +488,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .us-ev time{flex:none;opacity:.6;font-variant-numeric:tabular-nums}.us-ev b{font-weight:600}
 .us-ev .yes{color:#FF8A8A}.us-ev .con{color:#FFD27A}.us-ev .no{color:#8FE3B0}
 .usagebox.mini p{font-size:.72rem;margin:0}
+.lead .nearb{background:#FFE17A!important;color:#3B2A00!important}
 .usagebox{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
 .usagebox h3{margin:0 0 4px;font-size:1rem}.usagebox .in{width:100%;margin:6px 0}
 .fullov{position:fixed;inset:0;z-index:50;background:#0B1624;color:#fff;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
@@ -1177,6 +1178,14 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   <div class="keypad" id="keypad"></div>
   <div class="actions"><button type="button" class="btn ghost" data-close>Cancel</button><button type="button" class="btn" id="ageDone">Done</button></div>
 </div>
+<div class="sheet" id="nameSheet" role="dialog" aria-modal="true" aria-labelledby="nameT" hidden>
+  <div class="grab"></div>
+  <h2 id="nameT">What should we call you?</h2>
+  <p class="sh-sub">If possible, put your name or nickname. It helps us improve the app for the team. You only enter it once; it's saved on this phone.</p>
+  <input class="in" id="nameInput" autocomplete="nickname" maxlength="30" placeholder="Your name or nickname" style="font-size:1.05rem;padding:13px">
+  <p class="lbl" id="nameErr" style="color:var(--crit);min-height:1em;margin:6px 0 0"></p>
+  <div class="actions"><button type="button" class="btn ghost" id="nameLater">Not now</button><button type="button" class="btn" id="nameSave">Save</button></div>
+</div>
 <div class="sheet" id="codeSheet" role="dialog" aria-modal="true" aria-labelledby="codeT" hidden>
   <div class="grab"></div>
   <h2 id="codeT">Access code</h2>
@@ -1231,7 +1240,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="4.2";
+  const APP_VERSION="4.5";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -1999,7 +2008,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   function unavailable(m){$("unavail").textContent=m;$("unavail").hidden=false;refresh();}
   (async()=>{
     const inClaude=!!(window.claude&&typeof window.claude.use==="function");
-    if(!inClaude){isNetlify=true;sample=netlifySample();imagesOK=true;maxCount=5;refresh();setTimeout(()=>{restoreSession().catch(()=>{}).finally(()=>{sessReady=true;sessPatient();sessPhotos();track("open");});},0);return;}
+    if(!inClaude){isNetlify=true;sample=netlifySample();imagesOK=true;maxCount=5;refresh();setTimeout(()=>{restoreSession().catch(()=>{}).finally(()=>{sessReady=true;sessPatient();sessPhotos();track("open");askName();});},0);return;}
     try{sample=await window.claude.use("sample");}catch(e){sample=null;}
     if(!sample){unavailable("The analysis engine isn't available here. Open the app from Claude while signed in.");return;}
     try{const lim=await sample.limits();imagesOK=!!lim?.images;if(imagesOK){maxCount=Math.max(1,Math.min(lim.images.maxCount||5,5));$("fileInput").accept=lim.images.mediaTypes.join(",");}}catch(e){imagesOK=false;}
@@ -2117,7 +2126,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       if(cur===null||Math.abs(cur-v)>0.5)used.push(k+" "+(v>0?"+":"")+v);
       // Big gap between the printed number and the trace itself: the small print may have been misread (e.g. 0 read as 9).
       if(cur!==null&&Math.abs(cur-v)>=0.75){chk.push(k+" (read as "+(v>0?"+":"")+v+" mm, trace looks about "+(Math.round(cur*2)/2)+" mm)");o.stj_check=true;}
-      o.present=true;o.j_mm=v/f;o.note=((o.note?S(o.note)+"; ":"")+"J from printed STJ "+v+" mm").slice(0,160);});
+      o.present=true;o.j_mm=v/f;o.stj_exact=true;o.note=((o.note?S(o.note)+"; ":"")+"J from printed STJ "+v+" mm").slice(0,160);});
     d._stjUsed=used;d._stjCheck=chk;
   }
   // Double-check: merge two independent reads; disagreements lower confidence and are shown.
@@ -2322,14 +2331,17 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(!(cal>=3&&cal<=25))r.warnings.push("Calibration pulse not measured; standard 10 mm/mV assumed.");
     else if(Math.abs(cal-10)>0.6)r.warnings.push("Calibration is "+cal+" mm/mV; values converted to standard 10 mm/mV.");
     const L=d.leads||{};
-    const J=k=>{const o=L[k];if(!o||o.present===false||typeof o.j_mm!=="number"||!isFinite(o.j_mm))return null;return Math.round(o.j_mm*f*2)/2;};
+    // Photo readings are rounded to the nearest 0.5 mm (a photo can't be read more finely). The monitor's own
+    // printed STJ numbers are exact and are NOT rounded (4.4): 0.98 mm stays 0.98 and does not meet ≥1 mm.
+    const J=k=>{const o=L[k];if(!o||o.present===false||typeof o.j_mm!=="number"||!isFinite(o.j_mm))return null;return o.stj_exact?Math.round(o.j_mm*f*100)/100:Math.round(o.j_mm*f*2)/2;};
+    const exact=k=>!!(L[k]&&L[k].stj_exact);r.exact=exact;
     const X=k=>{const o=d.extra_leads&&d.extra_leads[k];if(!o||o.present===false||typeof o.j_mm!=="number")return null;return Math.round(o.j_mm*f*2)/2;};
     r.J=J;
     const v23=pt.sex==="Female"?1.5:pt.sex==="Male"?(pt.age>0&&pt.age<40?2.5:2.0):1.5;
     const thr=k=>(k==="V2"||k==="V3")?v23:1.0;r.thr=thr;
     LEADS.forEach(k=>{if(J(k)===null)r.missing.push(k);});
     const meets=k=>J(k)!==null&&J(k)>=thr(k);
-    const near=k=>J(k)!==null&&!meets(k)&&J(k)>=Math.max(0.5,thr(k)-0.5);
+    const near=k=>J(k)!==null&&!meets(k)&&J(k)>=(exact(k)?thr(k)-0.1:Math.max(0.5,thr(k)-0.5));
     const c=d.conduction||{};const bbb=String(c.bbb||"none");const lbbb=/LBBB|paced/i.test(bbb);const rbbb=/RBBB|bifascicular/i.test(bbb);const lvh=c.lvh===true;
     const fmt=k=>k+" "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")";
     const up=(dec,crit,why)=>{const rank={not_met:0,consult:1,met:2};if(rank[dec]>rank[r.decision]){r.decision=dec;r.criterion=crit;r.reasoning=why;}else if(rank[dec]===rank[r.decision]&&!r.criterion){r.criterion=crit;r.reasoning=why;}};
@@ -2347,7 +2359,9 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
         const v=k=>k==="V2"||k==="V3";const bl=CONTIG.filter(([a,b])=>(meets(a)&&near(b))||(near(a)&&meets(b))||(near(a)&&near(b)&&v(a)&&v(b)));
         const ste=LEADS.filter(k=>J(k)!==null&&J(k)>0);
         r.checks.push({ok:false,t:"(i) Standard STEMI not met."+(ste.length?" Highest J-point: "+ste.sort((a,b)=>J(b)-J(a)).slice(0,3).map(fmt).join(", ")+".":" No J-point elevation measured.")});
-        if(bl.length){const leads=[...new Set(bl.flat())];up("consult","Borderline ST elevation","J-point within 0.5 mm of the threshold in contiguous leads ("+leads.map(fmt).join(", ")+"). Photo measurement can't settle this; check on the monitor and discuss with UMOC.");}
+        if(bl.length){const leads=[...new Set(bl.flat())];
+          if(leads.every(k=>meets(k)||exact(k)))up("consult","Borderline ST elevation (monitor STJ)","The monitor's own STJ measurement is just below the threshold in contiguous leads ("+leads.map(fmt).join(", ")+"). Not met by the numbers. Reassess the patient, repeat the 12-lead in a few minutes, and discuss with UMOC if the symptoms suggest ischaemia.");
+          else up("consult","Borderline ST elevation","J-point within 0.5 mm of the threshold in contiguous leads ("+leads.map(fmt).join(", ")+"). Photo measurement can't settle this; check on the monitor and discuss with UMOC.");}
       }
     }
     // (ii) Posterior
@@ -2397,9 +2411,11 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       // Aslanger
       {const v46=["V4","V5","V6"].filter(k=>has(k,x=>x<=-0.5)&&(tv(k)==="upright"||tv(k)==="biphasic"||tv(k)==="hyperacute"));
         const hit=has("III",x=>x>=0.5)&&v46.length>0&&J("V1")!==null&&J("V2")!==null&&J("V1")>J("V2");
-        R.push({n:"Aslanger pattern",hit,why:"STE III "+J("III")+" mm, ST depression "+v46.join(", ")+", V1 "+J("V1")+" > V2 "+J("V2"),look:named("aslanger")});}
+        R.push({n:"Aslanger pattern",hit,why:"STE III "+J("III")+" mm, ST depression "+v46.join(", ")+", V1 "+J("V1")+" > V2 "+J("V2"),look:named("aslanger"),
+          small:{keys:["III","V1","V2"].concat(v46),strong:(J("III")??0)>=1,need:"III ≥1 mm"}});}
       // South African flag
-      R.push({n:"South African flag sign",hit:has("I",x=>x>=0.5)&&has("aVL",x=>x>=0.5)&&has("V2",x=>x>=0.5)&&has("III",x=>x<=-0.5),why:"STE I "+J("I")+", aVL "+J("aVL")+", V2 "+J("V2")+" with ST depression III "+J("III"),look:named("african")});
+      R.push({n:"South African flag sign",hit:has("I",x=>x>=0.5)&&has("aVL",x=>x>=0.5)&&has("V2",x=>x>=0.5)&&has("III",x=>x<=-0.5),why:"STE I "+J("I")+", aVL "+J("aVL")+", V2 "+J("V2")+" with ST depression III "+J("III"),look:named("african"),
+        small:{keys:["I","aVL","V2","III"],strong:Math.max(J("I")??0,J("aVL")??0)>=1,need:"I or aVL ≥1 mm"}});
       // New-onset bifascicular block
       R.push({n:"New-onset bifascicular block",hit:/bifascicular/i.test(bbb)||(/RBBB/i.test(bbb)&&/LAFB/i.test(bbb)),why:"RBBB with left anterior fascicular block. Confirm it is NEW (no known old ECG with it)",look:named("bifascicular"),noBlock:true});
       // Posterior OMI
@@ -2416,12 +2432,16 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
         const c3=LEADS.filter(k=>qp(k)==="negative"&&clear(k)&&has(k,x=>x>=1&&x/qm(k)>=0.25));
         R.push({n:"Modified Sgarbossa (Smith)",hit:c1.length>0||c2.length>0||c3.length>0,why:[c1.length?"concordant STE "+c1.map(k=>k+" "+jv(k)).join(", ")+" (upright QRS)":"",c2.length?"concordant STD "+c2.map(k=>k+" "+jv(k)).join(", ")+" (negative QRS)":"",c3.length?"ST/S ≥25% "+c3.map(k=>k+" "+jv(k)+"/S "+qm(k)).join(", "):""].filter(Boolean).join("; "),look:named("sgarbossa"),noBlock:true,needNamed:true,sgb:true});}
       // Precordial swirl
-      R.push({n:"Precordial swirl",hit:(has("V1",x=>x>=1)||has("V2",x=>x>=1))&&(has("V5",x=>x<=-0.5)||has("V6",x=>x<=-0.5)),why:"STE V1 "+J("V1")+" / V2 "+J("V2")+" with ST depression V5 "+J("V5")+" / V6 "+J("V6"),look:named("swirl"),block:rbbb?"RBBB":null});
+      R.push({n:"Precordial swirl",hit:(has("V1",x=>x>=1)||has("V2",x=>x>=1))&&(has("V5",x=>x<=-0.5)||has("V6",x=>x<=-0.5)),why:"STE V1 "+J("V1")+" / V2 "+J("V2")+" with ST depression V5 "+J("V5")+" / V6 "+J("V6"),look:named("swirl"),block:rbbb?"RBBB":null,
+        small:{keys:["V1","V2","V5","V6"],strong:Math.min(J("V5")??0,J("V6")??0)<=-1,need:"ST depression ≥1 mm in V5 or V6"}});
       // Northern OMI
       {const negT=k=>tv(k)==="inverted";const inf=["II","III","aVF"].filter(k=>has(k,x=>x<=-0.5)&&!negT(k));const lat=["V4","V5","V6"].filter(k=>has(k,x=>x<=-0.5)&&!negT(k));
-        R.push({n:"Northern OMI",hit:has("aVR",x=>x>=0.5)&&has("aVL",x=>x>=0.5)&&negT("aVR")&&negT("aVL")&&inf.length>0&&lat.length>0,why:"STE aVR "+J("aVR")+" & aVL "+J("aVL")+" with negative T, ST depression "+inf.concat(lat).join(", "),look:named("northern")});}
+        R.push({n:"Northern OMI",hit:has("aVR",x=>x>=0.5)&&has("aVL",x=>x>=0.5)&&negT("aVR")&&negT("aVL")&&inf.length>0&&lat.length>0,why:"STE aVR "+J("aVR")+" & aVL "+J("aVL")+" with negative T, ST depression "+inf.concat(lat).join(", "),look:named("northern"),
+          small:{keys:["aVR","aVL"].concat(inf,lat),strong:Math.max(J("aVR")??0,J("aVL")??0)>=1,need:"aVR or aVL ≥1 mm"}});}
 
-      let any=false;r.omi=[];
+      let any=false;r.omi=[];r.cands=[];r.smallOpen=false;
+      const others=new Set(Array.isArray(d._votesOther)?d._votesOther:[]);
+      R.forEach(x=>{if(x.hit&&x.look)r.cands.push(x.n);});
       R.forEach(x=>{
         const blocker=x.noBlock?null:(lbbb?"LBBB / paced rhythm":lvh?"LVH (strain can mimic this)":x.block);
         // In a wide QRS the J-point is hard to place, so modified Sgarbossa from the measurements alone stays "possible"
@@ -2429,10 +2449,19 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
         // Modified Sgarbossa: one read can't confirm it. CONFIRMED only when two reads each found it
         // (Double-check, or the fast read + the automatic second read). Otherwise "possible".
         if(x.sgb){if(x.hit&&x.look)r.sgbCandidate=true;
-          const votes=(x.hit&&x.look?1:0)+(Number(d._sgbVotesOther)||0);
+          const votes=(x.hit&&x.look?1:0)+((Number(d._sgbVotesOther)||0)||(others.has(x.n)?1:0));
           if(x.hit&&x.look&&votes>=2){any=true;r.omi.push({n:x.n,why:x.why+" (found by 2 reads)",confirmed:true});r.checks.push({ok:null,t:"(OMI) "+x.n+" SEEN by 2 reads: "+x.why+"."});return;}
           if(x.hit&&x.look){any=true;const why=x.why+". Found by one read only: check these leads on the paper and discuss with UMOC"+(d._sgbPending?" (a second read is checking it now)":"");r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});return;}
           if(x.look&&!x.hit){r.checks.push({ok:null,t:"(OMI) The AI named "+x.n+", but its own measurements don't show concordant ST or ST/S ≥25%, so it was not used."});return;}}
+        // Patterns built on small changes (0.5 mm parts) (4.5): one photo read can't confirm them. CONFIRMED only if
+        // the AI's own read names it, at least one key lead is clearly changed (≥1 mm), AND a second read agrees
+        // (Double-check or the automatic second read) or the key leads come from the monitor's printed STJ.
+        if(x.small&&x.hit&&!blocker){const exactAll=x.small.keys.every(k=>r.exact&&r.exact(k));const twice=others.has(x.n);
+          if(x.look&&x.small.strong&&(twice||exactAll)){any=true;r.omi.push({n:x.n,why:x.why+(twice?" (found by 2 reads)":" (monitor STJ)"),confirmed:true});r.checks.push({ok:null,t:"(OMI) "+x.n+" SEEN: "+x.why+"."});return;}
+          const miss=[!x.look?"the AI's overall read did not name it":"",!x.small.strong?"changes are small (needs "+x.small.need+" to confirm)":"",!(twice||exactAll)?"found by one read only":""].filter(Boolean);
+          if(x.look&&x.small.strong&&!(twice||exactAll))r.smallOpen=true;
+          any=true;const why=x.why+". Not confirmed: "+miss.join("; ")+". Check "+x.small.keys.join(", ")+" on the paper and discuss with UMOC";
+          r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});return;}
         if(x.hit&&x.needNamed&&!x.look){any=true;const why="measurements suggest "+x.why+", but the AI's overall read did not see it. In a wide QRS the J-point is hard to place: check these leads yourself";r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});}
         else if(x.hit&&!blocker){any=true;r.omi.push({n:x.n,why:x.why,confirmed:true});r.checks.push({ok:null,t:"(OMI) "+x.n+" SEEN: "+x.why+"."});}
         else if(x.hit||x.look){any=true;const why=x.hit?blocker+" could explain it":"suggested by the AI but not confirmed in every required lead";r.omi.push({n:x.n,why,confirmed:false});r.checks.push({ok:null,t:"(OMI) Possible "+x.n+": "+why+"."});}
@@ -2507,7 +2536,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const ls=st.metLeads&&st.metLeads.length?st.metLeads:LEADS;return !ls.every(k=>isFinite(parseFloat(String(stj[k]??"").replace(",","."))));}
   // Automatic thorough read: (1) NO STEMI but an OMI pattern seen; (2) YES STEMI based only on the photo.
   function needsThorough(d){const st=d.stemi||{};const sgbOpen=!!st.sgbCandidate&&!(st.omi||[]).some(x=>x.confirmed&&/Sgarbossa/.test(x.n));
-    return (st.decision==="not_met"&&!!(st.omi&&st.omi.length))||yesFromPhoto(d)||sgbOpen;}
+    return (st.decision==="not_met"&&!!(st.omi&&st.omi.length))||yesFromPhoto(d)||sgbOpen||!!st.smallOpen;}
   // ST elevation claimed only in leads with small complexes is easy to misread from a photo.
   function lowVoltageNote(d){const st=d.stemi||{};if(st.decision!=="met"||!st.metLeads||!st.metLeads.length)return null;const L=d.leads||{};
     const small=st.metLeads.filter(k=>{const q=Number(L[k]&&L[k].qrs_mm)||0;return q>0&&q<=5;});
@@ -2524,7 +2553,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const tim=[];
       const raw=await sample.json(buildPrompt(zz.zoom,"thorough"),{images:zz.imgs,modelTier:"complex",effort:"",signal:me.ctl.signal,cache:false,onTiming:t=>tim.push(t)});
       if(bg!==me||lastReport!==fast)return;
-      const ex=expandCompact(raw);ex._sgbVotesOther=fast.stemi&&fast.stemi.sgbCandidate?1:0;ex._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);if(bg!==me||lastReport!==fast)return;
+      const ex=expandCompact(raw);ex._votesOther=(fast.stemi&&fast.stemi.cands)||[];ex._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);if(bg!==me||lastReport!==fast)return;
       const data=finishRead(ex,"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
       data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};
       if(data._from.decision==="met"&&data.stemi.decision!=="met"){const fl=(fast.stemi.metLeads||[]).join(", ");
@@ -2606,9 +2635,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   }
   // Turn the AI's raw answer(s) into the report (also used when picking up a read after the app was closed).
   // Did this one read, on its own, find modified Sgarbossa (numbers + named)? Used to require 2 reads.
-  function sgbCand(d){try{const c=JSON.parse(JSON.stringify(d));applyMonitorSTJ(c);applyDevice(c);return !!evaluate(c,{age:parseInt($("age").value,10),sex:$("sex").value}).sgbCandidate;}catch(e){return false;}}
+  function readCands(d){try{const c=JSON.parse(JSON.stringify(d));applyMonitorSTJ(c);applyDevice(c);return evaluate(c,{age:parseInt($("age").value,10),sex:$("sex").value}).cands||[];}catch(e){return [];}}
+  function sgbCand(d){return readCands(d).some(n=>/Sgarbossa/.test(n));}
   async function settleReads(raws,mode,t0){let data;
-    if(raws.length>1){const a=applyVisible(expandCompact(raws[0])),b=applyVisible(expandCompact(raws[1]));const va=sgbCand(a),vb=sgbCand(b);data=mergeReads(a,b);data._sgbVotesOther=va&&vb?1:0;
+    if(raws.length>1){const a=applyVisible(expandCompact(raws[0])),b=applyVisible(expandCompact(raws[1]));const ca=readCands(a),cb=readCands(b);data=mergeReads(a,b);data._votesOther=ca.filter(n=>cb.includes(n));
       if(Array.isArray(a.visible_leads)&&Array.isArray(b.visible_leads))data.visible_leads=[...new Set([...(a._vis||[]),...(b._vis||[])])];else data.visible_leads=null;
       data._invented=[...new Set([...(a._invented||[]),...(b._invented||[])])];}else data=expandCompact(raws[0]);
     data._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);
@@ -2694,6 +2724,15 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   async function track(ev,d){try{if(!isNetlify)return;const code=store.get("eqg-code");if(!code)return;const info=await devInfo();
     await fetch("/api/usage",{method:"POST",keepalive:true,headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({dev:devId,name:store.get("eqg-name")||"",info,ev,d:d||{}})});}catch(e){}}
   window.__track=track;
+  // Each phone gives its user's name once (4.3). "Not now" is allowed so a crew is never blocked on a call;
+  // the app asks again the next time it is opened.
+  function askName(){if(!isNetlify||store.get("eqg-name")||openSheet||busy)return;
+    $("nameInput").value="";$("nameErr").textContent="";sheetOpen("nameSheet");setTimeout(()=>$("nameInput").focus(),60);}
+  $("nameSave").onclick=()=>{const n=$("nameInput").value.trim().replace(/\s+/g," ");
+    if(n.length<2){$("nameErr").textContent="Enter a name or nickname, or tap Not now.";return;}
+    store.set("eqg-name",n.slice(0,40));sheetClose();track("ping");toast("Thank you, "+n.split(" ")[0]+".");};
+  $("nameLater").onclick=()=>sheetClose();
+  $("nameInput").onkeydown=e=>{if(e.key==="Enter")$("nameSave").click();};
   let hiddenAt=0;
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")hiddenAt=Date.now();else{if(hiddenAt&&Date.now()-hiddenAt>60000)track("back");hiddenAt=0;}});
   setInterval(()=>{if(document.visibilityState==="visible")track("ping");},120000);
@@ -2794,6 +2833,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
         }else{
           if(j>=thr(k))cls+=" ste";else if(j<=-0.5)cls+=" std";else if(j>0)cls+=" sub";
           if(k==="V2"||k==="V3"||j>0)badge="needs ≥"+thr(k);
+          if(o.stj_exact&&j<thr(k)&&j>=thr(k)-0.1){badge="just below ≥"+thr(k);bcls="need nearb";}
         }}
       const tx=tExpected(d,k);const tAbn=j!==null&&["inverted","biphasic","hyperacute"].includes(t)&&!tx;
       if(o.stj_check)cls+=" stjchk";
@@ -2864,6 +2904,18 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"4.5",d:"9 Oct 2026",t:"Stricter OMI patterns with small changes",i:[
+      "Fix: South African flag showed CONFIRMED with only 0.5 mm changes (I +0.5, aVL +0.5, III −0.5) from one photo read; another phone's photo of the same ECG didn't show it.",
+      "South African flag, Aslanger, precordial swirl and Northern OMI are only CONFIRMED when: the AI's own read names the pattern, a key lead is clearly changed (≥1 mm), and a second read agrees (Double-check or the automatic second read) or the values come from the monitor's printed STJ.",
+      "Otherwise they show '? Possible', with the reason and the leads to check on the paper.",
+      "When one of these patterns is found by one read only, the second read starts automatically to check it."]},
+    {v:"4.4",d:"9 Oct 2026",t:"Exact monitor STJ values",i:[
+      "Fix: the monitor's printed STJ numbers were rounded to the nearest 0.5 mm, so 0.98 mm showed as +1 mm and counted as meeting ≥1 mm. They are now used exactly (0.98 stays 0.98 and does not meet ≥1).",
+      "Values read from the photo are still rounded to 0.5 mm (a photo can't be read more finely).",
+      "A monitor value within 0.1 mm below the threshold shows a yellow 'just below ≥1' badge in the lead grid.",
+      "If that happens in contiguous leads, the result is 'Borderline ST elevation (monitor STJ)': not met by the numbers; reassess, repeat the 12-lead, and discuss with UMOC if symptoms suggest ischaemia."]},
+    {v:"4.3",d:"9 Oct 2026",t:"Your name on this phone",i:[
+      "The app asks once for your name or nickname, so we can improve the app for the team. It's saved on this phone. 'Not now' is always possible, so it never holds up a call."]},
     {v:"4.2",d:"9 Oct 2026",t:"Small improvements",i:[
       "Behind-the-scenes improvements and a tidier Settings page."]},
     {v:"4.0",d:"9 Oct 2026",t:"Safer modified Sgarbossa, faster first read",i:[

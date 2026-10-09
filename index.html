@@ -390,6 +390,10 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .omi-hit-top b{font-size:1.05rem;font-weight:900;color:#3A2A00}
 .omi-tag{background:#C3283A;color:#fff;font-size:.68rem;font-weight:900;letter-spacing:.04em;border-radius:6px;padding:2px 7px}
 .omi-hit p{margin:4px 0 0!important;font-weight:600;color:#3A2A00}
+.omi-hit.poss{background:#FFFDF4;border:2px dashed #C27C00;border-left:7px solid #C27C00;box-shadow:none}
+.omi-hit.poss .omi-hit-top b{font-size:.98rem}
+.omi-hit.poss p{font-weight:500!important;font-size:.84rem}
+.omi-tag.poss{background:#C27C00;color:#fff}
 .omi-poss{margin-top:10px;opacity:.78}
 .omi-poss-h{margin:0!important;font-size:.8rem;font-weight:700}
 .omi-poss ul{margin-top:2px!important;font-size:.85rem}
@@ -2372,6 +2376,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     {v:"3.1",d:"9 Oct 2026",t:"Clearer options",i:[
       "'STEMI on the monitor?' redrawn as a call card: red phone icon, the UMOC number, and a Call button.",
       "'⚠ check paper' is now a yellow badge, readable on red boxes too.",
+      "Possible OMI patterns now get their own box too (dashed, '? POSSIBLE · NOT CONFIRMED' tag); confirmed ones keep the red CONFIRMED tag.",
       "Double-check now sits in its own 'Accuracy' box, separate from the 'Patient device' box with Pacemaker and ICD.",
       "Each box has a short explanation underneath.",
       "'Age and sex required' redrawn as a clean card in the app's style (person icon, arrow), replacing the red stamp.",
@@ -2507,7 +2512,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       // Confirmed patterns are highlighted; possible ones are listed quietly underneath.
       conf.forEach(x=>{const h=el("div","omi-hit");const t=el("div","omi-hit-top");t.appendChild(el("span","omi-tag","✔ CONFIRMED"));t.appendChild(el("b",null,x.n));h.appendChild(t);if(x.why)h.appendChild(el("p",null,x.why));ob.appendChild(h);});
       const poss=st.omi.filter(x=>!x.confirmed);
-      if(poss.length){const pw=el("div","omi-poss");pw.appendChild(el("p","omi-poss-h",conf.length?"Also possible (not confirmed):":"Possible (not confirmed):"));pw.appendChild(list(poss.map(x=>"? "+x.n+(x.why?": "+x.why:""))));ob.appendChild(pw);}
+      poss.forEach(x=>{const h=el("div","omi-hit poss");const t=el("div","omi-hit-top");t.appendChild(el("span","omi-tag poss","? POSSIBLE · NOT CONFIRMED"));t.appendChild(el("b",null,x.n));h.appendChild(t);if(x.why)h.appendChild(el("p",null,x.why));ob.appendChild(h);});
       const a=el("a","call","Call UMOC 02 504 8555 · discuss activation");a.href="tel:+97125048555";a.target="_blank";a.rel="noopener";a.addEventListener("click",()=>toast("Opening dialer: UMOC 02 504 8555"));ob.appendChild(a);
       report.appendChild(ob);}
     {const ns=nextSteps(d);if(ns.length){const x=el("div","xleads");x.appendChild(el("h3",null,"Next ECG steps"));x.appendChild(list(ns));report.appendChild(x);}}

@@ -250,8 +250,9 @@ export default async (req) => {
     max_tokens: 24000,
     // The app asks for "low" on a fast read; the thorough read uses the Netlify setting (default medium).
     // "fast" = the first read. Thinking level is set in Netlify with CLAUDE_FAST_EFFORT (low / medium / high);
-    // default medium (about 20-25 s of reading). The thorough read uses CLAUDE_EFFORT (default medium).
-    output_config: { effort: reqEffort === "fast" ? (LEVELS.includes(env("CLAUDE_FAST_EFFORT")) ? env("CLAUDE_FAST_EFFORT") : "medium") : LEVELS.includes(reqEffort) ? reqEffort : (env("CLAUDE_EFFORT") || "medium") },
+    // default low (about 20-25 s of reading; medium took 30+ s on hard ECGs). Risky results (YES from the photo,
+    // NO with an OMI pattern, modified Sgarbossa) are re-checked by the second read, which uses CLAUDE_EFFORT (default medium).
+    output_config: { effort: reqEffort === "fast" ? (LEVELS.includes(env("CLAUDE_FAST_EFFORT")) ? env("CLAUDE_FAST_EFFORT") : "low") : LEVELS.includes(reqEffort) ? reqEffort : (env("CLAUDE_EFFORT") || "medium") },
     messages: [{ role: "user", content }],
   };
 

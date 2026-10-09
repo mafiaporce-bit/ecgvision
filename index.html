@@ -7,18 +7,18 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
-<meta name="theme-color" content="#1D4B75">
+<meta name="theme-color" content="#1A2430">
 <meta name="color-scheme" content="light only">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --h1:#1D4B75; --h2:#3474AE;
-  --bg:#EDF2F7; --card:#FFFFFF; --field:#E5EDF6; --field-b:#CCDAEA;
-  --ink:#172432; --soft:#5A6878; --line:#DCE4EE; --accent:#1F5E98; --on-accent:#FFFFFF;
+  --h1:#18222D; --h2:#4A6178;
+  --bg:#E7ECF1; --card:#FFFFFF; --field:#EEF2F6; --field-b:#D4DDE6;
+  --ink:#121A23; --soft:#66727E; --line:#E0E6EC; --accent:#2D4963; --on-accent:#FFFFFF;
   --crit:#C3283A; --crit-bg:#FCE6E9; --warn:#9E5E00; --warn-bg:#FFF1D9; --ok:#1F7A55; --ok-bg:#E1F3EA;
-  --shadow:0 2px 10px rgba(23,36,50,.07);
+  --shadow:0 1px 2px rgba(18,26,35,.04),0 10px 28px rgba(18,26,35,.07);
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
@@ -26,7 +26,7 @@
 }
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.45;padding-bottom:84px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;padding-bottom:84px}
 button{font:inherit;color:inherit}
 :focus{outline:none}
 button:focus-visible,a:focus-visible,.btn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
@@ -91,6 +91,23 @@ textarea,.in{width:100%;font:inherit;font-size:.95rem;color:var(--ink);backgroun
 textarea{min-height:64px;resize:vertical}
 .actions{display:flex;gap:10px;margin-top:14px}
 .actions .btn{flex:1}
+/* Glow monitor (photo-2 style): canvas waves with light streaks */
+.ecgstrip.glow{height:74px!important;margin:12px -16px 0!important;background:none!important;border:0!important}
+.ecgstrip.glow canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.rmon.gl{position:relative;overflow:hidden;border-radius:22px;background:#060A10;padding:0;min-height:260px;color:#fff;box-shadow:0 10px 30px rgba(6,10,16,.25)}
+.rmon.gl .rm-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.rmon.gl .rm-top{position:relative;z-index:1;display:flex;justify-content:space-between;padding:14px 16px 0;margin:0;font:500 .7rem/1.2 Inter,system-ui,sans-serif;letter-spacing:.08em;color:rgba(255,255,255,.62)}
+.rmon.gl .rm-top .rm-live{color:rgba(255,255,255,.62)}
+.rmon.gl .rm-top .rm-live::before{display:none}
+.rmon.gl .rm-bot{position:absolute;left:16px;right:44px;bottom:14px;z-index:1}
+.rmon.gl .rm-phase{margin:0;font-family:"Inter Tight",Inter,sans-serif;font-weight:600;font-size:1.3rem;line-height:1.15;letter-spacing:-.02em;color:#fff}
+.rmon.gl .rm-cap{margin:6px 0 0;font-size:.74rem;line-height:1.35;color:rgba(255,255,255,.62)}
+.rmon.gl .rm-orb{position:absolute;right:16px;bottom:18px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.8);z-index:1}
+@media (prefers-reduced-motion:no-preference){.rmon.gl .rm-orb{animation:orb 1.6s ease-in-out infinite}@keyframes orb{50%{opacity:.35}}}
+.rmon.gl.small{min-height:120px;margin:8px 0}
+.rmon.gl.small .rm-bot,.rmon.gl.small .rm-clock{display:none}
+.rmon.gl.small{min-height:130px}
+.rmon.gl.small .rm-phase{font-size:1rem}
 /* Reading monitor (animated ECG sweep while the app reads) */
 .rmon{margin-top:12px;border-radius:16px;background:#07150F;padding:10px 12px 12px;color:#9FF5C4;box-shadow:inset 0 0 0 1px #12402A}
 .rm-top{display:flex;justify-content:space-between;align-items:center;font:700 .72rem/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;color:#3DDC84;margin-bottom:6px}
@@ -147,7 +164,11 @@ textarea{min-height:64px;resize:vertical}
 .lead span{display:block;font-size:.72rem;line-height:1.2;color:var(--soft);overflow-wrap:anywhere}
 .lead.ste{background:var(--crit);border-color:var(--crit)}.lead.ste b,.lead.ste span{color:#fff}
 .lead.std{background:var(--warn-bg);border-color:var(--warn)}.lead.std b,.lead.std span{color:var(--warn)}
-.lead.tw{border-color:var(--accent)}
+.lead.disc{background:#EEF2F6;border:2px dashed #9AA9BA}.lead.disc span.jv{color:#4A5A6C}
+.lead span.need{overflow-wrap:normal;word-break:keep-all}
+.lead span.need.dexp{background:#9AA9BA;color:#fff;font-size:clamp(.54rem,2.5vw,.66rem);padding:2px 3px;letter-spacing:-.01em}
+.lead span.tl.tabn{display:inline-block;margin-top:3px;background:#1F5E98;color:#fff!important;border-radius:6px;padding:1px 5px;font-weight:700;font-style:normal}
+.legend .tkey{display:inline-block;font-style:normal;font-weight:800;font-size:.7rem;background:#1F5E98;color:#fff;border-radius:4px;padding:0 4px;margin-right:4px}
 .lead.sub{background:#F2EAFB;border-color:#7B3FC4}.lead.sub b,.lead.sub span{color:#5B2A99}
 .lead.unclear{opacity:.55}
 .lead span.tok{font-style:italic}
@@ -301,7 +322,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .stamp b{display:block;font-size:1rem}
 .stamp small{display:block;font-size:.75rem;opacity:.85}
 .drop.locked .stamp{display:inline-flex}
-.drop.locked .btn{opacity:.4;pointer-events:none;filter:grayscale(1)}
+.drop.locked .btn{opacity:.4;pointer-events:none;filter:grayscale(1);visibility:hidden}
 .drop.locked>p{opacity:.6}
 
 .imghint{font-size:.8rem;color:var(--soft);margin:10px 0 0}
@@ -548,6 +569,88 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .lx-opts button.no{background:var(--crit);border-color:var(--crit);color:#fff}
 .lx-fb{margin:10px 0 0!important;font-size:.94rem}
 .lx-omi{margin-top:10px}
+
+/* ===== Visual skin (soft steel-blue, glassy cards, Inter fonts). Only colours, borders and fonts: no behaviour. ===== */
+body{letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
+.hero{background:radial-gradient(120% 90% at 85% 0%,rgba(173,196,219,.35) 0%,rgba(173,196,219,0) 55%),linear-gradient(165deg,#141D27 0%,#24323F 45%,#4A6178 100%);border-radius:0 0 36px 36px}
+.brand{font-family:"Inter Tight",Inter,sans-serif;font-weight:700;letter-spacing:-.02em;border:1.5px solid rgba(255,255,255,.45);border-radius:16px;background:rgba(255,255,255,.06);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.brand small{font-family:Inter,sans-serif;font-weight:500;letter-spacing:0;opacity:.75}
+.copy{font-weight:600;letter-spacing:-.01em;opacity:.95}
+.copy i{opacity:.7}
+.icon-btn{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.32);box-shadow:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.back{border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);font-weight:600}
+.subbar h1,.sec-title h2,.card h2,.sheet h2,.head .r,.agedisp b{font-family:"Inter Tight",Inter,sans-serif;letter-spacing:-.025em}
+.subbar h1,.sec-title h2{font-weight:700}
+.card h2,.sheet h2{font-weight:700}
+.card h3{font-family:"Inter Tight",Inter,sans-serif;font-weight:650;letter-spacing:-.015em}
+.card{border-radius:24px;border:1px solid rgba(18,26,35,.06)}
+.field,.thr,.in,textarea,.param{border-radius:14px}
+.field{border:1px solid var(--line);background:var(--field)}
+.field input,.field select{font-weight:600}
+.qa .ic{background:linear-gradient(160deg,#F3F6F9,#E2E9F0);border:1px solid #DCE4EC;color:var(--accent)}
+.qa button{font-weight:600;letter-spacing:-.01em}
+.btn{border-radius:999px;font-weight:600;letter-spacing:-.005em}
+.btn:not(.ghost){background:linear-gradient(160deg,#2D4963,#1C2E40);border-color:#22384D;box-shadow:0 6px 16px rgba(28,46,64,.22)}
+.btn.ghost{border-width:1.5px;background:rgba(255,255,255,.6)}
+.drop{border:1.5px dashed #C9D4DF;border-radius:20px;background:linear-gradient(180deg,rgba(238,242,246,.6),rgba(238,242,246,0))}
+.thumb{border-radius:14px}
+.tog,.devchip{border-width:1.5px;font-weight:600}
+.tog.on,.devchip[aria-pressed="true"]{background:linear-gradient(160deg,#2D4963,#1C2E40);border-color:#22384D}
+.nowait{border-radius:18px}
+.hotline{border-radius:999px;font-family:"Inter Tight",Inter,sans-serif;font-weight:700;letter-spacing:-.01em}
+.stemi,.omibox,.alert,.rhythm{border-radius:24px}
+.stemi .a,.omibox .a,.rhythm .a{font-family:"Inter Tight",Inter,sans-serif;letter-spacing:-.025em}
+.stemi .call,.omibox .call{border-radius:999px}
+.head{background:radial-gradient(120% 120% at 90% 0%,rgba(173,196,219,.35),rgba(173,196,219,0) 60%),linear-gradient(160deg,#18222D,#3E5468)!important;border-radius:24px}
+.pill{border-radius:999px}
+.notice{border-radius:16px;border-left-width:4px}
+.lead{border-radius:14px}
+.sheet{border-radius:28px 28px 0 0}
+.setrow b{font-weight:600}
+.chv{border-radius:16px}
+nav.bottom{background:rgba(255,255,255,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid rgba(18,26,35,.06)}
+nav.bottom button{font-weight:500;letter-spacing:-.01em}
+nav.bottom button[aria-current="page"]{font-weight:700}
+.lx-step,.lx-q{border-radius:24px}
+.lx-n{background:linear-gradient(160deg,#2D4963,#1C2E40)}
+
+/* Options: Accuracy and Patient device as two separate groups */
+.optgrid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:10px;margin-top:14px}
+@media (max-width:345px){.optgrid{grid-template-columns:1fr}}
+.optgrp{background:var(--field);border:1px solid var(--line);border-radius:18px;padding:10px 10px 8px;min-width:0;display:flex;flex-direction:column}
+.optlbl{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 2px 7px}
+.optgrp .optrow{margin:0;display:flex;gap:6px}
+.optgrp .tog{min-height:42px;background:var(--card)}
+.optgrp .dbltog{width:100%}
+.optgrp .optcap{margin:7px 2px 0;font-size:.72rem;line-height:1.3;color:var(--soft)}
+/* Age / sex lock: calm card in the app's style */
+.stamp{border:1px solid rgba(18,26,35,.08)!important;color:var(--ink)!important;background:rgba(255,255,255,.94)!important;border-radius:18px!important;padding:10px 12px 10px 10px!important;gap:12px!important;box-shadow:0 10px 30px rgba(18,26,35,.16)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.stamp .st-ic{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(160deg,#2D4963,#1C2E40);color:#fff}
+.stamp .st-ic svg{width:20px;height:20px}
+.stamp .st-tx b{display:block;font-family:"Inter Tight",Inter,sans-serif;font-size:.98rem;font-weight:700;letter-spacing:-.015em;color:var(--ink)}
+.stamp .st-tx small{display:block;font-size:.76rem;color:var(--soft);opacity:1;margin-top:1px}
+.stamp .st-chev{width:18px!important;height:18px!important;color:var(--soft)}
+
+/* "STEMI on the monitor?" call card */
+.nowait{display:flex!important;align-items:center;gap:12px;margin-top:14px;padding:10px 10px 10px 10px!important;border-radius:18px!important;border:1px solid rgba(195,40,58,.22)!important;background:linear-gradient(160deg,#FFF5F6,#FCE9EC)!important;color:var(--ink)!important;text-decoration:none;box-shadow:0 6px 18px rgba(195,40,58,.10)}
+.nowait .nw-ic{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(160deg,#D8394C,#A81F31);color:#fff;box-shadow:0 4px 10px rgba(195,40,58,.3)}
+.nowait .nw-ic svg{width:18px;height:18px}
+.nowait .nw-tx{flex:1;min-width:0}
+.nowait .nw-tx b{display:block;font-family:"Inter Tight",Inter,sans-serif;font-size:.95rem;line-height:1.2;font-weight:700;letter-spacing:-.015em;color:#A81F31}
+.nowait .nw-tx small{display:block;font-size:.76rem;line-height:1.3;color:var(--soft);margin-top:2px}
+.nowait .nw-tx small strong{color:var(--ink);font-weight:700;white-space:nowrap}
+@media (max-width:370px){.nowait{gap:10px}.nowait .nw-num{padding:8px 11px;font-size:.8rem}.nowait .nw-ic{width:34px;height:34px}}
+.nowait .nw-num{flex:none;font-family:"Inter Tight",Inter,sans-serif;font-weight:700;font-size:.85rem;color:#fff;background:linear-gradient(160deg,#D8394C,#A81F31);border-radius:999px;padding:9px 15px;white-space:nowrap;box-shadow:0 4px 10px rgba(195,40,58,.25)}
+
+/* Compact photo box (about 70% of the old height) */
+.drop{padding:10px 12px 10px!important;border-radius:18px}
+.drop>p:first-child{font-size:.76rem;line-height:1.35;margin:0 0 8px}
+.drop .btn-row{gap:8px}
+.drop .btn-row .btn{min-height:40px;padding:0 16px;font-size:.92rem}
+.drop .imghint{font-size:.7rem;line-height:1.3;margin:7px 0 0}
+.drop .thumbs{margin-top:8px;gap:8px}
+.drop .thumb{width:92px;height:64px}
+.drop.locked .btn-row{min-height:66px}
 </style>
 </head>
 <body>
@@ -565,9 +668,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
         </button>
       </div>
     </div>
-    <div class="ecgstrip" id="ecgStrip" aria-hidden="true">
-      <svg id="stripSvg" preserveAspectRatio="xMinYMid meet"></svg>
-      <div class="strip-legend"><span><i class="n"></i>Sinus rhythm</span><span><i class="s"></i>STEMI</span></div>
+    <div class="ecgstrip glow" id="ecgStrip" aria-hidden="true">
+      <canvas id="stripCv"></canvas>
     </div>
     <div class="subbar" id="subBar" hidden>
       <button class="back" id="backBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Back</button>
@@ -606,7 +708,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     <div class="drop" id="drop">
       <p>Lay the tracing flat, fill the frame, avoid glare. Keep lead labels and the calibration pulse in view.</p>
       <div class="btn-row">
-        <button type="button" class="stamp" id="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span><b>Age and sex required</b><small>Tap to enter patient details</small></span></button>
+        <button type="button" class="stamp" id="stamp"><span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg></span><span class="st-tx"><b>Age and sex required</b><small>Tap to enter patient details</small></span><svg class="st-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
         <button type="button" class="btn" id="camBtn">Take photo</button><input type="file" id="camInput" accept="image/*" capture="environment" hidden>
         <label class="btn ghost">Choose file<input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
       </div>
@@ -615,13 +717,22 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
       <label class="samept" id="samePt" hidden><input type="checkbox" id="samePtChk"><span>I confirm all photos are from <b>this one patient</b></span></label>
     </div>
     <textarea id="notes" hidden></textarea>
-    <div class="optrow" role="group" aria-label="Read options">
-      <label class="tog dbltog"><input type="checkbox" id="dblChk" class="vh"><span>Double‑check</span></label>
-      <button type="button" class="tog devchip" data-dev="Pacemaker" aria-pressed="false">Pacemaker</button>
-      <button type="button" class="tog devchip" data-dev="ICD" aria-pressed="false">ICD</button>
+    <div class="optgrid">
+      <div class="optgrp" role="group" aria-label="Accuracy">
+        <div class="optlbl">Accuracy</div>
+        <label class="tog dbltog"><input type="checkbox" id="dblChk" class="vh"><span>Double‑check</span></label>
+        <p class="optcap">2 independent reads compared. About 2× cost.</p>
+      </div>
+      <div class="optgrp" role="group" aria-label="Patient device">
+        <div class="optlbl">Patient device</div>
+        <div class="optrow">
+          <button type="button" class="tog devchip" data-dev="Pacemaker" aria-pressed="false">Pacemaker</button>
+          <button type="button" class="tog devchip" data-dev="ICD" aria-pressed="false">ICD</button>
+        </div>
+        <p class="optcap">Tap only if the patient has one.</p>
+      </div>
     </div>
-    <p class="optcap"><b>Double‑check</b>: 2 reads, about 2× cost. Tap <b>Pacemaker</b> or <b>ICD</b> if the patient has one.</p>
-    <a class="nowait" href="tel:+97125048555" target="_blank" rel="noopener" data-call><b>STEMI on the monitor? Call UMOC now.</b> Don't wait for this app. 📞 02 504 8555</a>
+    <a class="nowait" href="tel:+97125048555" target="_blank" rel="noopener" data-call aria-label="STEMI on the monitor? Call UMOC now on 02 504 8555. Don't wait for this app."><span class="nw-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></span><span class="nw-tx"><b>STEMI on the monitor?</b><small>Call UMOC now: <strong>02 504 8555</strong></small><small>Don't wait for this app.</small></span><span class="nw-num">Call</span></a>
     <div class="actions">
       <button class="btn" id="analyzeBtn" disabled>Analyze ECG</button>
       <button class="btn ghost" id="stopBtn" hidden>Stop</button>
@@ -1025,7 +1136,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="2.8";
+  const APP_VERSION="3.1";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -1083,7 +1194,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
     $("subTitle").textContent=pages[p];
     const tab=navMap[p]||p;
     document.querySelectorAll("nav.bottom button").forEach(b=>b.dataset.go===tab?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
-    current=p;window.scrollTo({top:0});if(p==="learning")loadLearning();if(p==="learnecg"&&window.__learnShow)window.__learnShow();
+    current=p;window.scrollTo({top:0});window.__glowKick&&window.__glowKick();if(p==="learning")loadLearning();if(p==="learnecg"&&window.__learnShow)window.__learnShow();
   }
   function go(p){if(p===current)return;hist.push(current);show(p);}
   window.goPage=p=>go(p);
@@ -1095,18 +1206,70 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 
 
 
-  // ---------- Header ECG strip: sinus -> STEMI ----------
-  (function(){
-    const y=45,BW=110;
-    const nb=x=>`M${x} ${y} L${x+14} ${y} Q${x+20} ${y-8} ${x+26} ${y} L${x+34} ${y} L${x+37} ${y+4} L${x+41} ${y-38} L${x+45} ${y+12} L${x+48} ${y} L${x+60} ${y} Q${x+71} ${y-22} ${x+82} ${y} L${x+BW} ${y}`;
-    const sb=x=>`M${x} ${y} L${x+14} ${y} Q${x+20} ${y-8} ${x+26} ${y} L${x+34} ${y} L${x+37} ${y+4} L${x+41} ${y-38} L${x+45} ${y-8} L${x+47} ${y-18} C${x+55} ${y-36} ${x+72} ${y-34} ${x+82} ${y} L${x+BW} ${y}`;
-    const sf=x=>`M${x+47} ${y} L${x+47} ${y-18} C${x+55} ${y-36} ${x+72} ${y-34} ${x+82} ${y} Z`;
-    let n="",st="",f="";const per=8,W=per*BW;
-    for(let c=0;c<2;c++)for(let i=0;i<per;i++){const x=c*W+i*BW;if(i<4)n+=nb(x);else{st+=sb(x);f+=sf(x);}}
-    const svg=$("stripSvg");svg.setAttribute("viewBox",`0 4 ${2*W} 58`);
-    svg.innerHTML=`<path class="stf" d="${f}"/><path class="nrm" d="${n}"/><path class="stm" d="${st}"/>`;
-  })();
-
+  // ---------- Glow waves: header ECG strip (blue sinus -> red STEMI) and the reading monitor ----------
+  // Canvas drawing: soft vertical light streaks, a glowing line, and a cursor with a dot and a label.
+  const GW={blue:[104,172,255],red:[255,62,82]},glows=new Set();let glowRun=false;
+  const reducedMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+  const mixc=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+  function glowAttach(cv,o){const g={cv,ctx:cv.getContext("2d"),o,t0:performance.now(),mix:0,bars:null,bw:0,last:0};glows.add(g);glowKick();return g;}
+  function glowKick(){if(glowRun)return;glowRun=true;requestAnimationFrame(glowLoop);}
+  window.__glowKick=glowKick;
+  function glowLoop(now){
+    let live=false;
+    glows.forEach(g=>{if(!g.cv.isConnected){glows.delete(g);return;}live=true;
+      if(now-g.last<32)return;const w=g.cv.clientWidth,h=g.cv.clientHeight;if(!w||!h)return;g.last=now;glowDraw(g,now,w,h);});
+    if(live&&!reducedMotion())requestAnimationFrame(glowLoop);else{glowRun=false;if(live)glows.forEach(g=>{const w=g.cv.clientWidth,h=g.cv.clientHeight;if(w&&h)glowDraw(g,performance.now(),w,h);});}
+  }
+  // ECG beat shape for the header (y offset as a fraction of height; negative = up). e = ST elevation 0..1
+  function ecgV(u,e){
+    const L=(a,b,ya,yb)=>ya+(yb-ya)*(u-a)/(b-a);
+    if(u>=10&&u<24)return -0.07*Math.sin(Math.PI*(u-10)/14);
+    if(u>=30&&u<33)return L(30,33,0,0.05);
+    if(u>=33&&u<37)return L(33,37,0.05,-0.5);
+    if(u>=37&&u<41)return L(37,41,-0.5,0.14);
+    if(u>=41&&u<44)return L(41,44,0.14,-0.24*e);
+    if(u>=44&&u<56)return -0.24*e-0.05*e*Math.sin(Math.PI*(u-44)/12);
+    if(u>=56&&u<80){const k=(u-56)/24;return -0.24*e*(1-k)-(0.17+0.07*e)*Math.sin(Math.PI*k);}
+    return 0;
+  }
+  function glowDraw(g,now,w,h){
+    const dpr=Math.min(2,window.devicePixelRatio||1),cv=g.cv,x=g.ctx;
+    if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);g.bars=null;}
+    x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
+    const t=(now-g.t0)/1000,o=g.o;
+    // colour: header turns red during the STEMI part of the loop (sinus for 2 s, then STEMI)
+    let target=0;if(o.mode==="ecg"){const c=t%9;target=(c>=2&&c<7.5)?1:0;}
+    g.mix+=(target-g.mix)*0.09;const col=mixc(GW.blue,GW.red,g.mix);
+    // light streaks
+    if(!g.bars||g.bw!==w){g.bw=w;g.bars=[];let bx=0;while(bx<w){const bw=6+Math.random()*24;g.bars.push({x:bx+bw/2,w:bw,a:.05+Math.random()*.2,sp:.3+Math.random()*.9,ph:Math.random()*6.28});bx+=bw*(0.7+Math.random()*0.8);}}
+    if(o.bg){const bgr=x.createLinearGradient(0,0,0,h);bgr.addColorStop(0,o.bg[0]);bgr.addColorStop(1,o.bg[1]);x.fillStyle=bgr;x.fillRect(0,0,w,h);}
+    x.globalCompositeOperation="lighter";
+    const cy=h*(o.cy||(o.mode==="ecg"?0.58:0.5));
+    g.bars.forEach(b=>{const a=b.a*(0.65+0.35*Math.sin(t*b.sp+b.ph))*(o.barBoost||1);const gr=x.createLinearGradient(0,0,0,h);
+      gr.addColorStop(0,rgba(col,0));gr.addColorStop(Math.max(0.05,cy/h-0.3),rgba(col,a*0.35));gr.addColorStop(cy/h,rgba(col,a));gr.addColorStop(Math.min(0.95,cy/h+0.3),rgba(col,a*0.35));gr.addColorStop(1,rgba(col,0));
+      x.fillStyle=gr;x.fillRect(b.x-b.w/2,0,b.w,h);});
+    x.globalCompositeOperation="source-over";
+    // the wave
+    const yAt=o.mode==="ecg"
+      ?(px=>{const P=120,u=(((px+t*70)%P)+P)%P;return cy+ecgV(u,g.mix)*h;})
+      :(px=>cy+Math.sin((px/w)*Math.PI*2*1.05-t*1.1)*h*(o.amp||0.15)+Math.sin((px/w)*Math.PI*2*0.35+t*0.5)*h*(o.amp||0.15)*0.33);
+    x.beginPath();for(let px=0;px<=w;px+=2){const py=yAt(px);px?x.lineTo(px,py):x.moveTo(px,py);}
+    x.lineJoin="round";x.lineCap="round";
+    x.shadowColor=rgba(col,0.95);x.shadowBlur=18;x.strokeStyle=rgba(col,0.45);x.lineWidth=o.mode==="ecg"?5:7;x.stroke();
+    x.shadowBlur=8;x.strokeStyle="rgba(255,255,255,0.95)";x.lineWidth=o.mode==="ecg"?1.6:2;x.stroke();x.shadowBlur=0;
+    // cursor with dot and label
+    const cx=w*(o.cursor||0.58),dy=yAt(cx),top=o.mode==="ecg"?6:h*(o.ctop||0.16),bot=o.mode==="ecg"?h-6:h*(o.cbot||0.84);
+    x.strokeStyle="rgba(255,255,255,0.75)";x.lineWidth=1.2;x.beginPath();x.moveTo(cx,top);x.lineTo(cx,bot);x.stroke();
+    x.fillStyle="rgba(255,255,255,0.9)";[top,bot].forEach(yy=>{x.beginPath();x.arc(cx,yy,2.2,0,6.29);x.fill();});
+    x.shadowColor=rgba(col,1);x.shadowBlur=14;x.fillStyle="#fff";x.beginPath();x.arc(cx,dy,o.mode==="ecg"?3.6:5,0,6.29);x.fill();x.shadowBlur=0;
+    const lab=o.label?o.label(g):null;
+    if(lab){const fs=o.mode==="ecg"?12:16;x.fillStyle="#fff";x.font=`600 ${fs}px Inter, system-ui, sans-serif`;x.textBaseline="top";
+      const lx=cx+10,ly=o.mode==="ecg"?top+2:top+6;x.fillText(lab[0],lx,ly);
+      if(lab[1]){x.font=`500 ${Math.round(fs*0.72)}px Inter, system-ui, sans-serif`;x.fillStyle="rgba(255,255,255,0.78)";x.fillText(lab[1],lx,ly+fs+3);}}
+  }
+  // Header strip: blue sinus for 2 s, then the ST rises and it turns red (STEMI), then back.
+  glowAttach($("stripCv"),{mode:"ecg",cursor:0.62,barBoost:0.8,bg:["rgba(5,9,14,0)","rgba(5,9,14,0.28)"],label:g=>g.mix>0.5?["STEMI","ST elevation"]:["Sinus rhythm","Normal ST"]});
 
   // ---------- Netlify backend (used outside Claude) ----------
   function askCode(){
@@ -1544,26 +1707,17 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
   const drop=$("drop"),thumbs=$("thumbs"),analyzeBtn=$("analyzeBtn"),stopBtn=$("stopBtn"),clearBtn=$("clearBtn"),statusEl=$("status"),report=$("report");
   let files=[],maxCount=5,sample=null,imagesOK=false,ctl=null,busy=false,lastReport=null;
   // ---------- Reading monitor: a green ECG line sweeps across while the app reads ----------
-  const RM_W=320,RM_H=72,RM_P=80;
-  function rmY(x){const u=((x%RM_P)+RM_P)%RM_P;let v=0;const lin=(a,b,ya,yb)=>ya+(yb-ya)*(u-a)/(b-a);
-    if(u>=10&&u<20)v=4*Math.sin(Math.PI*(u-10)/10);else if(u>=26&&u<28)v=lin(26,28,0,-4);else if(u>=28&&u<31)v=lin(28,31,-4,30);
-    else if(u>=31&&u<34)v=lin(31,34,30,-10);else if(u>=34&&u<36)v=lin(34,36,-10,0);else if(u>=44&&u<58)v=7*Math.sin(Math.PI*(u-44)/14);
-    return 46-v;}
-  const RM_D=(()=>{let d="M0 "+rmY(0).toFixed(1);for(let x=1;x<=RM_W;x+=1)d+=" L"+x+" "+rmY(x).toFixed(1);return d;})();
   function makeMonitor(small){
-    const w=el("div","rmon"+(small?" small":""));
-    const top=el("div","rm-top");top.appendChild(el("span","rm-live",small?"THOROUGH READ":"ANALYZING ECG"));const sec=el("span","rm-secs","0 s");top.appendChild(sec);w.appendChild(top);
-    const scr=el("div","rm-scr");scr.innerHTML=`<svg viewBox="0 0 ${RM_W} ${RM_H}" aria-hidden="true"><path class="rm-trace" d="${RM_D}"/><rect class="rm-erase" x="-40" y="0" width="22" height="${RM_H}"/><circle class="rm-dot" r="3.2" cx="-10" cy="46"/></svg>`;w.appendChild(scr);
-    if(!small){w.appendChild(el("p","rm-phase","Reading the ECG"));w.appendChild(el("p","rm-cap","A slow or weak internet connection can make the reading take longer. You can switch apps: it keeps reading."));}
-    rmKick();return w;}
-  let rmRun=false;const rmT0=performance.now();
-  function rmKick(){if(rmRun||matchMedia("(prefers-reduced-motion: reduce)").matches)return;rmRun=true;requestAnimationFrame(rmLoop);}
-  function rmLoop(now){
-    const svgs=[...document.querySelectorAll(".rmon svg")].filter(x=>x.getBoundingClientRect().width>0);
-    if(!svgs.length){rmRun=false;return;}
-    const x=((now-rmT0)/2600%1)*RM_W;
-    svgs.forEach(g=>{const r=g.querySelector(".rm-erase"),c=g.querySelector(".rm-dot");r.setAttribute("x",(x+4).toFixed(1));c.setAttribute("cx",x.toFixed(1));c.setAttribute("cy",rmY(x).toFixed(1));});
-    requestAnimationFrame(rmLoop);}
+    const w=el("div","rmon gl"+(small?" small":""));
+    const cv=document.createElement("canvas");cv.className="rm-cv";w.appendChild(cv);
+    const top=el("div","rm-top");top.appendChild(el("span","rm-live",small?"THOROUGH READ":"ANALYZING ECG"));
+    const now=new Date();top.appendChild(el("span","rm-clock",now.toLocaleDateString("en-GB",{day:"numeric",month:"short"}).toUpperCase()+"  "+now.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})));w.appendChild(top);
+    const sec=el("span","rm-secs","0 s");sec.hidden=true;w.appendChild(sec);
+    const bot=el("div","rm-bot");bot.appendChild(el("p","rm-phase",small?"Deeper read":"Reading the ECG"));
+    if(!small)bot.appendChild(el("p","rm-cap","A slow or weak internet connection can make the reading take longer. You can switch apps: it keeps reading."));
+    w.appendChild(bot);w.appendChild(el("span","rm-orb"));
+    glowAttach(cv,small?{mode:"sine",cursor:0.62,cy:0.64,amp:0.11,ctop:0.34,cbot:0.92,barBoost:1.6,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s","thorough read"]}:{mode:"sine",cursor:0.62,cy:0.38,amp:0.12,ctop:0.13,cbot:0.6,barBoost:1.7,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s",small?"thorough read":"elapsed"]});
+    return w;}
   let mon=null;
   function monStart(){const h=$("readMon");h.textContent="";mon=makeMonitor(false);h.appendChild(mon);h.hidden=false;statusEl.hidden=true;}
   function monUpdate(phase,secs){if(!mon)return;mon.querySelector(".rm-phase").textContent=phase;mon.querySelector(".rm-secs").textContent=secs+" s";}
@@ -2114,6 +2268,7 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
     const L=d.leads||{},t=S(L[k]&&L[k].t).toLowerCase();if(t!=="inverted"&&t!=="biphasic")return "";
     const bbb=S((d.conduction||{}).bbb);
     if(k==="aVR"&&t==="inverted")return "normal in aVR";
+    if(/LBBB|paced/i.test(bbb)&&S(L[k]&&L[k].qrs).toLowerCase()==="positive")return /paced/i.test(bbb)?"expected with paced rhythm":"expected with LBBB";
     if(/RBBB|bifascicular/i.test(bbb)&&["V1","V2","V3"].includes(k))return "expected with RBBB";
     if(k==="V1"&&t==="inverted")return "can be normal in V1";
     if(k==="III"&&t==="inverted"&&!/inverted|biphasic/.test(S(L.aVF&&L.aVF.t)))return "can be normal in III alone";
@@ -2122,29 +2277,48 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
   function leadMap(d){
     const r=d.stemi||{},J=r.J||(()=>null),thr=r.thr||(()=>1),L=d.leads||{};
     const order=["I","aVR","V1","V4","II","aVL","V2","V5","III","aVF","V3","V6"];
+    const bbb=S((d.conduction||{}).bbb);
+    // LBBB / paced: the standard mm thresholds don't apply. ST normally goes the OPPOSITE way to the QRS
+    // ("discordant", expected). Only concordant ST, or ST/S ≥25%, is highlighted (modified Sgarbossa).
+    const lb=/LBBB|paced/i.test(bbb);
     const wrap=el("div");const g=el("div","leadmap");
     order.forEach(k=>{
-      const o=L[k]||{},j=J(k),t=S(o.t).toLowerCase();
-      let cls="lead",line;
+      const o=L[k]||{},j=J(k),t=S(o.t).toLowerCase(),qp=S(o.qrs).toLowerCase(),qm=Number(o.qrs_mm)||0;
+      let cls="lead",line,badge=null,bcls="need";
       if(j===null){cls+=" unclear";line="not in photo";}
-      else if(j>=thr(k)){cls+=" ste";line="+"+j+" mm";}
-      else if(j<=-0.5){cls+=" std";line="−"+Math.abs(j)+" mm";}
-      else{line=(j>0?"+":"")+j+" mm";if(j>0)cls+=" sub";}
-      const tx=tExpected(d,k);
-      if(j!==null&&["inverted","biphasic","hyperacute"].includes(t)&&!tx)cls+=" tw";
+      else{line=(j>0?"+":j<0?"−":"")+Math.abs(j)+" mm";
+        if(lb){
+          const conc=(qp==="positive"&&j>=1)||(qp==="negative"&&j<=-1&&["V1","V2","V3"].includes(k));
+          const exc=qp==="negative"&&j>=1&&qm>0&&j/qm>=0.25;
+          const disc=(qp==="positive"&&j<0)||(qp==="negative"&&j>0);
+          if(conc){cls+=j>0?" ste":" std";badge="concordant";}
+          else if(exc){cls+=" ste";badge="ST/S ≥25%";}
+          else if(disc&&Math.abs(j)>=0.5){cls+=" disc";badge="expected";bcls="need dexp";}
+        }else{
+          if(j>=thr(k))cls+=" ste";else if(j<=-0.5)cls+=" std";else if(j>0)cls+=" sub";
+          if(k==="V2"||k==="V3"||j>0)badge="needs ≥"+thr(k);
+        }}
+      const tx=tExpected(d,k);const tAbn=j!==null&&["inverted","biphasic","hyperacute"].includes(t)&&!tx;
       if(o.stj_check)cls+=" stjchk";
-      const box=el("div",cls);box.appendChild(el("b",null,k));if(j===null)box.appendChild(el("span",null,line));else{const jv=el("span","jv",line.replace(" mm",""));jv.appendChild(el("small",null," mm"));box.appendChild(jv);}
-      if(j!==null&&(k==="V2"||k==="V3"||j>0))box.appendChild(el("span","need","needs ≥"+thr(k)));
-      if(j!==null&&t&&t!=="upright"&&t!=="unclear"){const sp=el("span",tx?"tl tok":"tl","T "+t+(tx?(/RBBB/.test(tx)?" (RBBB)":" (normal)"):""));if(tx)sp.title=tx;box.appendChild(sp);}
+      const box=el("div",cls);box.appendChild(el("b",null,k));
+      if(j===null)box.appendChild(el("span",null,line));else{const jv=el("span","jv",line.replace(" mm",""));jv.appendChild(el("small",null," mm"));box.appendChild(jv);}
+      if(badge)box.appendChild(el("span",bcls,badge));
+      if(j!==null&&t&&t!=="upright"&&t!=="unclear"){
+        const tag=tx?(/RBBB/.test(tx)?" (RBBB)":/LBBB/.test(tx)?" (LBBB)":/paced/.test(tx)?" (paced)":" (normal)"):"";
+        const sp=el("span",tAbn?"tl tabn":tx?"tl tok":"tl","T "+t+tag);if(tx)sp.title=tx;box.appendChild(sp);}
       if(o.stj_check)box.appendChild(el("span","chkline","⚠ check paper"));
       if(o.note)box.title=S(o.note);
       g.appendChild(box);
     });
     wrap.appendChild(g);
     const lg=el("div","legend");
-    [["var(--crit)","Meets threshold"],["#7B3FC4","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--accent)","Abnormal T wave"],["var(--field-b)","Normal / not in photo"]].forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
+    const items=lb?[["var(--crit)","Concordant ST or ST/S ≥25% (Sgarbossa)"],["#9AA9BA","Discordant: expected with "+(/paced/i.test(bbb)?"paced rhythm":"LBBB")],["var(--warn)","Concordant ST depression V1–V3"],["var(--field-b)","Normal / not in photo"]]
+      :[["var(--crit)","Meets threshold"],["#7B3FC4","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--field-b)","Normal / not in photo"]];
+    items.forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
+    {const s=el("span");s.append(el("em","tkey","T"),"Blue T label = abnormal T wave");lg.appendChild(s);}
     wrap.appendChild(lg);
-    if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal) or (RBBB) is expected in that lead and is not counted as abnormal."));
+    if(lb)wrap.appendChild(el("p","lbl lnote",(/paced/i.test(bbb)?"Paced rhythm":"LBBB")+": the standard mm thresholds don't apply. ST and T going the opposite way to the QRS is expected; the app checks modified Sgarbossa instead."));
+    if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal), (RBBB) or (LBBB) is expected in that lead and is not counted as abnormal."));
     if(order.some(k=>(L[k]||{}).stj_check))wrap.appendChild(el("p","lbl lnote","⚠ check paper: the printed STJ number may have been misread from the photo. Read it on the paper."));
     const notes=LEADS.filter(k=>L[k]&&L[k].note).map(k=>k+": "+S(L[k].note));
     if(notes.length){const n=list(notes);n.style.marginTop="10px";n.style.fontSize=".88rem";wrap.appendChild(n);}
@@ -2193,6 +2367,24 @@ Where "fl" = [qtc_ms or null, delta_wave, brugada, hyperk, pericarditis, early_r
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"3.1",d:"9 Oct 2026",t:"Clearer options",i:[
+      "'STEMI on the monitor?' redrawn as a call card: red phone icon, the UMOC number, and a Call button.",
+      "Double-check now sits in its own 'Accuracy' box, separate from the 'Patient device' box with Pacemaker and ICD.",
+      "Each box has a short explanation underneath.",
+      "'Age and sex required' redrawn as a clean card in the app's style (person icon, arrow), replacing the red stamp.",
+      "Photo box made more compact (about 70% of its old height)."]},
+    {v:"3.0",d:"9 Oct 2026",t:"New look",i:[
+      "New fonts (Inter / Inter Tight) with tighter, cleaner headings.",
+      "Soft steel-blue colours, glassy header buttons and larger rounded cards.",
+      "Pill-shaped buttons with a deep steel-blue finish; frosted bottom bar.",
+      "Header ECG redrawn as a glowing line with light streaks: blue sinus rhythm, turning red with ST elevation after 2 seconds (STEMI).",
+      "Reading monitor redrawn: glowing blue wave, light streaks, a moving cursor with the elapsed time.",
+      "Thorough-read card uses the same glowing monitor."]},
+    {v:"2.9",d:"9 Oct 2026",t:"Clearer lead grid, LBBB-aware",i:[
+      "Abnormal T wave now shows as a blue 'T' label inside the box, not a blue outline, so box colour means ST only.",
+      "LBBB / paced rhythm: discordant ST changes show grey 'expected' and the mm thresholds are not used.",
+      "LBBB / paced rhythm: only concordant ST or ST/S ≥25% (modified Sgarbossa) is highlighted in the lead grid.",
+      "T inversion opposite an upright QRS in LBBB / paced rhythm is marked (LBBB) and not counted as abnormal."]},
     {v:"2.8",d:"9 Oct 2026",t:"Smarter OMI checks and workbook drawings",i:[
       "Wide QRS (LBBB, paced, RBBB): the AI measures the J-point at the end of the whole QRS, against the baseline.",
       "Modified Sgarbossa is only CONFIRMED when the AI's own read agrees; otherwise 'possible: check these leads yourself'.",

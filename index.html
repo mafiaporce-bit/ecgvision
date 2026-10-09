@@ -1228,7 +1228,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="3.6";
+  const APP_VERSION="3.7";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -1743,10 +1743,19 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     return sx>0?sy/sx:1;
   }
   let rotFile=null,rotImg=null,rotDeg=0,rotQueue=[];
+  // Preview drawn at the phone's real screen sharpness, shrunk in halving steps so the fine ECG grid
+  // doesn't turn into a checkered (moiré) pattern. Preview only: the photo itself is turned at full size.
+  function stepDown(img,tw){let src=img,w=img.width,h=img.height;
+    while(w/2>=tw){const c=document.createElement("canvas");c.width=Math.max(1,Math.round(w/2));c.height=Math.max(1,Math.round(h/2));
+      const x=c.getContext("2d");x.imageSmoothingEnabled=true;x.imageSmoothingQuality="high";x.drawImage(src,0,0,c.width,c.height);src=c;w=c.width;h=c.height;}
+    return src;}
   function rotDraw(){const c=$("rotCanvas"),sw=rotDeg%180!==0;const iw=sw?rotImg.height:rotImg.width,ih=sw?rotImg.width:rotImg.height;
     const maxW=Math.min(window.innerWidth-24,1000),maxH=Math.max(200,window.innerHeight-230),sc=Math.min(maxW/iw,maxH/ih,1);
-    c.width=Math.round(iw*sc);c.height=Math.round(ih*sc);const x=c.getContext("2d");x.save();x.translate(c.width/2,c.height/2);x.rotate(rotDeg*Math.PI/180);
-    x.drawImage(rotImg,-rotImg.width*sc/2,-rotImg.height*sc/2,rotImg.width*sc,rotImg.height*sc);x.restore();}
+    const dpr=Math.min(3,Math.max(1,window.devicePixelRatio||1)),cw=Math.round(iw*sc),ch=Math.round(ih*sc),k=Math.min(1,sc*dpr);
+    c.width=Math.round(iw*k);c.height=Math.round(ih*k);c.style.width=cw+"px";c.style.height=ch+"px";
+    const src=stepDown(rotImg,rotImg.width*k);const x=c.getContext("2d");x.imageSmoothingEnabled=true;x.imageSmoothingQuality="high";
+    x.save();x.translate(c.width/2,c.height/2);x.rotate(rotDeg*Math.PI/180);
+    x.drawImage(src,-rotImg.width*k/2,-rotImg.height*k/2,rotImg.width*k,rotImg.height*k);x.restore();}
   const rotPre=new WeakMap(),ROT_S="The lead names (I, II, V1…) and \"25 mm/s\" should read normally, left to right. A sideways photo can be misread.";
   function rotOpen(f,auto){rotFile=f;rotDeg=auto?(rotPre.get(f)||0):0;const u=URL.createObjectURL(f),img=new Image();
     img.onload=()=>{URL.revokeObjectURL(u);rotImg=img;$("rotT").textContent=auto?(rotDeg?"Check the photo direction":"This photo looks sideways"):"Turn the photo upright";
@@ -1982,7 +1991,8 @@ MEASURE BLIND: you are deliberately NOT told the patient's age, sex, symptoms or
 HOW TO MEASURE (follow exactly, lead by lead):
 0. Identify every lead by its GRID POSITION before measuring. Most printouts are 4 columns x 3 rows: column 1 = I, II, III (top to bottom); column 2 = aVR, aVL, aVF; column 3 = V1, V2, V3; column 4 = V4, V5, V6; a long rhythm strip may run underneath. LIFEPAK and several other monitors print a vertical lead-change marker bar immediately before each label, so "| I" is lead I (NOT II), "| II" is lead II and "| III" is lead III. Never count vertical strokes to name a lead; use the grid position. Photos may show only some pages (e.g. corpuls pages 5-7) or be cut off at the edges.
 0b. ORIENTATION: if a photo is sideways or upside down, first work out which way is UP: the printed text reads normally when upright, and the 1 mV calibration pulse always rises UPWARD. Mentally turn the photo upright before measuring. Reading a trace upside down turns ST depression into elevation, so be certain.
-0c. STRIP PRINTOUTS (e.g. corpuls pages): each page may show only 3 leads in rows, each labelled at the left (e.g. Page 4: I, II, III; Page 5: aVR, aVL, aVF; Page 6: V1-V3; Page 7: V4-V6). Take each lead's name from its own printed label, not from a 4x3 grid.
+0c. STRIP PRINTOUTS (e.g. corpuls pages): each page may show only 3 leads in rows, each labelled at the left. Take each lead's name from its own printed label, not from a 4x3 grid. A photo often shows only SOME pages (for example only the limb leads I, II, III, aVR, aVL, aVF), so the chest leads may simply not be in the photo.
+0d. LEAD INVENTORY FIRST (before measuring anything): list in "vis" every lead whose printed LABEL you can read in the photo AND whose tracing (at least 2 full beats) is in the photo next to that label. A label at the edge of the photo with no tracing, a page that is cut off, or a lead you only expect from the usual layout is NOT visible. Every lead not in "vis" must be null (compact format) or "present": false (full format). NEVER fill in a lead from the layout, from other leads or from the printed interpretation: inventing a lead can trigger a false STEMI activation.
 0d. SMALL OR NOISY COMPLEXES: limb leads are often low voltage (QRS only 2-5 mm). Measure the J-point against the flat TP baseline in at least 3 beats; a wavy or noisy baseline, a P wave or a T wave is NOT ST elevation. If you cannot clearly see the same ELEVATION in most beats, report 0 for that lead. This caution is about false elevation only: ST DEPRESSION that is visible in most beats must always be reported (rule 3b).
 1. Calibration: find the 1 mV calibration pulse and count its height in small boxes (normally 10). Report it as calibration.mm_per_mv. Paper speed is printed (normally 25 mm/s).
 2. Baseline: the TP segment (flat line between end of T and next P). Use the PR segment only if TP is not visible.
@@ -2013,7 +2023,7 @@ RHYTHM: classify the rhythm into "rhythm_class" (one of: sinus, sinus_brady, sin
 
 ${fast?"SPEED MATTERS (a crew is waiting with a patient): answer with the compact format below and nothing else. No prose, no notes, no explanations.":`KEEP IT SHORT (the crew is waiting): every string 12 words or fewer. t_seen 8 words or fewer. Lead "note" only for abnormal leads, otherwise "". evidence at most 4 items, differential at most 3, quality.limitations at most 3, alert.details at most 3. Leave "parameters" notes empty unless essential.`}
 
-${fast?`Reply with ONLY this compact JSON (no markdown, no spaces needed). "L" MUST contain all 12 leads.
+${fast?`Reply with ONLY this compact JSON (no markdown, no spaces needed). "vis" = the leads you can actually see (rule 0d). "L" lists all 12 lead names; every lead NOT in "vis" is null.
 Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead is not visible in the photo:
  j = J-point ST deviation in small boxes on this paper (number, +elevation / -depression, nearest 0.5)
  t = T wave: "u" upright, "i" inverted, "b" biphasic, "h" hyperacute, "f" flat
@@ -2022,6 +2032,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
  s = 1 if an S wave follows the R (0 if not), jw = 1 if a J-point notch/slur is present
  pol = QRS mainly "+" positive, "-" negative or "0" isoelectric; qrsmm = height of the main QRS deflection in small boxes
 {"ok":1,"same":1,"same_why":"","used":"","ser":[],
+"vis":["I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6"],
 "qa":[1,"one short line on quality; lead names you could not read"],"rot":0,
 "cal":10,"speed":25,
 "dx":"rhythm and key measured findings, 12 words max","conf":"h|m|l",
@@ -2038,6 +2049,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
 "same_patient":true,
 "same_patient_reason":"which identifiers matched or conflicted",
 "images_used":"e.g. images 1-3 are pages of one 12-lead",
+"visible_leads":["only the leads whose label AND tracing are in the photo (rule 0d)"],
 "serial_changes":[],
 "quality":{"adequate":true,"summary":"","limitations":[]},
 "rot":0,
@@ -2095,6 +2107,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   function computeConfidence(d){
     let sc=100;const why=[];const st=d.stemi||{};
     const miss=(st.missing||[]);if(miss.length){sc-=35;why.push("Leads not in photo: "+miss.join(", "));}else why.push("All 12 leads visible");
+    if(d._invented&&d._invented.length){sc-=15;why.push("The AI described leads that are not in the photo ("+d._invented.join(", ")+"): less reliable read");}
     const cal=Number(d.calibration&&d.calibration.mm_per_mv);if(!(cal>=3&&cal<=25)){sc-=10;why.push("Calibration pulse not measured");}
     if(d.quality&&d.quality.adequate===false){sc-=20;why.push("Image quality limited");}
     if(/Borderline|Possible|suspected/i.test(S(st.criterion))){sc-=20;why.push("Values near the threshold");}
@@ -2187,7 +2200,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const pa=Array.isArray(c.pa)?c.pa:[];const P={};[["rate",0],["regularity",1],["p_waves",2],["pr",3],["qrs",4],["qt",5],["axis",6]].forEach(([k,i])=>{P[k]={value:S(pa[i]),note:""};});
     const al=Array.isArray(c.al)?c.al:[];const qa=Array.isArray(c.qa)?c.qa:[1,""];
     const pm=c.pm&&typeof c.pm==="object"?c.pm:{};
-    return {is_ecg:c.ok!==0&&c.ok!==false,same_patient:c.same===0||c.same===false?false:(c.same==="u"?"unconfirmed":true),same_patient_reason:S(c.same_why),images_used:S(c.used),serial_changes:Array.isArray(c.ser)?c.ser:[],
+    return {visible_leads:Array.isArray(c.vis)?c.vis:null,is_ecg:c.ok!==0&&c.ok!==false,same_patient:c.same===0||c.same===false?false:(c.same==="u"?"unconfirmed":true),same_patient_reason:S(c.same_why),images_used:S(c.used),serial_changes:Array.isArray(c.ser)?c.ser:[],
       quality:{adequate:!(qa[0]===0||qa[0]===false),summary:S(qa[1]),limitations:[]},_rot:[90,180,270].includes(Number(c.rot))?Number(c.rot):0,
       calibration:{visible:n(c.cal)!==null,mm_per_mv:n(c.cal)||10,paper_speed:(n(c.speed)||25)+" mm/s"},
       primary:{rhythm:S(c.dx),confidence:{h:"high",m:"moderate",l:"low"}[S(c.conf).toLowerCase()]||"moderate",summary:""},
@@ -2379,7 +2392,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     }
     // Incomplete
     const miss=r.missing.filter(k=>k!=="aVR");
-    if(miss.length){r.warnings.unshift("Leads not visible in the photo: "+r.missing.join(", ")+". The decision only covers the leads shown. Photograph the full 12-lead.");}
+    if(miss.length){const chest=["V1","V2","V3","V4","V5","V6"].filter(k=>miss.includes(k)),limb=miss.filter(k=>!chest.includes(k));
+      r.warnings.unshift((chest.length===6?"Chest leads V1–V6 are NOT in this photo":limb.length===5?"Limb leads are NOT in this photo":"Leads not in this photo: "+miss.join(", "))+". The decision only covers the "+(12-r.missing.length)+" leads shown. Add a photo of the missing page(s) and analyze again.");}
+    if(d._invented&&d._invented.length)r.warnings.unshift("The AI gave readings for "+d._invented.join(", ")+", but the lead check found these leads are not in the photo. Those readings were ignored.");
+    r.incomplete=miss.length>=3;
     if(r.decision==="not_met"){r.criterion="No activation criterion met";r.reasoning="Measured J-points are below this patient's thresholds and no enhanced criterion applies."+(miss.length?" Limited to the leads visible in the photo.":"");}
     return r;
   }
@@ -2416,7 +2432,20 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     d._disagree.forEach(t=>{const m=String(t).match(/^(\w+) (J|T) /);if(m&&((m[2]==="J"&&hasStj(m[1]))||(m[2]==="T"&&ax.has(m[1]))))settled.push(t);else keep.push(t);});
     d._disagree=keep;d._settled=settled;
   }
+  // Safety (3.7): a lead the AI says it cannot see never counts, even if it still gave numbers for it.
+  // (A photo of corpuls pages 4-5 once came back with "ST elevation V2-V6" although no chest lead was in the photo.)
+  const LEAD_RE=/^(I{1,3}|aV[RLF]|V[1-6])$/;
+  // Two sources: the reading AI's own list ("vis") and the separate lead check (d._inv). A lead counts only
+  // if every source that answered says it is in the photo.
+  function applyVisible(d){if(!d||!d.leads)return d;d._invented=Array.isArray(d._invented)?d._invented:[];
+    const norm=x=>{const t=String(x||"").trim().replace(/^avr$/i,"aVR").replace(/^avl$/i,"aVL").replace(/^avf$/i,"aVF").replace(/^v(\d)$/i,"V$1");return LEAD_RE.test(t)?t:null;};
+    const lists=[d.visible_leads,d._inv].filter(a=>Array.isArray(a)&&a.length).map(a=>new Set(a.map(norm).filter(Boolean))).filter(x=>x.size);
+    if(!lists.length)return d;const vis=new Set(LEADS.filter(k=>lists.every(x=>x.has(k))));
+    LEADS.forEach(k=>{if(vis.has(k))return;const o=d.leads[k];if(o&&o.present!==false&&typeof o.j_mm==="number"&&!d._invented.includes(k))d._invented.push(k);d.leads[k]={present:false,j_mm:null,note:"not in photo"};});
+    d._vis=[...vis];return d;}
   function finishRead(data,mode,t0){
+    applyVisible(data);
+    if(data._invented&&data._invented.length&&data.primary&&S(data.primary.rhythm))data.primary.rhythm=S(data.primary.rhythm)+" (⚠ "+data._invented.join(", ")+" not in photo: ignored)";
     applyMonitorSTJ(data);applyMonitorAxis(data);settleDisagreements(data);applyDevice(data);data._lowv=null;
     data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._lowv=lowVoltageNote(data);data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
     if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);return data;
@@ -2445,7 +2474,8 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const tim=[];
       const raw=await sample.json(buildPrompt(zz.zoom,"thorough"),{images:zz.imgs,modelTier:"complex",effort:"",signal:me.ctl.signal,cache:false,onTiming:t=>tim.push(t)});
       if(bg!==me||lastReport!==fast)return;
-      const data=finishRead(expandCompact(raw),"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
+      const ex=expandCompact(raw);ex._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);if(bg!==me||lastReport!==fast)return;
+      const data=finishRead(ex,"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
       data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};
       if(data._from.decision==="met"&&data.stemi.decision!=="met"){const fl=(fast.stemi.metLeads||[]).join(", ");
         data.stemi.decision="consult";data.stemi.criterion="Reads disagree on ST elevation";
@@ -2463,6 +2493,19 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const c=document.getElementById("bgCard");if(c){c.textContent="";c.appendChild(el("h3",null,"Thorough read didn't finish"));c.appendChild(el("p","lbl","The fast result above stands. You can try again."));const b=el("button","btn","Run thorough read");b.type="button";b.onclick=()=>runRead("thorough");c.appendChild(b);}
     }
   }
+  // Independent check of which leads are in the photos (3.7). Runs while the photo uploads.
+  let invCache=null;
+  function leadInventory(list){
+    if(!isNetlify)return Promise.resolve(null);
+    if(invCache&&sameFiles(invCache.list,list))return invCache.p;
+    const code=store.get("eqg-code");if(!code)return Promise.resolve(null);
+    const p=(async()=>{try{const images=[];for(const f of list){const img=await loadImg(f);images.push(turnedJpeg(img,0,1400));}
+      const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),30000);
+      try{const r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({leads:true,images}),signal:ctl.signal});
+        if(!r.ok)return null;const j=await r.json().catch(()=>({}));return Array.isArray(j.leads)&&j.leads.length?j.leads:null;}finally{clearTimeout(t);}}
+      catch(e){return null;}})();
+    invCache={list:list.slice(),p};return p;}
+  const withinMs=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
   // Warm the analysis server and prepare the photos before Analyze is tapped.
   let warmed=false;
   function prewarm(){
@@ -2470,6 +2513,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(files.some(f=>orienting.has(f))||!$("rotOv").hidden||rotFile)return; // wait until every photo is the right way up, then upload once
     if(!warmed){warmed=true;fetch("/api/read",{method:"GET",cache:"no-store"}).catch(()=>{});}
     const cur=files.slice(0,maxCount);const code0=store.get("eqg-code");
+    if(code0)leadInventory(cur);
     if(code0&&!sameFiles(upFiles,cur)){upFiles=cur;upErr="";prepping=true;upUI();}
     zoomFor(cur).then(z=>shrinkCached(z.imgs)).then(imgs=>{const c=store.get("eqg-code");if(sameFiles(upFiles,cur))prepping=false;
       if(c&&!busy){const p=uploadImgs(imgs,c);upUI();p.catch(()=>{});}else upUI();}).catch(()=>{if(sameFiles(upFiles,cur)){prepping=false;upUI();}});
@@ -2498,7 +2542,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const tim=[];
       const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"fast":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       let data;
-      if(dbl){const [r1,r2]=await Promise.all([one(),one()]);data=mergeReads(expandCompact(r1),expandCompact(r2));}else data=expandCompact(await one());
+      if(dbl){const [r1,r2]=await Promise.all([one(),one()]);{const a=applyVisible(expandCompact(r1)),b=applyVisible(expandCompact(r2));data=mergeReads(a,b);
+        if(Array.isArray(a.visible_leads)&&Array.isArray(b.visible_leads))data.visible_leads=[...new Set([...(a._vis||[]),...(b._vis||[])])];else data.visible_leads=null;
+        data._invented=[...new Set([...(a._invented||[]),...(b._invented||[])])];}}else data=expandCompact(await one());
+      data._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);
       finishRead(data,mode,t0);const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
       logRead(data);
     }catch(e){
@@ -2628,6 +2675,14 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"3.7",d:"9 Oct 2026",t:"No readings for leads that aren't in the photo",i:[
+      "Fix: a photo of corpuls pages 4–5 (limb leads only) was read as 'ST elevation V2–V6'. The AI had filled in chest leads that were not in the photo.",
+      "The AI must now list which leads it can actually see (label and tracing) before measuring; leads not on that list are never used.",
+      "A separate lead check (two AI models) looks at the photo while it uploads and lists the leads in it. A lead counts only if both the reading and the lead check found it.",
+      "Readings for leads that aren't in the photo are ignored, with a warning, and lower the confidence.",
+      "If 3 or more leads are missing, the result says 'NO in the leads shown — incomplete' and asks for a photo of the missing page; it never shows a plain NO.",
+      "Clear warning when all chest leads (V1–V6) or all limb leads are missing.",
+      "Turn screen preview is now sharp (drawn at the phone's real screen sharpness, without the checkered grid pattern). The photo sent to the AI was always full quality."]},
     {v:"3.6",d:"9 Oct 2026",t:"Camera guide and automatic upright",i:[
       "Bigger camera frame: a tall rectangle that fills most of the screen, so the printout is captured larger.",
       "The camera tells the medic to turn the printout sideways (phone upright), with a yellow '▲ TOP of printout' label on the left edge and a 'BOTTOM' label on the right.",
@@ -2794,7 +2849,8 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const pending=dec==="met"&&d._mode==="fast"&&!!bg&&bg.fast===d&&yesFromPhoto(d);
     const box=el("div","stemi "+dec+(pending?" pending":""));box.setAttribute("role",dec==="met"?"alert":"note");
     box.appendChild(el("p","q","STEMI PPCI criteria met?"));
-    box.appendChild(el("div","a",pending?"Possible STEMI — confirming…":dec==="met"?(d._confirmedYes?"YES — Activate STEMI pathway (confirmed by 2 reads)":"YES — Activate STEMI pathway"):dec==="consult"?"Not fully met — consult UMOC":"NO"));
+    box.appendChild(el("div","a",pending?"Possible STEMI — confirming…":dec==="met"?(d._confirmedYes?"YES — Activate STEMI pathway (confirmed by 2 reads)":"YES — Activate STEMI pathway"):dec==="consult"?"Not fully met — consult UMOC":st.incomplete?"NO in the "+(12-(st.missing||[]).length)+" leads shown — incomplete":"NO"));
+    if(dec!=="met"&&st.incomplete)box.appendChild(el("p","pend","Only "+(12-(st.missing||[]).length)+" of 12 leads are in this photo ("+(st.missing||[]).join(", ")+" missing). Add the missing page and analyze again before ruling out STEMI."));
     if(pending)box.appendChild(el("p","pend",'A second, deeper read is checking this photo (about 45 s). If the monitor\'s own report says STEMI, or the patient is unstable, call UMOC now.'));
     if(d._verifyFailed&&dec==="met")box.appendChild(el("p","pend","The second read didn't finish, so this YES is not double-checked. Check the leads on the paper."));
     if(st.criterion)box.appendChild(el("p",null,S(st.criterion)+(st.territory&&!S(st.criterion).includes(S(st.territory))?" · "+S(st.territory):"")));

@@ -470,6 +470,25 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .cxnav{margin-top:10px}
 .flagline{background:var(--crit-bg);color:var(--crit);border-radius:10px;padding:8px 10px;font-weight:700;font-size:.85rem;margin:0 0 6px}
 
+.usage{overflow-y:auto;gap:10px}
+.us-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.us-top b{display:block;font-size:1.15rem}.us-top span{display:block;font-size:.78rem;opacity:.75}
+.us-top .btn{min-height:40px;padding:0 14px;color:#fff;border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.08)!important;color:#fff!important}
+.us-login p{font-size:.85rem;opacity:.85}.us-login .in{width:100%;margin:6px 0 10px}.us-err{color:#FFB4B4!important}
+.us-body h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin:14px 0 6px}
+.us-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.us-stats div{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 10px}
+.us-stats b{display:block;font-size:1.3rem}.us-stats span{font-size:.7rem;opacity:.75}
+.us-dev{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:9px 10px;margin-bottom:7px}
+.us-dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:5px;background:#5D6B7A}
+.us-dot.on{background:#3DDC84;box-shadow:0 0 0 4px rgba(61,220,132,.2)}
+.us-dev .nm{font-weight:700;font-size:.92rem}.us-dev .mt{font-size:.74rem;opacity:.75;line-height:1.35}
+.us-dev .ed{margin-left:auto;flex:none;border:1px solid rgba(255,255,255,.3);background:none;color:#fff;border-radius:8px;font-size:.72rem;padding:4px 8px;cursor:pointer}
+.us-ev{display:flex;gap:8px;font-size:.78rem;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.07)}
+.us-ev time{flex:none;opacity:.6;font-variant-numeric:tabular-nums}.us-ev b{font-weight:600}
+.us-ev .yes{color:#FF8A8A}.us-ev .con{color:#FFD27A}.us-ev .no{color:#8FE3B0}
+.usagebox{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.usagebox h3{margin:0 0 4px;font-size:1rem}.usagebox .in{width:100%;margin:6px 0}
 .fullov{position:fixed;inset:0;z-index:50;background:#0B1624;color:#fff;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
 .ov-top b{display:block;font-size:1.1rem}
 .ov-top span{display:block;font-size:.82rem;opacity:.85;margin-top:2px}
@@ -1190,6 +1209,15 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     <button type="button" class="btn camshot" id="camShot" aria-label="Capture photo"></button>
   </div>
 </div>
+<div class="fullov usage" id="usageOv" hidden>
+  <div class="us-top"><div><b>Live usage</b><span id="usSub">Which phones are using the app</span></div><button type="button" class="btn ghost" id="usClose">Close</button></div>
+  <div class="us-login" id="usLogin"><p>Enter the admin code (ADMIN_CODE in Netlify) to see the live usage log.</p><input class="in" id="usCode" type="password" autocomplete="off" placeholder="Admin code"><button type="button" class="btn" id="usGo">Open</button><p class="us-err" id="usErr"></p></div>
+  <div class="us-body" id="usBody" hidden>
+    <div class="us-stats" id="usStats"></div>
+    <h3>Phones</h3><div id="usDevs"></div>
+    <h3>Latest activity</h3><div id="usEvs"></div>
+  </div>
+</div>
 <nav class="bottom" aria-label="Main">
   <button data-go="analyze" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2-6 4 12 2-6h8"/></svg>Analyze</button>
   <button data-go="criteria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Criteria</button>
@@ -1202,7 +1230,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="4.0";
+  const APP_VERSION="4.1";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -1290,6 +1318,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const keep=()=>{try{history.pushState({eqg:1},"");}catch(e){}};
     if(openSheet){sheetClose();keep();return;}
     if(ov&&ov.id==="camOv"){$("camCancel").click();keep();return;}
+    if(ov&&ov.id==="usageOv"){usClose();keep();return;}
     if(ov){keep();return;}
     if(current!=="analyze"){back();keep();return;}
     if(window.__inPatient&&window.__inPatient()){keep();toast("Use Home or the app switcher to leave. Your patient and reading are kept.");return;}
@@ -1829,7 +1858,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   // ---------- Guided camera ----------
   let camStream=null;
   function camClose(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}$("camOv").hidden=true;}
-  $("camBtn").onclick=async()=>{
+  $("camBtn").onclick=async()=>{window.__track&&window.__track("camera");
     if(!patientOK()){toast("Enter age and sex first.");return;}
     if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){$("camInput").click();return;}
     try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:3840},height:{ideal:2160}},audio:false});
@@ -1946,7 +1975,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     if(!patientOK()){setStatus("Enter age and sex first.",{err:true});return;}
     const ok=[...list].filter(f=>/^image\//.test(f.type));
     if(!ok.length){setStatus("That file isn't an image. Use a JPEG, PNG or WebP photo.",{err:true});return;}
-    const before=files.length;const added=[];ok.forEach(f=>{if(files.length<maxCount){files.push(f);added.push(f);}});if(added.length)window.__rdQueue(added);if(files.length!==before)$("samePtChk").checked=false;if(ok.length>files.length-before)setStatus("Maximum "+maxCount+" photos per patient. Extra photos were not added.",{err:true});
+    const before=files.length;const added=[];ok.forEach(f=>{if(files.length<maxCount){files.push(f);added.push(f);}});if(added.length){window.__rdQueue(added);window.__track&&window.__track("photo");}if(files.length!==before)$("samePtChk").checked=false;if(ok.length>files.length-before)setStatus("Maximum "+maxCount+" photos per patient. Extra photos were not added.",{err:true});
     renderThumbs();refresh();if(sample&&imagesOK&&files.length>1&&!$("samePtChk").checked)setStatus("Confirm all photos are from this one patient.");else if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");
   }
   function renderThumbs(){sessPhotos();thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};const rb=document.createElement("button");rb.type="button";rb.className="rot";rb.textContent="↻";rb.setAttribute("aria-label","Turn image "+(i+1));rb.onclick=()=>window.__rotOpen(f);d.append(img,b,rb);if(window.__autoTurned(f)){const tb=document.createElement("span");tb.className="turned";tb.textContent="✓ Turned";tb.title="Turned upright automatically";d.appendChild(tb);}thumbs.appendChild(d);});}
@@ -1969,7 +1998,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   function unavailable(m){$("unavail").textContent=m;$("unavail").hidden=false;refresh();}
   (async()=>{
     const inClaude=!!(window.claude&&typeof window.claude.use==="function");
-    if(!inClaude){isNetlify=true;sample=netlifySample();imagesOK=true;maxCount=5;refresh();setTimeout(()=>{restoreSession().catch(()=>{}).finally(()=>{sessReady=true;sessPatient();sessPhotos();});},0);return;}
+    if(!inClaude){isNetlify=true;sample=netlifySample();imagesOK=true;maxCount=5;refresh();setTimeout(()=>{restoreSession().catch(()=>{}).finally(()=>{sessReady=true;sessPatient();sessPhotos();track("open");});},0);return;}
     try{sample=await window.claude.use("sample");}catch(e){sample=null;}
     if(!sample){unavailable("The analysis engine isn't available here. Open the app from Claude while signed in.");return;}
     try{const lim=await sample.limits();imagesOK=!!lim?.images;if(imagesOK){maxCount=Math.max(1,Math.min(lim.images.maxCount||5,5));$("fileInput").accept=lim.images.mediaTypes.join(",");}}catch(e){imagesOK=false;}
@@ -2560,14 +2589,14 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       if(dbl&&isNetlify&&!store.get("eqg-code")){const c0=await askCode();if(!c0)throw{code:"cancelled"};}
       if(dbl){phase="Running two independent reads";tick();}
       const tim=[];
-      sessPend({mode,dbl,ids:[],startedAt:Date.now()});
+      sessPend({mode,dbl,ids:[],startedAt:Date.now()});track("analyze",{mode,double:dbl});
       const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"fast":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onJob:id=>sessJob(id),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       const raws=dbl?await Promise.all([one(),one()]):[await one()];
       const data=await settleReads(raws,mode,t0);
       const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
-      logRead(data);
+      logRead(data);track("result",{decision:data.stemi&&data.stemi.decision,secs:data._secs||0,mode,double:!!data._double});
     }catch(e){
-      clearInterval(timer);
+      clearInterval(timer);if(!(e&&e.code==="cancelled"))track("error",{msg:String((e&&e.code)||"error")});
       const c=e&&e.code;
       const m={timeout:"The read took too long or the connection was cut off. Check your signal and tap Analyze ECG again.",bad_code:"Access code incorrect. Tap Analyze ECG to enter it again.",no_key:"The server has no API key. Add ANTHROPIC_API_KEY in Netlify site settings.",no_function:"The analysis server isn't deployed yet (netlify/edge-functions/read.js). Check the files on GitHub.",network:"No connection to the analysis server. Check signal and try again.",server:"The analysis server returned an error. Try again.",cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
       setStatus(((c==="upstream"||c==="server")&&e.message)?e.message:(m[c]||"The analysis was interrupted. Check your connection and analyze again."),{err:c!=="cancelled"});
@@ -2635,6 +2664,82 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(files.length&&patientOK())setStatus("Your patient is back (the app was closed). Tap Analyze ECG.");
   }
   stopBtn.onclick=()=>ctl?.abort();
+
+  // ---------- Usage log (4.1) ----------
+  // Which phones use the app: model, system, browser, app version, and an optional name typed in Settings.
+  // No photos and no patient details are sent. The live view (Settings) needs the admin code.
+  const devId=(()=>{let v=store.get("eqg-dev");if(!/^[a-z0-9]{8,24}$/.test(v||"")){v=(Date.now().toString(36)+Math.random().toString(36).slice(2,10)).slice(0,18);store.set("eqg-dev",v);}return v;})();
+  function iphoneName(w,h){const a=Math.min(w,h),b=Math.max(w,h),k=a+"x"+b;
+    return ({"440x956":"iPhone 16/17 Pro Max","430x932":"iPhone 14 Pro Max / 15 Plus / 15 Pro Max / 16 Plus","420x912":"iPhone Air","402x874":"iPhone 16 Pro / 17 / 17 Pro","393x852":"iPhone 14 Pro / 15 / 15 Pro / 16","390x844":"iPhone 12 / 13 / 14","428x926":"iPhone 12-13 Pro Max / 14 Plus","375x812":"iPhone X / XS / 11 Pro / mini","414x896":"iPhone XR / 11 / XS Max","375x667":"iPhone SE / 6-8","414x736":"iPhone 6-8 Plus"})[k]||"iPhone";}
+  function samsungName(m){const x=String(m||"").toUpperCase();let r;
+    if((r=x.match(/^SM-S9(\d)(\d)/))){const g={0:"S22",1:"S23",2:"S24",3:"S25",4:"S26"}[r[1]],t={1:"",6:"+",7:" Edge",8:" Ultra"}[r[2]];if(g&&t!==undefined)return "Galaxy "+g+t+" ("+x+")";}
+    if((r=x.match(/^SM-S7(\d)1/)))return "Galaxy S2"+r[1]+" FE ("+x+")";
+    if((r=x.match(/^SM-A(\d{2,3})/)))return "Galaxy A"+r[1].slice(0,2)+" ("+x+")";
+    if(/^SM-F9/.test(x))return "Galaxy Z Fold ("+x+")";if(/^SM-F7/.test(x))return "Galaxy Z Flip ("+x+")";
+    if(/^SM-/.test(x))return "Samsung "+x;return "";}
+  let devInfoP=null;
+  function devInfo(){if(devInfoP)return devInfoP;devInfoP=(async()=>{const ua=navigator.userAgent||"";let model="",os="";
+    if(/iPhone/.test(ua)){const m=ua.match(/OS (\d+)_(\d+)/);os="iOS "+(m?m[1]+"."+m[2]:"");model=iphoneName(screen.width,screen.height);}
+    else if(/iPad/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1)){model="iPad";os="iPadOS";}
+    else if(/Android/.test(ua)){const m=ua.match(/Android ([\d.]+)/);os="Android "+(m?m[1]:"");
+      try{const h=await navigator.userAgentData.getHighEntropyValues(["model","platformVersion"]);if(h.model)model=h.model;}catch(e){}
+      if(!model){const mm=ua.match(/Android [\d.]+; ([^;)]+)\)/);if(mm&&mm[1].trim()!=="K")model=mm[1].trim();}
+      model=samsungName(model)||model||"Android phone";}
+    else{os=/Windows/.test(ua)?"Windows":/Mac/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"";model="Computer";}
+    let browser=/SamsungBrowser/.test(ua)?"Samsung Internet":/Edg/.test(ua)?"Edge":/CriOS|Chrome\//.test(ua)?"Chrome":/FxiOS|Firefox/.test(ua)?"Firefox":/Safari/.test(ua)?"Safari":"Browser";
+    if(/WhatsApp|FBAN|FBAV|Instagram|; wv\)/.test(ua))browser+=" (inside another app)";
+    let installed=false;try{installed=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;}catch(e){}
+    return {model,os,browser,installed,screen:Math.round(screen.width)+"×"+Math.round(screen.height),v:APP_VERSION};})();return devInfoP;}
+  async function track(ev,d){try{if(!isNetlify)return;const code=store.get("eqg-code");if(!code)return;const info=await devInfo();
+    await fetch("/api/usage",{method:"POST",keepalive:true,headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({dev:devId,name:store.get("eqg-name")||"",info,ev,d:d||{}})});}catch(e){}}
+  window.__track=track;
+  let hiddenAt=0;
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")hiddenAt=Date.now();else{if(hiddenAt&&Date.now()-hiddenAt>60000)track("back");hiddenAt=0;}});
+  setInterval(()=>{if(document.visibilityState==="visible")track("ping");},120000);
+  // Settings: notice, optional name, and the live view.
+  function renderUsage(){const w=el("div","usagebox");w.appendChild(el("h3",null,"Usage log"));
+    w.appendChild(el("p","lbl","This app records which phone uses it (phone model, system, browser, app version, when it's opened and readings made). No photos and no patient details. Your team lead can see it live."));
+    const l=el("label","lbl","Your name on the usage log (optional)");const inp=document.createElement("input");inp.className="in";inp.maxLength=40;inp.placeholder="e.g. JPS / Ambulance 12";inp.value=store.get("eqg-name")||"";
+    inp.onchange=()=>{store.set("eqg-name",inp.value.trim());track("ping");toast("Saved.");};l.appendChild(inp);w.appendChild(l);
+    const b=el("button","btn ghost","Open live usage (admin)");b.type="button";b.onclick=()=>{sheetClose();usOpen();};w.appendChild(b);return w;}
+  let usTimer=null;
+  const ago=t=>{const s=Math.max(0,Math.round((Date.now()-t)/1000));return s<60?s+" s ago":s<3600?Math.round(s/60)+" min ago":s<86400?Math.round(s/3600)+" h ago":Math.round(s/86400)+" d ago";};
+  const EVT={open:"Opened the app",back:"Came back to the app",photo:"Added a photo",camera:"Opened the camera",analyze:"Started a reading",result:"Result",error:"Reading failed"};
+  function usOpen(){$("usageOv").hidden=false;$("usErr").textContent="";let c="";try{c=sessionStorage.getItem("eqg-admin")||"";}catch(e){}
+    if(c){usLoad(c);}else{$("usLogin").hidden=false;$("usBody").hidden=true;setTimeout(()=>$("usCode").focus(),50);}}
+  function usClose(){$("usageOv").hidden=true;clearInterval(usTimer);usTimer=null;}
+  $("usClose").onclick=usClose;
+  $("usGo").onclick=()=>{const c=$("usCode").value.trim();if(c)usLoad(c);};
+  $("usCode").onkeydown=e=>{if(e.key==="Enter")$("usGo").click();};
+  async function usLoad(code){
+    let r;try{r=await fetch("/api/usage?view=1",{headers:{"x-admin-code":code},cache:"no-store"});}catch(e){$("usErr").textContent="No connection.";return;}
+    if(r.status===404){$("usErr").textContent="The usage server isn't deployed yet (netlify/functions/usage.mjs).";$("usLogin").hidden=false;return;}
+    if(r.status===403){const j=await r.json().catch(()=>({}));try{sessionStorage.removeItem("eqg-admin");}catch(e){}clearInterval(usTimer);usTimer=null;
+      $("usErr").textContent=j.error==="no_admin_code"?"Set ADMIN_CODE in Netlify (Environment variables) and redeploy first.":"Admin code incorrect.";$("usLogin").hidden=false;$("usBody").hidden=true;return;}
+    if(!r.ok){$("usErr").textContent="Server error "+r.status+".";return;}
+    const j=await r.json();try{sessionStorage.setItem("eqg-admin",code);}catch(e){}
+    $("usLogin").hidden=true;$("usBody").hidden=false;usRender(j,code);
+    if(!usTimer)usTimer=setInterval(()=>{if(!$("usageOv").hidden&&document.visibilityState==="visible")usLoad(code);},5000);}
+  function usRender(j,code){const now=j.now||Date.now(),act=j.devices.filter(d=>now-d.last<150000).length;
+    $("usSub").textContent="Updates every 5 s · "+new Date().toLocaleTimeString();
+    const st=$("usStats");st.textContent="";[[act,"active now"],[j.today.phones,"phones today"],[j.today.results,"readings today"]].forEach(([n,t])=>{const d=el("div");d.append(el("b",null,String(n)),el("span",null,t));st.appendChild(d);});
+    const dv=$("usDevs");dv.textContent="";const nameOf=d=>d.nick||d.name||d.model||"Phone";const byId={};
+    if(!j.devices.length)dv.appendChild(el("p","lbl","No phones yet."));
+    j.devices.forEach(d=>{byId[d.id]=d;const row=el("div","us-dev");row.appendChild(el("span","us-dot"+(now-d.last<150000?" on":"")));
+      const tx=el("div");tx.appendChild(el("div","nm",nameOf(d)));
+      tx.appendChild(el("div","mt",[d.nick||d.name?d.model:"",d.os,d.browser+(d.installed?" · installed":""),"v"+d.v].filter(Boolean).join(" · ")));
+      tx.appendChild(el("div","mt","Last seen "+ago(d.last)+" ("+(EVT[d.lastEv]||d.lastEv||"")+") · opened "+(d.opens||0)+"× · "+(d.reads||0)+" readings · first "+new Date(d.first).toLocaleDateString()));
+      row.appendChild(tx);const ed=el("button","ed","Name");ed.type="button";
+      ed.onclick=async()=>{const n=prompt("Name for this phone (e.g. Ambulance 12, JPS):",d.nick||d.name||"");if(n===null)return;
+        await fetch("/api/usage",{method:"PATCH",headers:{"content-type":"application/json","x-admin-code":code},body:JSON.stringify({dev:d.id,nick:n.trim()})}).catch(()=>{});usLoad(code);};
+      row.appendChild(ed);dv.appendChild(row);});
+    const ev=$("usEvs");ev.textContent="";if(!j.events.length)ev.appendChild(el("p","lbl","No activity today yet."));
+    j.events.slice(0,80).forEach(e=>{const row=el("div","us-ev");const t=document.createElement("time");t.textContent=new Date(e.t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});row.appendChild(t);
+      const d=byId[e.dev];const who=el("b",null,d?nameOf(d):"Phone");const sp=el("span");sp.append(who," · ");
+      if(e.ev==="result"){const dec=e.d&&e.d.decision;const c=dec==="met"?"yes":dec==="consult"?"con":"no";sp.append(el("span",c,"Result: "+(DEC_TXT[dec]||dec||"?")),(e.d.secs?" ("+e.d.secs+" s"+(e.d.double?", double-check":"")+")":""));}
+      else if(e.ev==="error")sp.append("Reading failed"+(e.d&&e.d.msg?" ("+e.d.msg+")":""));
+      else if(e.ev==="analyze")sp.append("Started a "+(e.d&&e.d.mode==="thorough"?"thorough ":"")+"reading"+(e.d&&e.d.double?" (double-check)":""));
+      else sp.append(EVT[e.ev]||e.ev);row.appendChild(sp);ev.appendChild(row);});}
   clearBtn.onclick=()=>{bgCancel();zoomCache=null;dropUpload();sessClear();
     files=[];$("samePtChk").checked=false;renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
     $("age").value="";$("sex").value="";$("notes").value="";syncPick();window.__cxReset&&window.__cxReset();
@@ -2753,6 +2858,12 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"4.1",d:"9 Oct 2026",t:"Live usage log",i:[
+      "Live usage log: which phones use the app (model such as Galaxy S24 Ultra or iPhone size, system, browser, app version, installed or not).",
+      "Shows who is active right now, phones and readings today, and the latest activity (opened, photo added, reading started, result, failed), updating every 5 s.",
+      "Opened from Settings → 'Open live usage (admin)' with the admin code (ADMIN_CODE in Netlify).",
+      "Each phone can be given a name in the live view (e.g. 'Ambulance 12'); users can also type their own name in Settings.",
+      "No photos and no patient details are recorded; the notice is shown in Settings. Activity older than 30 days is removed."]},
     {v:"4.0",d:"9 Oct 2026",t:"Safer modified Sgarbossa, faster first read",i:[
       "Modified Sgarbossa (LBBB / paced) is only CONFIRMED when two reads each find it: Double-check, or the fast read plus the automatic second read. One read alone shows 'Possible: check these leads on the paper and discuss with UMOC'.",
       "When the fast read finds modified Sgarbossa, the second read now starts automatically to check it.",
@@ -2926,8 +3037,8 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const ul=el("ul","chitems");c.i.forEach((t,k)=>{const li=el("li");li.append(el("span","chcode",c.v+String.fromCharCode(97+k)),el("span",null,t));ul.appendChild(li);});
       det.appendChild(ul);w.appendChild(det);});
     return w;}
-  $("settingsBtn").onclick=()=>{renderSettings();$("setList").appendChild(renderLog());sheetOpen("setSheet");};
-  $("setAll").onclick=()=>{secOn={};saveSec();renderSettings();$("setList").appendChild(renderLog());if(lastReport&&!report.hidden)applySections(lastReport);};
+  $("settingsBtn").onclick=()=>{renderSettings();$("setList").appendChild(renderUsage());$("setList").appendChild(renderLog());sheetOpen("setSheet");};
+  $("setAll").onclick=()=>{secOn={};saveSec();renderSettings();$("setList").appendChild(renderUsage());$("setList").appendChild(renderLog());if(lastReport&&!report.hidden)applySections(lastReport);};
 
   function render(d){
     report.textContent="";

@@ -1,7 +1,7 @@
 // ECG analysis entry point (Edge Function, /api/read).
 // POST {upload:true, images} -> saves the photos once per patient and replies { img }. Every read for
 //           that patient (fast, double-check, thorough) then sends only { prompt, img }, so the photos
-//           cross the phone's connection once. The app starts this upload as soon as the photo is covered.
+//           cross the phone's connection once. The app starts this upload as soon as the photo is added.
 // POST {prompt, img} -> saves the read as a "job" and starts it in a Netlify background function
 //           (netlify/functions/read-background.mjs), which keeps running even if the phone
 //           switches to another app or the screen turns off. Replies { id } straight away.
@@ -9,11 +9,16 @@
 // GET ?id= -> the job's status: queued / running / done (with the report text) / error.
 // DELETE ?id=&cancel=1 -> asks the job to stop (Stop / New patient). DELETE ?id= -> removes the finished result.
 // DELETE ?img= -> removes the patient's photos (New patient).
+// POST {orient:true, images:[2-4 small copies of one photo, each turned a different way]} -> { pick }:
+//           which copy is the right way up (index), or -1 if it can't be told. Used to turn photos
+//           upright automatically when they are added. Two models must agree (the fast one, set with
+//           CLAUDE_ORIENT_MODEL, default claude-haiku-5-5, and the main CLAUDE_MODEL).
 import { getStore } from "@netlify/blobs";
 
 const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 const TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const env = (k) => (Netlify.env.get(k) || "").trim();
+const LEVELS = ["low", "medium", "high"];
 const ID = /^[a-z0-9]{6,12}-[a-z0-9]{4,16}$/;
 const BG = "/.netlify/functions/read-background";
 
@@ -43,6 +48,51 @@ function badImages(images) {
 // The job stores a placeholder where the photos go; the background function swaps the saved photos in.
 const expandImages = (content, images) =>
   content.flatMap((b) => (b.type === "images_ref" ? images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } })) : [b]));
+
+// Which way is up? The same photo, turned 2 or 4 ways, is shown to two models (the fast model and the main
+// reading model), each with the pictures in a different order. Each picks the one whose printed text reads
+// normally. The photo is only turned when both agree, so a wrong turn (which would read ST depression as
+// elevation) needs two different models to make the same mistake.
+const ORIENT_TEXT = (L) =>
+  `These ${L.length} pictures (${L.join(", ")}) are the SAME ECG printout photo, each turned a different way.\n` +
+  `Pick the one where the printed text reads normally (left to right, not upside down, not sideways): the lead labels (I, II, III, aVR, aVL, aVF, V1-V6), "25 mm/s", "10 mm/mV", the header text and numbers. ` +
+  `In the right-way-up picture the ECG traces run from left to right across the page and the small square calibration pulse at the start of a row rises UPWARD.\n` +
+  `Reply with only the letter (${L.join(" or ")}). If none of them reads normally, or you cannot tell, reply ?`;
+
+async function pickUpright(key, images, order, models) {
+  const L = "ABCD".slice(0, order.length).split("");
+  const content = [];
+  order.forEach((ix, p) => {
+    content.push({ type: "text", text: "Picture " + L[p] + ":" });
+    content.push({ type: "image", source: { type: "base64", media_type: images[ix].media_type, data: images[ix].data } });
+  });
+  content.push({ type: "text", text: ORIENT_TEXT(L) });
+  for (const model of [...new Set(models)]) {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 12000);
+    try {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify({ model, max_tokens: 400, messages: [{ role: "user", content }] }),
+        signal: ctl.signal,
+      });
+      if (r.status === 400 || r.status === 404) continue; // model not available on this key: try the main model
+      if (!r.ok) return -1;
+      const j = await r.json();
+      const txt = (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join(" ").trim();
+      // Only a clear answer counts: just the letter, or "Picture B" / "Answer: B".
+      const m = txt.match(/^[\s"'*(\[]*([A-D])[\s"'*)\].!]*$/i) || txt.match(/\b(?:picture|answer)\s*(?:is\s*)?:?\s*\**([A-D])\b/i);
+      const p = m ? L.indexOf(m[1].toUpperCase()) : -1;
+      return p >= 0 ? order[p] : -1;
+    } catch {
+      return -1;
+    } finally {
+      clearTimeout(t);
+    }
+  }
+  return -1;
+}
 
 async function streamDirect(key, payload) {
   const up = await fetch("https://api.anthropic.com/v1/messages", {
@@ -116,6 +166,15 @@ export default async (req) => {
     return json({ img: key });
   }
 
+  // Which way is up (photo just added).
+  if (body && body.orient === true) {
+    if (badImages(images) || images.length < 2 || images.length > 4) return json({ error: "bad_request" }, 400);
+    const idx = images.map((_, i) => i);
+    const fast = env("CLAUDE_ORIENT_MODEL") || "claude-haiku-5-5", main = env("CLAUDE_MODEL") || "claude-sonnet-5";
+    const [a, b] = await Promise.all([pickUpright(key, images, idx, [fast, main]), pickUpright(key, images, idx.slice().reverse(), [main])]);
+    return json({ pick: a >= 0 && a === b ? a : -1, a, b });
+  }
+
   if (typeof prompt !== "string" || prompt.length > 30000) return json({ error: "bad_request" }, 400);
   const byRef = typeof img === "string" && img !== "";
   if (byRef) {
@@ -140,7 +199,9 @@ export default async (req) => {
     model: env("CLAUDE_MODEL") || "claude-sonnet-5",
     max_tokens: 24000,
     // The app asks for "low" on a fast read; the thorough read uses the Netlify setting (default medium).
-    output_config: { effort: ["low", "medium", "high"].includes(reqEffort) ? reqEffort : (env("CLAUDE_EFFORT") || "medium") },
+    // "fast" = the first read. Thinking level is set in Netlify with CLAUDE_FAST_EFFORT (low / medium / high);
+    // default medium (about 20-25 s of reading). The thorough read uses CLAUDE_EFFORT (default medium).
+    output_config: { effort: reqEffort === "fast" ? (LEVELS.includes(env("CLAUDE_FAST_EFFORT")) ? env("CLAUDE_FAST_EFFORT") : "medium") : LEVELS.includes(reqEffort) ? reqEffort : (env("CLAUDE_EFFORT") || "medium") },
     messages: [{ role: "user", content }],
   };
 

@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>EMS Quick ECG Guide</title>
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+<link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#1A2430">
 <meta name="color-scheme" content="light only">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -589,6 +590,93 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .lx-tab th,.lx-tab td{border:1px solid var(--line);padding:8px 6px;text-align:center}
 .lx-tab td:first-child,.lx-tab td:nth-child(2){font-size:1.3rem;width:56px}
 .lx-tab td:last-child{text-align:left}
+/* ===== Learn ECG: heart & leads (4.7) ===== */
+.hx{background:radial-gradient(120% 90% at 50% 0%,#14263c 0%,#0a1524 55%,#060d18 100%);color:#e8f0fa;border-radius:22px;padding:16px 14px 14px;box-shadow:0 14px 34px rgba(6,13,24,.35);border:1px solid rgba(120,170,255,.14)}
+.hx-head h3{margin:0;font-size:1.12rem;color:#fff}
+.hx-head p{margin:4px 0 0;font-size:.82rem;line-height:1.4;color:rgba(232,240,250,.75)}
+.hx-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(255,255,255,.06);border-radius:12px;padding:4px;margin:12px 0 4px}
+.hx-tabs button{border:0;border-radius:9px;padding:8px 4px;font:inherit;font-size:.82rem;font-weight:700;color:rgba(232,240,250,.7);background:none;cursor:pointer}
+.hx-tabs button.on{background:#2A6FD6;color:#fff;box-shadow:0 2px 10px rgba(42,111,214,.45)}
+.hx-svg{display:block;width:100%;max-width:420px;margin:0 auto;height:auto;touch-action:manipulation}
+.hx-ring{fill:none;stroke:rgba(120,170,255,.14);stroke-dasharray:3 6}
+.hx-ves{fill:none;stroke:#5b2a46;stroke-width:16;stroke-linecap:round}
+.hx-ves.pa{stroke:#2e3f74;stroke-width:13}
+.hx-atr{fill:url(#hxAtr);stroke:rgba(255,140,170,.25);stroke-width:1.2;transition:filter .2s}
+.hx-vent{fill:url(#hxBody);stroke:rgba(255,140,170,.3);stroke-width:1.4}
+.hx-post{fill:none;stroke:rgba(255,209,102,.18);stroke-width:2;stroke-dasharray:5 5}
+.hx-post.on{stroke:#FFD166;stroke-width:3.4;filter:url(#hxGlow)}
+.hx-reg{fill:transparent;transition:fill .25s}
+.hx-reg.on{fill:var(--rc);opacity:.55}
+.hx-sep{fill:none;stroke:rgba(255,160,190,.35);stroke-width:2}
+.hx-cham{fill:rgba(255,255,255,.45);font:700 12px Inter,system-ui,sans-serif;text-anchor:middle;pointer-events:none}
+.hx-cham.sm{font-size:10px}
+.hx-cond path{fill:none;stroke:rgba(255,196,77,.5);stroke-width:2.2;stroke-linecap:round}
+.hx.beat .hx-cond path{stroke:rgba(255,196,77,.85)}
+.hx-node{fill:#FFC44D;filter:url(#hxGlow)}
+.hx-spark{fill:#fff;filter:url(#hxGlow)}
+.hx-atr.lit{fill:#ff5a7d;filter:url(#hxGlow)}
+.hx-vent.lit{fill:#ff5a7d;filter:url(#hxGlow)}
+.hx-vent.dim{fill:#7a2e4a}
+.hx-eye{cursor:pointer}
+.hx-eye circle{fill:#0d1a2b;stroke:rgba(140,190,255,.55);stroke-width:1.5;transition:all .2s}
+.hx-eye text{fill:#cfe1ff;font:800 10.5px Inter,system-ui,sans-serif;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.hx-eye.on circle{fill:var(--rc);stroke:#fff;filter:url(#hxGlow)}
+.hx-eye.on text{fill:#0a1524}
+.hx-eye.chest circle{fill:#0d1a2b;stroke:rgba(140,190,255,.4)}
+.hx-eye.chest.on circle{fill:var(--rc);stroke:#fff;filter:url(#hxGlow)}
+.hx.beat .hx-post,.hx.beat .hx-ring{display:none}
+.hx-beam{stroke:var(--rc);stroke-width:2;stroke-dasharray:4 5;fill:none;opacity:.9;animation:hxDash 1s linear infinite}
+@keyframes hxDash{to{stroke-dashoffset:-18}}
+.hx-groups{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.hx-groups button{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#e8f0fa;font:inherit;font-size:.76rem;font-weight:700;border-radius:999px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.hx-groups button i{width:9px;height:9px;border-radius:50%;background:var(--rc)}
+.hx-groups button.on{background:var(--rc);color:#0a1524;border-color:transparent}
+.hx-groups button.on i{background:#0a1524}
+.hx-chips{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;margin-bottom:10px}
+.hx-chips>span{font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(232,240,250,.55)}
+.hx-chips>div{display:flex;flex-wrap:wrap;gap:5px}
+.hx-chips button{min-width:40px;border:1px solid rgba(140,190,255,.3);background:rgba(13,26,43,.8);color:#cfe1ff;font:inherit;font-size:.78rem;font-weight:800;border-radius:9px;padding:6px 7px;cursor:pointer}
+.hx-chips button.on{background:var(--rc);color:#0a1524;border-color:transparent}
+.hx-info{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px;min-height:120px}
+.hx-info h4{margin:0;font-size:1.05rem;color:#fff;display:flex;align-items:center;gap:8px}
+.hx-info h4 i{width:12px;height:12px;border-radius:50%;background:var(--rc);box-shadow:0 0 10px var(--rc)}
+.hx-info .hx-k{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0;font-size:.82rem}
+.hx-info .hx-k b{color:rgba(232,240,250,.6);font-weight:700}
+.hx-info ul{margin:6px 0 0;padding-left:18px;font-size:.84rem;line-height:1.45}
+.hx-info li{margin:2px 0}
+.hx-mini{display:flex;gap:10px;align-items:center;margin-top:8px}
+.hx-mini svg{width:132px;height:58px;flex:none;border-radius:8px;background:#fff6f6}
+.hx-mini span{font-size:.76rem;color:rgba(232,240,250,.7);line-height:1.35}
+.hx-beat{margin-top:4px}
+.hx-ecg{display:block;width:100%;height:auto;background:#fff6f6;border-radius:12px}
+.hx-ecg-bg{fill:none;stroke:#d8c2c6;stroke-width:1.4}
+.hx-ecg-tr{fill:none;stroke:#C3283A;stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round}
+.hx-ecg-dot{fill:#C3283A}
+.hx-step{margin:10px 2px;min-height:58px}
+.hx-step b{display:block;color:#FFC44D;font-size:.95rem}
+.hx-step span{font-size:.84rem;color:rgba(232,240,250,.85);line-height:1.4}
+.hx-ctrl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hx-ctrl .btn{min-height:42px;font-size:.86rem}
+.hx-ctrl .btn.ghost{color:#fff!important;background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.3)!important}
+.hx-wrong{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.hx-wrong div{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px 10px;font-size:.76rem;line-height:1.3;color:rgba(232,240,250,.8)}
+.hx-wrong b{display:block;font-size:.8rem;color:var(--rc)}
+.rh-live{position:relative;height:172px;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,#0B1726,#06101C);box-shadow:0 10px 26px rgba(6,16,28,.25)}
+.rh-live canvas{position:absolute;inset:0;width:100%;height:100%}
+.rh-cap{position:absolute;left:14px;top:10px;color:#fff;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.rh-cap b{display:block;font-size:1rem}.rh-cap span{font-size:.72rem;opacity:.75}
+.rh-list{display:grid;gap:10px}
+.linkbtn{border:0;background:none;padding:0;font:inherit;color:#2A6FD6;font-weight:700;text-decoration:underline;cursor:pointer}
+.rh-card{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:12px 14px;cursor:pointer}
+.rh-card.on{border-color:#2A6FD6;box-shadow:0 0 0 3px rgba(42,111,214,.15)}
+.rh-card.danger.on{border-color:#D23B4B;box-shadow:0 0 0 3px rgba(210,59,75,.15)}
+.rh-top{display:flex;align-items:center;gap:8px}
+.rh-top h4{margin:0;font-size:1rem;flex:1}
+.rh-n{flex:none;width:24px;height:24px;border-radius:50%;background:#1D2F45;color:#fff;font-size:.75rem;font-weight:800;display:grid;place-items:center}
+.rh-tag{flex:none;font-size:.68rem;font-weight:800;padding:3px 8px;border-radius:999px;background:#E8EEF6;color:#2D4963}
+.rh-tag.ok{background:#E3F4EC;color:#1F7A55}.rh-tag.bad{background:#FBE4E7;color:#B0263A}
+.rh-card p{margin:4px 0 0;font-size:.86rem}
+.rh-do{color:var(--soft)}
 .lx-rh{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
 .lx-rh:first-child{border-top:0;margin-top:0;padding-top:0}
 .lx-rh h4{margin:0 0 4px;font-size:1rem}
@@ -774,7 +862,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       <button data-go="enhanced"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>Enhanced criteria<small>ii to vi</small></button>
       <button data-go="omi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></div>OMI patterns<small>12 patterns</small></button>
       <button data-go="bbb"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16l3-8 3 6 3-6 3 6 3-6 3 8"/></svg></div>LBBB vs RBBB<small>WiLLiaM MaRRoW</small></button>
-      <button data-go="learnecg"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5c3-1.5 7-1.5 10 1 3-2.5 7-2.5 10-1v14c-3-1.5-7-1.5-10 1-3-2.5-7-2.5-10-1z"/><path d="M12 6v14"/></svg></div>Learn ECG<small>Step by step</small></button>
+      <button data-go="rhythms"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="16" rx="3"/><path d="M5 13h3l1.5-4 2 8 1.5-4H19"/></svg></div>9 ECGs to know<small>Rhythms</small></button>
     </div>
   </div>
 
@@ -907,6 +995,24 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 </section>
 
 <!-- PATHWAY -->
+<section id="page-rhythms" class="ref stack float" hidden>
+  <div class="rh-live">
+    <canvas id="rhCv"></canvas>
+    <div class="rh-cap"><b id="rhName">Sinus rhythm</b><span id="rhSub">Tap any rhythm below to play it live here.</span></div>
+  </div>
+  <div class="rh-list" id="rhList">
+    <button type="button" class="rh-card" data-rh="sinus"><div class="rh-top"><span class="rh-n">1</span><h4>Sinus rhythm</h4><span class="rh-tag ok">Normal</span></div><div class="lx-fig" data-ecg="sinus"></div><p><b>P before every QRS</b>, regular, rate 60–100.</p><p class="rh-do">Normal rhythm. Treat the patient, not the screen.</p></button>
+    <button type="button" class="rh-card" data-rh="brady"><div class="rh-top"><span class="rh-n">2</span><h4>Sinus brady / sinus tachy</h4><span class="rh-tag">Check cause</span></div><div class="lx-fig" data-ecg="brady"></div><div class="lx-fig" data-ecg="tachy"></div><p>Normal-looking beats, just <b>slow (under 60)</b> or <b>fast (over 100)</b>.</p><p class="rh-do">Brady: check perfusion. Tachy: look for the cause (pain, fever, bleeding, low oxygen).</p></button>
+    <button type="button" class="rh-card" data-rh="af"><div class="rh-top"><span class="rh-n">3</span><h4>Atrial fibrillation (AF)</h4><span class="rh-tag">Irregular</span></div><div class="lx-fig" data-ecg="af"></div><p><b>No clear P waves</b>, wobbly baseline, beats at <b>random</b> distances.</p><p class="rh-do">Check rate and stability; follow your guideline.</p></button>
+    <button type="button" class="rh-card" data-rh="flutter"><div class="rh-top"><span class="rh-n">4</span><h4>Atrial flutter</h4><span class="rh-tag">Saw-tooth</span></div><div class="lx-fig" data-ecg="flutter"></div><p><b>Saw-tooth</b> waves between the beats. Often a rate of about <b>150</b>.</p><p class="rh-do">A regular rate of exactly ~150? Think flutter.</p></button>
+    <button type="button" class="rh-card" data-rh="svt"><div class="rh-top"><span class="rh-n">5</span><h4>SVT</h4><span class="rh-tag">Fast, narrow</span></div><div class="lx-fig" data-ecg="svt"></div><p><b>Fast, narrow, very regular</b> (often over 150). P waves hidden.</p><p class="rh-do">Stable or unstable? Follow your SVT guideline.</p></button>
+    <button type="button" class="rh-card danger" data-rh="vt"><div class="rh-top"><span class="rh-n">6</span><h4>Ventricular tachycardia (VT)</h4><span class="rh-tag bad">Check pulse</span></div><div class="lx-fig" data-ecg="vt"></div><p><b>Fast and wide</b>, big repeating waves.</p><p class="rh-do"><b>Check for a pulse!</b> No pulse = shockable.</p></button>
+    <button type="button" class="rh-card danger" data-rh="vf"><div class="rh-top"><span class="rh-n">7</span><h4>Ventricular fibrillation (VF)</h4><span class="rh-tag bad">Shockable</span></div><div class="lx-fig" data-ecg="vf"></div><p><b>Total chaos</b>, no real beats. The patient has no pulse.</p><p class="rh-do"><b>Shock + CPR.</b></p></button>
+    <button type="button" class="rh-card danger" data-rh="asys"><div class="rh-top"><span class="rh-n">8</span><h4>Asystole</h4><span class="rh-tag bad">Not shockable</span></div><div class="lx-fig" data-ecg="asys"></div><p>Almost a <b>flat line</b>.</p><p class="rh-do">CPR. Check the leads are on, turn up the gain, look at another lead.</p></button>
+    <button type="button" class="rh-card" data-rh="paced"><div class="rh-top"><span class="rh-n">9</span><h4>Paced rhythm</h4><span class="rh-tag">Pacemaker</span></div><div class="lx-fig" data-ecg="paced"></div><p>A thin straight <b>pacemaker spike</b> before each <b>wide</b> QRS.</p><p class="rh-do">Standard STEMI mm criteria don't apply: modified Sgarbossa.</p></button>
+  </div>
+  <p class="lbl" style="margin:0 4px">Treat every rhythm per your Clinical Guidelines. Always check the pulse and the patient, not just the screen. More in <button type="button" class="linkbtn" data-go="learnecg">Learn ECG</button>.</p>
+</section>
 <section id="page-pathway" class="ref stack float" hidden>
   <div class="protostamp" data-stamp></div>
   <a class="hotline" href="tel:+97125048555" target="_blank" rel="noopener" data-call>Call UMOC hotline 02 504 8555</a>
@@ -948,6 +1054,71 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     <div class="lx-prog"><i id="lxBar"></i></div>
     <p class="lbl" id="lxCount" style="margin:6px 0 0">0 of 15 done</p>
     <div class="lx-chips" id="lxChips"></div>
+  </div>
+  <div class="hx" id="hx">
+    <div class="hx-head"><h3>Your heart &amp; the 12 leads</h3><p>Each lead is a camera looking at one part of the heart. Tap a lead or a group to see where it looks and what it checks.</p></div>
+    <div class="hx-tabs" role="tablist"><button type="button" class="on" data-hxt="leads">The 12 cameras</button><button type="button" data-hxt="beat">One heartbeat</button></div>
+    <div class="hx-stage">
+      <svg class="hx-svg" id="hxSvg" viewBox="0 0 380 380" role="img" aria-label="Heart with the 12 ECG leads and the electrical system">
+        <defs>
+          <radialGradient id="hxBody" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#3a1f3a"/><stop offset=".6" stop-color="#25142c"/><stop offset="1" stop-color="#160c1d"/></radialGradient>
+          <radialGradient id="hxAtr" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#4a2242"/><stop offset="1" stop-color="#22102a"/></radialGradient>
+          <filter id="hxGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="hxSoft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>
+          <clipPath id="hxVent"><path d="M98 138 C84 198 150 278 236 302 C266 260 298 196 282 132 C236 118 146 122 98 138 Z"/></clipPath>
+        </defs>
+        <circle cx="190" cy="200" r="150" class="hx-ring"/>
+        <!-- posterior wall (behind) -->
+        <path id="hxPost" class="hx-post" d="M112 146 C100 204 162 282 248 304 C278 262 306 198 292 138"/>
+        <!-- great vessels -->
+        <path class="hx-ves" d="M134 112 L134 40"/>
+        <path class="hx-ves" d="M186 118 C182 70 196 44 222 40 C252 36 266 52 264 80"/>
+        <path class="hx-ves pa" d="M206 122 C214 96 236 86 262 92"/>
+        <!-- atria -->
+        <ellipse id="hxRA" class="hx-atr" cx="126" cy="116" rx="42" ry="34"/>
+        <ellipse id="hxLA" class="hx-atr" cx="236" cy="106" rx="38" ry="27"/>
+        <!-- ventricles -->
+        <path id="hxVentBody" class="hx-vent" d="M98 138 C84 198 150 278 236 302 C266 260 298 196 282 132 C236 118 146 122 98 138 Z"/>
+        <g clip-path="url(#hxVent)">
+          <path data-reg="rv" class="hx-reg" d="M90 132 L184 126 C190 190 204 248 222 300 L150 286 L80 200 Z"/>
+          <path data-reg="sept" class="hx-reg" d="M174 126 L196 126 C204 190 220 248 240 300 L218 300 C200 250 186 190 174 126 Z"/>
+          <path data-reg="ant" class="hx-reg" d="M196 126 L252 124 L256 214 L240 300 C222 250 204 190 196 126 Z"/>
+          <path data-reg="lat" class="hx-reg" d="M252 168 L300 168 L300 250 L246 300 L238 300 L256 214 Z"/>
+          <path data-reg="hlat" class="hx-reg" d="M246 118 L300 118 L300 168 L252 168 Z"/>
+          <path data-reg="inf" class="hx-reg" d="M60 160 C100 200 160 236 226 254 C240 262 252 272 262 284 L330 300 L330 340 L40 340 Z"/>
+          <path data-reg="avr" class="hx-reg" d="M90 126 L212 124 L206 150 C170 152 130 154 92 166 Z"/>
+        </g>
+        <path class="hx-sep" d="M184 126 C192 192 208 250 232 300"/>
+        <text x="132" y="214" class="hx-cham">RV</text><text x="232" y="210" class="hx-cham">LV</text>
+        <text x="110" y="120" class="hx-cham sm">RA</text><text x="232" y="110" class="hx-cham sm">LA</text>
+        <!-- electrical system -->
+        <g class="hx-cond">
+          <path id="hxP1" d="M118 92 C134 108 150 122 168 136"/>
+          <path id="hxP2" d="M118 92 C160 80 204 84 240 98"/>
+          <path id="hxP3" d="M168 136 L182 152"/>
+          <path id="hxP4" d="M182 152 C198 188 214 232 230 280"/>
+          <path id="hxP5" d="M182 152 C176 192 158 228 140 248"/>
+          <path id="hxP6" d="M204 196 C232 196 262 184 276 156"/>
+          <path id="hxP7" d="M216 236 C244 246 264 236 280 210"/>
+          <path id="hxP8" d="M160 220 C134 214 116 196 104 170"/>
+        </g>
+        <circle class="hx-node" cx="118" cy="92" r="5"/><circle class="hx-node" cx="168" cy="136" r="4.5"/>
+        <g id="hxSparks"></g>
+        <!-- beams and eyes -->
+        <g id="hxBeams"></g>
+        <g id="hxEyes"></g>
+      </svg>
+      <div class="hx-beat" id="hxBeat" hidden>
+        <svg viewBox="0 0 320 90" class="hx-ecg"><path id="hxEcgBg" class="hx-ecg-bg"/><path id="hxEcg" class="hx-ecg-tr"/><circle id="hxEcgDot" r="4" class="hx-ecg-dot"/></svg>
+        <div class="hx-step" id="hxStep"><b>Tap play</b><span>Watch the spark travel through the heart and draw the ECG.</span></div>
+        <div class="hx-ctrl"><button type="button" class="btn" id="hxPlay">▶ Play</button><button type="button" class="btn ghost" id="hxSlow">Slow motion: on</button></div>
+      </div>
+    </div>
+    <div id="hxLeadUI">
+      <div class="hx-groups" id="hxGroups"></div>
+      <div class="hx-chips"><span>Limb leads</span><div id="hxLimb"></div><span>Chest leads</span><div id="hxChest"></div></div>
+      <div class="hx-info" id="hxInfo"></div>
+    </div>
   </div>
 
   <div class="lx-step" data-s="1"><button type="button" class="lx-h"><span class="lx-n">1</span><span class="lx-t">What is an ECG?<small>The heart's electricity, drawn on paper</small></span><span class="lx-ck">✓</span></button><div class="lx-b">
@@ -1240,7 +1411,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="4.5";
+  const APP_VERSION="4.7";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -1288,8 +1459,8 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   syncPick();
 
   // Navigation with back stack
-  const pages={analyze:"",learning:"Learning",criteria:"STEMI criteria",enhanced:"Enhanced criteria",omi:"OMI patterns",bbb:"LBBB vs RBBB",pathway:"STEMI PPCI pathway",learnecg:"Learn ECG"};
-  const navMap={omi:"criteria",enhanced:"criteria",bbb:"criteria"};
+  const pages={analyze:"",learning:"Learning",criteria:"STEMI criteria",enhanced:"Enhanced criteria",omi:"OMI patterns",bbb:"LBBB vs RBBB",pathway:"STEMI PPCI pathway",learnecg:"Learn ECG",rhythms:"9 ECGs to know"};
+  const navMap={omi:"criteria",enhanced:"criteria",bbb:"criteria",rhythms:"learnecg"};
   let current="analyze";const hist=[];
   function show(p){
     Object.keys(pages).forEach(x=>$("page-"+x).hidden=x!==p);
@@ -1298,7 +1469,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     $("subTitle").textContent=pages[p];
     const tab=navMap[p]||p;
     document.querySelectorAll("nav.bottom button").forEach(b=>b.dataset.go===tab?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
-    current=p;window.scrollTo({top:0});window.__glowKick&&window.__glowKick();if(p==="learning")loadLearning();if(p==="learnecg"&&window.__learnShow)window.__learnShow();
+    if(p!=="learnecg"&&window.__hxStop)window.__hxStop();current=p;window.scrollTo({top:0});window.__glowKick&&window.__glowKick();if(p==="learning")loadLearning();if(p==="learnecg"&&window.__learnShow)window.__learnShow();if(p==="rhythms"&&window.__rhShow)window.__rhShow();
   }
   function go(p){if(p===current)return;hist.push(current);show(p);}
   window.goPage=p=>go(p);
@@ -1351,25 +1522,58 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       if(now-g.last<32)return;const w=g.cv.clientWidth,h=g.cv.clientHeight;if(!w||!h)return;g.last=now;glowDraw(g,now,w,h);});
     if(live&&!reducedMotion())requestAnimationFrame(glowLoop);else{glowRun=false;if(live)glows.forEach(g=>{const w=g.cv.clientWidth,h=g.cv.clientHeight;if(w&&h)glowDraw(g,performance.now(),w,h);});}
   }
-  // ECG beat shape for the header (y offset as a fraction of height; negative = up). e = ST elevation 0..1
-  function ecgV(u,e){
-    const L=(a,b,ya,yb)=>ya+(yb-ya)*(u-a)/(b-a);
-    if(u>=10&&u<24)return -0.07*Math.sin(Math.PI*(u-10)/14);
-    if(u>=30&&u<33)return L(30,33,0,0.05);
-    if(u>=33&&u<37)return L(33,37,0.05,-0.5);
-    if(u>=37&&u<41)return L(37,41,-0.5,0.14);
-    if(u>=41&&u<44)return L(41,44,0.14,-0.24*e);
-    if(u>=44&&u<56)return -0.24*e-0.05*e*Math.sin(Math.PI*(u-44)/12);
-    if(u>=56&&u<80){const k=(u-56)/24;return -0.24*e*(1-k)-(0.17+0.07*e)*Math.sin(Math.PI*k);}
-    return 0;
-  }
+  // ---------- Rhythm library (4.6): the header strip runs through all the rhythms; the "9 ECGs" page plays one ----------
+  // y is a fraction of the strip height (negative = up). t = seconds.
+  const lin=(t,a,b,ya,yb)=>ya+(yb-ya)*(t-a)/(b-a);
+  function nbeat(t,o){o=o||{};const k=o.k||1,e=o.e||0;let y=0;
+    if(o.p!==false&&t>=0&&t<0.09*k)y-=0.07*Math.sin(Math.PI*t/(0.09*k));
+    const d=t-(o.p===false?0.02:0.16*k);if(d<0)return y;
+    if(d<0.02)return y+lin(d,0,0.02,0,0.05);
+    if(d<0.045)return y+lin(d,0.02,0.045,0.05,-0.5*(o.r||1));
+    if(d<0.07)return y+lin(d,0.045,0.07,-0.5*(o.r||1),0.14);
+    if(d<0.085)return y+lin(d,0.07,0.085,0.14,-0.24*e);
+    const st=0.1*k;if(d<0.085+st)return y-0.24*e-0.05*e*Math.sin(Math.PI*(d-0.085)/st);
+    const tw=0.18*k,dt=d-0.085-st;if(dt<tw){const q=dt/tw;return y-0.24*e*(1-q)-(o.th??(0.17+0.07*e))*Math.sin(Math.PI*q);}
+    return y;}
+  function wbeat(t,o){o=o||{};let y=0;
+    if(o.spike&&t>=-0.03&&t<-0.01)y-=0.55*(1-Math.abs(t+0.02)/0.01);
+    if(t<0)return y;
+    if(t<0.03)return y+lin(t,0,0.03,0,0.06);
+    if(t<0.08)return y+lin(t,0.03,0.08,0.06,-0.42);
+    if(t<0.13)return y+lin(t,0.08,0.13,-0.42,0.2);
+    if(t<0.15)return y+lin(t,0.13,0.15,0.2,0.05);
+    if(t<0.2)return y+0.05*(1-(t-0.15)/0.05);
+    if(t<0.4)return y+0.16*Math.sin(Math.PI*(t-0.2)/0.2);
+    return y;}
+  const regular=(rr,f)=>({cyc:rr,y:t=>f(t)});
+  const RHY=[
+    {k:"sinus",name:"Sinus rhythm",sub:"75/min · P before every QRS",...regular(0.8,t=>nbeat(t-0.05))},
+    {k:"brady",name:"Sinus bradycardia",sub:"45/min · slow, normal beats",...regular(1.333,t=>nbeat(t-0.05))},
+    {k:"tachy",name:"Sinus tachycardia",sub:"125/min · fast, normal beats",...regular(0.48,t=>nbeat(t-0.02,{k:0.72}))},
+    {k:"af",name:"Atrial fibrillation",sub:"No P waves · irregular",cyc:3.2,y:t=>{const on=[0,0.55,1.27,1.72,2.47];let last=-9;on.forEach(o=>{if(o<=t)last=o;});
+      return nbeat(t-last,{p:false})+0.018*Math.sin(2*Math.PI*t*22/3.2)+0.014*Math.sin(2*Math.PI*t*35/3.2+1);}},
+    {k:"flutter",name:"Atrial flutter",sub:"Saw-tooth waves · ~150/min",cyc:0.4,y:t=>{const p=(t%0.2)/0.2;const saw=p<0.75?lin(p,0,0.75,-0.035,0.035):lin(p,0.75,1,0.035,-0.035);
+      return saw+nbeat(t-0.05,{p:false,th:0});}},
+    {k:"svt",name:"SVT",sub:"180/min · fast, narrow, regular",...regular(0.333,t=>nbeat(t,{p:false,k:0.55,th:0.1}))},
+    {k:"vt",name:"Ventricular tachycardia",sub:"Wide and fast · check pulse",danger:1,...regular(0.34,t=>t<0.12?-0.45*Math.sin(Math.PI*t/0.12):0.24*Math.sin(Math.PI*(t-0.12)/0.22))},
+    {k:"vf",name:"Ventricular fibrillation",sub:"Chaos, no pulse · shock",danger:1,cyc:3,y:t=>(0.6+0.4*Math.sin(2*Math.PI*t/3))*(0.17*Math.sin(2*Math.PI*t*14/3)+0.1*Math.sin(2*Math.PI*t*22/3+1)+0.06*Math.sin(2*Math.PI*t*7/3+2))},
+    {k:"asys",name:"Asystole",sub:"Flat line · CPR, not shockable",danger:1,cyc:3,y:t=>0.008*Math.sin(2*Math.PI*t/3)+0.005*Math.sin(2*Math.PI*t*4/3+1)},
+    {k:"paced",name:"Paced rhythm",sub:"Spike before each wide QRS",...regular(0.857,t=>wbeat(t-0.1,{spike:true}))},
+    {k:"stemi",name:"STEMI",sub:"ST elevation",danger:1,...regular(0.75,t=>nbeat(t-0.05,{e:1}))},
+  ];
+  const RHK={};RHY.forEach(r=>{RHK[r.k]=r;r.dur=Math.ceil(4.6/r.cyc)*r.cyc;});
+  window.__RHK=RHK;
+  const SPEED=105,LOOP=RHY.reduce((a,r)=>a+r.dur,0);
+  // Rhythm at a strip position (seconds along the strip). fixed = always that rhythm.
+  function rhAt(sec,fixed){if(fixed){const r=RHK[fixed]||RHY[0];return {r,t:((sec%r.cyc)+r.cyc)%r.cyc};}
+    let s=((sec%LOOP)+LOOP)%LOOP;for(const r of RHY){if(s<r.dur)return {r,t:s%r.cyc};s-=r.dur;}return {r:RHY[0],t:0};}
   function glowDraw(g,now,w,h){
     const dpr=Math.min(2,window.devicePixelRatio||1),cv=g.cv,x=g.ctx;
     if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);g.bars=null;}
     x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
     const t=(now-g.t0)/1000,o=g.o;
     // colour: header turns red during the STEMI part of the loop (sinus for 2 s, then STEMI)
-    let target=0;if(o.mode==="ecg"){const c=t%9;target=(c>=2&&c<7.5)?1:0;}
+    let target=0,cur=null;if(o.mode==="ecg"){const cxp=w*(o.cursor||0.58);cur=rhAt((cxp+t*SPEED)/SPEED,o.fixed).r;g.cur=cur;target=cur.danger?1:0;}
     g.mix+=(target-g.mix)*0.09;const col=mixc(GW.blue,GW.red,g.mix);
     // light streaks
     if(!g.bars||g.bw!==w){g.bw=w;g.bars=[];let bx=0;while(bx<w){const bw=6+Math.random()*24;g.bars.push({x:bx+bw/2,w:bw,a:.05+Math.random()*.2,sp:.3+Math.random()*.9,ph:Math.random()*6.28});bx+=bw*(0.7+Math.random()*0.8);}}
@@ -1382,7 +1586,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     x.globalCompositeOperation="source-over";
     // the wave
     const yAt=o.mode==="ecg"
-      ?(px=>{const P=120,u=(((px+t*70)%P)+P)%P;return cy+ecgV(u,g.mix)*h;})
+      ?(px=>{const a=rhAt((px+t*SPEED)/SPEED,o.fixed);return cy+a.r.y(a.t)*h*(o.gain||1);})
       :(px=>cy+Math.sin((px/w)*Math.PI*2*1.05-t*1.1)*h*(o.amp||0.15)+Math.sin((px/w)*Math.PI*2*0.35+t*0.5)*h*(o.amp||0.15)*0.33);
     x.beginPath();for(let px=0;px<=w;px+=2){const py=yAt(px);px?x.lineTo(px,py):x.moveTo(px,py);}
     x.lineJoin="round";x.lineCap="round";
@@ -1395,11 +1599,22 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     x.shadowColor=rgba(col,1);x.shadowBlur=14;x.fillStyle="#fff";x.beginPath();x.arc(cx,dy,o.mode==="ecg"?3.6:5,0,6.29);x.fill();x.shadowBlur=0;
     const lab=o.label?o.label(g):null;
     if(lab){const fs=o.mode==="ecg"?12:16;x.fillStyle="#fff";x.font=`600 ${fs}px Inter, system-ui, sans-serif`;x.textBaseline="top";
-      const lx=cx+10,ly=o.mode==="ecg"?top+2:top+6;x.fillText(lab[0],lx,ly);
-      if(lab[1]){x.font=`500 ${Math.round(fs*0.72)}px Inter, system-ui, sans-serif`;x.fillStyle="rgba(255,255,255,0.78)";x.fillText(lab[1],lx,ly+fs+3);}}
+      const f2=`500 ${Math.round(fs*0.72)}px Inter, system-ui, sans-serif`,w1=x.measureText(lab[0]).width;x.font=f2;const w2=lab[1]?x.measureText(lab[1]).width:0;
+      const tw=Math.max(w1,w2),left=cx+10+tw>w-6,lx=left?cx-10:cx+10,ly=o.mode==="ecg"?top+2:top+6;x.textAlign=left?"right":"left";
+      x.shadowColor="rgba(0,0,0,0.85)";x.shadowBlur=6;x.font=`600 ${fs}px Inter, system-ui, sans-serif`;x.fillStyle="#fff";x.fillText(lab[0],lx,ly);
+      if(lab[1]){x.font=f2;x.fillStyle="rgba(255,255,255,0.82)";x.fillText(lab[1],lx,ly+fs+3);}x.textAlign="left";x.shadowBlur=0;}
   }
   // Header strip: blue sinus for 2 s, then the ST rises and it turns red (STEMI), then back.
-  glowAttach($("stripCv"),{mode:"ecg",cursor:0.62,barBoost:0.8,bg:["rgba(5,9,14,0)","rgba(5,9,14,0.28)"],label:g=>g.mix>0.5?["STEMI","ST elevation"]:["Sinus rhythm","Normal ST"]});
+  glowAttach($("stripCv"),{mode:"ecg",cursor:0.62,barBoost:0.8,bg:["rgba(5,9,14,0)","rgba(5,9,14,0.28)"],label:g=>g.cur?[g.cur.name,g.cur.sub]:null});
+  // "9 ECGs to know" page: a live monitor that plays the rhythm you tap.
+  let rhGlow=null;
+  window.__rhShow=()=>{if(window.__ecgDrawIn)window.__ecgDrawIn("#page-rhythms");
+    if(!rhGlow)rhGlow=glowAttach($("rhCv"),{mode:"ecg",fixed:"sinus",cursor:0.9,cy:0.66,gain:0.55,barBoost:0.9,bg:["rgba(5,9,14,0)","rgba(5,9,14,0.3)"],label:()=>null});glowKick();};
+  document.querySelectorAll("#rhList .rh-card").forEach(c=>c.onclick=()=>{
+    const k=c.dataset.rh,r=RHK[k];if(!r)return;document.querySelectorAll("#rhList .rh-card").forEach(x=>x.classList.toggle("on",x===c));
+    if(rhGlow)rhGlow.o.fixed=k;$("rhName").textContent=r.name+(k==="brady"?" (tap again for tachy)":"");$("rhSub").textContent=r.sub;
+    if(k==="brady"){c.dataset.rh="tachy";}else if(k==="tachy"){c.dataset.rh="brady";}
+    window.scrollTo({top:0,behavior:"smooth"});});
 
   // ---------- Netlify backend (used outside Claude) ----------
   function askCode(btn){
@@ -2904,11 +3119,22 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"4.7",d:"10 Oct 2026",t:"Your heart & the 12 leads",i:[
+      "Learn ECG: new interactive heart. Tap any of the 12 leads to see which wall it looks at, the usual artery, where the sticker goes, its mirror lead, what it checks, and what it normally looks like.",
+      "Lead groups (inferior, lateral, septal, anterior, right side, posterior) light up their wall and leads together.",
+      "'One heartbeat': watch the spark travel SA node → AV node → bundle branches → Purkinje while the ECG draws P, QRS and T, with slow motion.",
+      "'What can the ECG tell you?' summary: ST elevation, ST depression, T inversion, Q waves, rhythm problems, bundle branch block."]},
+    {v:"4.6",d:"10 Oct 2026",t:"9 ECGs to know",i:[
+      "Quick actions: 'Learn ECG' replaced by '9 ECGs to know' (Learn ECG stays in the bottom bar).",
+      "New '9 ECGs to know' page: sinus, brady/tachy, AF, flutter, SVT, VT, VF, asystole and paced, each with its picture, how to spot it and what to do.",
+      "Live monitor on that page: tap a rhythm to watch it run (red for VT, VF and asystole).",
+      "The glowing header strip now runs through all the rhythms one after another, with their names, and turns red for VT, VF, asystole and STEMI."]},
     {v:"4.5",d:"9 Oct 2026",t:"Stricter OMI patterns with small changes",i:[
       "Fix: South African flag showed CONFIRMED with only 0.5 mm changes (I +0.5, aVL +0.5, III −0.5) from one photo read; another phone's photo of the same ECG didn't show it.",
       "South African flag, Aslanger, precordial swirl and Northern OMI are only CONFIRMED when: the AI's own read names the pattern, a key lead is clearly changed (≥1 mm), and a second read agrees (Double-check or the automatic second read) or the values come from the monitor's printed STJ.",
       "Otherwise they show '? Possible', with the reason and the leads to check on the paper.",
-      "When one of these patterns is found by one read only, the second read starts automatically to check it."]},
+      "When one of these patterns is found by one read only, the second read starts automatically to check it.",
+      "New app icon (home screen, browser tab and installed app)."]},
     {v:"4.4",d:"9 Oct 2026",t:"Exact monitor STJ values",i:[
       "Fix: the monitor's printed STJ numbers were rounded to the nearest 0.5 mm, so 0.98 mm showed as +1 mm and counted as meeting ≥1 mm. They are now used exactly (0.98 stays 0.98 and does not meet ≥1).",
       "Values read from the photo are still rounded to 0.5 mm (a photo can't be read more finely).",
@@ -3335,7 +3561,134 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   qh.after(retry);
   paint();
   const first=steps.find(s=>!done.has(+s.dataset.s))||steps[0];first.classList.add("open");
+  // ===== Heart & the 12 leads (4.7): tap a lead to see which wall it looks at; watch one heartbeat =====
+  (function(){
+    const root=document.getElementById("hx");if(!root)return;
+    const SV="http://www.w3.org/2000/svg",svgEl=document.getElementById("hxSvg");
+    const mk=(t,a,p)=>{const e=document.createElementNS(SV,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+    const COL={inf:"#FFB547",lat:"#3DDC84",hlat:"#2DD4BF",ant:"#FF5D73",sept:"#5AA9FF",rv:"#B07CFF",avr:"#FF8AD8",post:"#FFD166"};
+    const CEN={inf:[176,256],lat:[278,222],hlat:[274,142],ant:[226,206],sept:[204,214],rv:[140,202],avr:[150,140],post:[262,262]};
+    const C0=[190,200],R=165;
+    const LEADS={
+      I:{a:0,reg:["hlat"],wall:"High lateral wall (upper left side)",art:"Circumflex (LCx) or a diagonal branch of the LAD",norm:"up",mirror:"III / aVF",
+        tip:"Looks from the left arm straight across the heart.",checks:["With aVL: high lateral STEMI if ST rises in both.","Part of the lateral group (I, aVL, V5, V6)."]},
+      II:{a:60,reg:["inf"],wall:"Inferior wall (bottom of the heart)",art:"Usually the right coronary artery (RCA)",norm:"up",mirror:"aVL",
+        tip:"Looks up from the left leg, along the heart's normal electrical path.",checks:["Best lead to see P waves and the rhythm (the monitor's default).","ST up in II, III and aVF = inferior STEMI: record V4R for the right ventricle."]},
+      III:{a:120,reg:["inf"],wall:"Inferior wall (bottom of the heart)",art:"Usually the RCA",norm:"var",mirror:"aVL",
+        tip:"Looks up from the right side of the belly.",checks:["ST higher in III than II points to the RCA.","An inverted T in III alone can be normal."]},
+      aVF:{a:90,reg:["inf"],wall:"Inferior wall (bottom of the heart)",art:"Usually the RCA",norm:"up",mirror:"aVL",
+        tip:"Looks straight up from the feet.",checks:["The middle of the inferior group (II, III, aVF)."]},
+      aVL:{a:-30,reg:["hlat"],wall:"High lateral wall (upper left side)",art:"LCx or a diagonal branch",norm:"var",mirror:"III",
+        tip:"Looks from the left shoulder.",checks:["The mirror of III: ST DOWN in aVL can be the first sign of an inferior STEMI.","ST up in aVL and I = high lateral (South African flag if V2 too, with ST down in III)."]},
+      aVR:{a:-150,reg:["avr"],wall:"Right upper heart, looking into the ventricles",art:"Left main / proximal LAD (when it shows ST elevation)",norm:"down",mirror:"most other leads",
+        tip:"Looks from the right shoulder, so normally everything points DOWN here.",checks:["ST UP in aVR with ST DOWN in many leads = left main or multivessel disease (criterion iv).","A positive QRS in aVR? Check the leads are on the right arms."]},
+      V1:{d:[166,232],reg:["sept","rv"],wall:"Septum and right ventricle",art:"LAD (septal branches); right ventricle: RCA",norm:"rS",mirror:"Posterior wall",
+        tip:"4th rib space, right of the sternum.",checks:["ST DOWN in V1–V3 = mirror of a posterior MI: record V7–V9.","ST up in V1 with an inferior STEMI = right ventricle involved."]},
+      V2:{d:[198,244],reg:["sept"],wall:"Septum (the wall between the ventricles)",art:"LAD",norm:"rS",mirror:"Posterior wall",
+        tip:"4th rib space, left of the sternum.",checks:["V2–V3 thresholds depend on age and sex (1.5 / 2 / 2.5 mm).","Wellens waves (T changes) show up in V2–V3."]},
+      V3:{d:[222,264],reg:["ant"],wall:"Anterior wall (front)",art:"LAD",norm:"RS",mirror:"Inferior leads",
+        tip:"Halfway between V2 and V4.",checks:["The R wave grows from V1 to V4 (R wave progression).","Anterior STEMI: V2–V4. Check V2–V3 thresholds."]},
+      V4:{d:[246,284],reg:["ant"],wall:"Anterior wall and apex (tip)",art:"LAD",norm:"up",mirror:"Inferior leads",
+        tip:"5th rib space, mid-clavicle (under the nipple line).",checks:["De Winter and hyperacute T waves often show here first.","V4R (same spot, right side) checks the right ventricle."]},
+      V5:{d:[282,276],reg:["lat"],wall:"Lateral wall (left side)",art:"LCx or a diagonal of the LAD",norm:"up",mirror:"V1–V2",
+        tip:"Same level as V4, front of the armpit.",checks:["Part of the lateral group (I, aVL, V5, V6).","ST DOWN in V5–V6 with ST up in V1–V2 = precordial swirl."]},
+      V6:{d:[316,256],reg:["lat"],wall:"Lateral wall (left side)",art:"LCx",norm:"up",mirror:"V1–V2",
+        tip:"Same level as V4, middle of the armpit.",checks:["Lateral STEMI with V5, I and aVL.","Tall R and normal upright T here."]}
+    };
+    const GROUPS=[
+      {n:"Inferior",reg:["inf"],leads:["II","III","aVF"],txt:"The bottom of the heart. Usually the RCA. Mirror: aVL."},
+      {n:"Lateral",reg:["lat","hlat"],leads:["I","aVL","V5","V6"],txt:"The left side. Usually the circumflex (LCx)."},
+      {n:"Septal",reg:["sept"],leads:["V1","V2"],txt:"The wall between the ventricles. LAD."},
+      {n:"Anterior",reg:["ant"],leads:["V3","V4"],txt:"The front of the heart. LAD, the 'widow maker' artery."},
+      {n:"Right side",reg:["rv","avr"],leads:["aVR","V1"],txt:"Right ventricle and right upper heart. Add V4R for the right ventricle."},
+      {n:"Posterior",reg:["post"],leads:[],txt:"The back wall: no standard lead looks at it. ST DOWN in V1–V3 is its mirror; record V7–V9 (ST up ≥0.5 mm confirms)."}
+    ];
+    const NORMTXT={up:"Normal: mostly UP (tall R), upright T.",down:"Normal: everything DOWN (P, QRS and T), because it looks from the opposite side.",var:"Normal: small or mixed (up and down). Can look odd and still be normal.",rS:"Normal: small r, deep S (mostly DOWN).",RS:"Normal: up and down about equal (the transition zone)."};
+    const eyes=document.getElementById("hxEyes"),beams=document.getElementById("hxBeams");
+    const eyeEl={};
+    Object.entries(LEADS).forEach(([k,L])=>{let x,y,chest=!L.a&&L.a!==0;
+      if(!chest){const r=L.a*Math.PI/180;x=C0[0]+R*Math.cos(r);y=C0[1]+R*Math.sin(r);}else{[x,y]=L.d;}
+      L.pos=[x,y];const g=mk("g",{class:"hx-eye"+(chest?" chest":""),transform:`translate(${x},${y})`,role:"button","aria-label":"Lead "+k},eyes);
+      mk("circle",{r:chest?12:16},g);const t=mk("text",{y:0.5},g);t.textContent=k;g.addEventListener("click",()=>selLead(k));eyeEl[k]=g;});
+    const regs=[...svgEl.querySelectorAll(".hx-reg")],post=document.getElementById("hxPost");
+    function light(list){const on=new Set(list);regs.forEach(r=>{const k=r.dataset.reg;r.classList.toggle("on",on.has(k));r.style.setProperty("--rc",COL[k]);});post.classList.toggle("on",on.has("post"));}
+    function beam(from,reg){const [cx,cy]=CEN[reg];const l=mk("line",{x1:from[0],y1:from[1],x2:cx,y2:cy,class:"hx-beam"},beams);l.style.setProperty("--rc",COL[reg]);}
+    const chipsL=document.getElementById("hxLimb"),chipsC=document.getElementById("hxChest"),chip={};
+    ["I","II","III","aVR","aVL","aVF"].forEach(k=>{const b=document.createElement("button");b.type="button";b.textContent=k;b.onclick=()=>selLead(k);chipsL.appendChild(b);chip[k]=b;});
+    ["V1","V2","V3","V4","V5","V6"].forEach(k=>{const b=document.createElement("button");b.type="button";b.textContent=k;b.onclick=()=>selLead(k);chipsC.appendChild(b);chip[k]=b;});
+    const gWrap=document.getElementById("hxGroups"),gBtn=[];
+    GROUPS.forEach((G,i)=>{const b=document.createElement("button");b.type="button";b.style.setProperty("--rc",COL[G.reg[0]]);b.innerHTML="<i></i>";b.append(G.n);b.onclick=()=>selGroup(i);gWrap.appendChild(b);gBtn.push(b);});
+    const info=document.getElementById("hxInfo");
+    function clearSel(){beams.textContent="";Object.values(eyeEl).forEach(e=>e.classList.remove("on"));Object.values(chip).forEach(c=>c.classList.remove("on"));gBtn.forEach(b=>b.classList.remove("on"));}
+    function mini(type){const W=132,H=58,base=34,sc=24;const yv=b=>{let p=0,q=0,t=0;
+        const P={up:1,var:0.5,rS:0.5,RS:0.7,down:-1}[type],Rr={up:1,var:0.45,rS:0.25,RS:0.65,down:0.15}[type],Ss={up:0.15,var:0.35,rS:0.85,RS:0.6,down:0.9}[type],T={up:0.35,var:0.15,rS:0.2,RS:0.3,down:-0.3}[type];
+        if(b>=0.05&&b<0.14)p=P*0.14*Math.sin(Math.PI*(b-0.05)/0.09);
+        if(b>=0.2&&b<0.225)q=Rr*(b-0.2)/0.025;else if(b>=0.225&&b<0.25)q=Rr-(Rr+Ss)*(b-0.225)/0.025;else if(b>=0.25&&b<0.27)q=-Ss*(1-(b-0.25)/0.02);
+        if(b>=0.37&&b<0.55)t=T*Math.sin(Math.PI*(b-0.37)/0.18);return p+q+t;};
+      let d="";for(let i=0;i<=120;i++){const b=i/120*0.62,x=4+i/120*(W-8),y=base-yv(b)*sc;d+=(i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);}
+      let grid="";for(let gx=0;gx<=W;gx+=11)grid+=`M${gx} 0V${H}`;for(let gy=1;gy<=H;gy+=11)grid+=`M0 ${gy}H${W}`;
+      return `<svg viewBox="0 0 ${W} ${H}"><path d="${grid}" stroke="#f0cdd2" stroke-width=".8" fill="none"/><path d="${d}" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;}
+    const esc=t=>String(t).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]);
+    function selLead(k){const L=LEADS[k];if(!L)return;clearSel();light(L.reg);eyeEl[k].classList.add("on");eyeEl[k].style.setProperty("--rc",COL[L.reg[0]]);chip[k].classList.add("on");chip[k].style.setProperty("--rc",COL[L.reg[0]]);
+      L.reg.forEach(r=>beam(L.pos,r));
+      info.style.setProperty("--rc",COL[L.reg[0]]);
+      info.innerHTML=`<h4><i></i>Lead ${esc(k)}</h4><div class="hx-k"><b>Looks at</b><span>${esc(L.wall)}</span><b>Artery</b><span>${esc(L.art)}</span><b>Where</b><span>${esc(L.tip)}</span><b>Mirror</b><span>${esc(L.mirror)}</span></div><ul>${L.checks.map(c=>"<li>"+esc(c)+"</li>").join("")}</ul><div class="hx-mini">${mini(L.norm)}<span>${esc(NORMTXT[L.norm])}</span></div>`;}
+    function selGroup(i){const G=GROUPS[i];clearSel();light(G.reg);gBtn[i].classList.add("on");
+      G.leads.forEach(k=>{const L=LEADS[k];const c=COL[G.reg.find(r=>L.reg.includes(r))||G.reg[0]];eyeEl[k].classList.add("on");eyeEl[k].style.setProperty("--rc",c);chip[k].classList.add("on");chip[k].style.setProperty("--rc",c);beam(L.pos,G.reg.find(r=>L.reg.includes(r))||G.reg[0]);});
+      if(!G.leads.length)["V1","V2"].forEach(k=>beam(LEADS[k].pos,"post"));
+      info.style.setProperty("--rc",COL[G.reg[0]]);
+      info.innerHTML=`<h4><i></i>${esc(G.n)}${G.leads.length?" · "+G.leads.join(", "):" · V7–V9"}</h4><p style="margin:6px 0 0;font-size:.86rem">${esc(G.txt)}</p><ul><li>ST elevation in 2 or more neighbouring leads of one group = STEMI in that wall (check the mm threshold).</li><li>Look for the mirror (reciprocal) change on the opposite side: it makes a real STEMI more likely.</li></ul>`;}
+    // "What can the ECG tell you?" grid
+    const wr=document.createElement("div");wr.className="hx-wrong";
+    [["#FF5D73","ST elevation","Heart attack (STEMI) in that wall"],["#FFB547","ST depression","Ischaemia, or the mirror of a STEMI"],["#3DDC84","T wave inversion","Ischaemia, strain, Wellens"],["#B07CFF","Q waves","An old (or completed) heart attack"],["#5AA9FF","Rhythm problems","AF, SVT, VT, blocks"],["#FF8AD8","Bundle branch block","LBBB / RBBB: wide QRS"]]
+      .forEach(([c,a,b])=>{const d=document.createElement("div");d.style.setProperty("--rc",c);d.innerHTML=`<b>${a}</b>${b}`;wr.appendChild(d);});
+    document.getElementById("hxLeadUI").appendChild(wr);
+    selGroup(0);
+
+    // ----- One heartbeat: the spark runs the electrical system while the ECG draws itself -----
+    const P=id=>document.getElementById(id),paths={};["hxP1","hxP2","hxP3","hxP4","hxP5","hxP6","hxP7","hxP8"].forEach(id=>{paths[id]=P(id);});
+    const RA=P("hxRA"),LA=P("hxLA"),V=P("hxVentBody"),sparks=P("hxSparks");
+    const ecgY=b=>{let v=0;if(b>=0&&b<0.09)v=0.13*Math.sin(Math.PI*b/0.09);
+      else if(b>=0.16&&b<0.175)v=-0.1*(b-0.16)/0.015;else if(b>=0.175&&b<0.2)v=-0.1+1.1*(b-0.175)/0.025;else if(b>=0.2&&b<0.225)v=1-1.28*(b-0.2)/0.025;else if(b>=0.225&&b<0.24)v=-0.28*(1-(b-0.225)/0.015);
+      else if(b>=0.34&&b<0.52)v=0.3*Math.sin(Math.PI*(b-0.34)/0.18);return v;};
+    const BEAT=0.8,ex=b=>12+b/BEAT*296,ey=b=>62-ecgY(b)*44;
+    let dd="";for(let i=0;i<=400;i++){const b=i/400*BEAT;dd+=(i?"L":"M")+ex(b).toFixed(1)+" "+ey(b).toFixed(1);}
+    P("hxEcg").setAttribute("d",dd);P("hxEcgBg").setAttribute("d",dd);
+    const ecgSvg=P("hxEcg").ownerSVGElement;const cp=mk("clipPath",{id:"hxEcgClip"},mk("defs",{},ecgSvg));const cr=mk("rect",{x:0,y:0,width:0,height:90},cp);P("hxEcg").setAttribute("clip-path","url(#hxEcgClip)");
+    [["P",0.045,"#2A6FD6"],["QRS",0.2,"#C3283A"],["T",0.43,"#1F7A55"]].forEach(([t,b,c])=>{const e=mk("text",{x:ex(b),y:86,"text-anchor":"middle","font-size":"11","font-weight":"800",fill:c,opacity:"0",class:"hx-wl","data-b":b},ecgSvg);e.textContent=t;});
+    const STEPS=[[0,"SA node fires → atria squeeze → P wave","The heart's natural pacemaker sends a spark across both atria (top chambers)."],
+      [0.09,"AV node pause → flat PR segment","The spark waits a moment at the AV node so the atria can empty into the ventricles."],
+      [0.16,"Bundle branches + Purkinje → ventricles squeeze → QRS","The spark races down the bundle of His, left and right bundle branches and Purkinje fibres. The big chambers fire together."],
+      [0.24,"Ventricles squeezing → flat ST segment","The ventricles are fully squeezed. This is where ST elevation or depression shows up."],
+      [0.34,"Ventricles recharge → T wave","The ventricles reset electrically, ready for the next beat."],
+      [0.52,"Rest → flat line","Everything is quiet until the SA node fires again."]];
+    const stepEl=P("hxStep");let lastStep=-1;
+    const ptAt=(p,f)=>{const L=p.getTotalLength();const q=p.getPointAtLength(Math.max(0,Math.min(1,f))*L);return [q.x,q.y];};
+    const sp=[];for(let i=0;i<6;i++)sp.push(mk("circle",{r:4.5,class:"hx-spark",opacity:0},sparks));
+    function place(i,path,f){const s=sp[i];if(f==null){s.setAttribute("opacity",0);return;}const [x,y]=ptAt(paths[path],f);s.setAttribute("cx",x);s.setAttribute("cy",y);s.setAttribute("opacity",1);}
+    function frame(b){const f=(a,z)=>(b-a)/(z-a);
+      for(let i=0;i<6;i++)place(i,"hxP1",null);
+      if(b<0.09){place(0,"hxP1",f(0,0.09));place(1,"hxP2",f(0,0.09));}
+      else if(b<0.16){place(0,"hxP1",1);sp[0].setAttribute("r",4+2*Math.abs(Math.sin(b*80)));}
+      else if(b<0.24){sp[0].setAttribute("r",4.5);if(b<0.18)place(0,"hxP3",f(0.16,0.18));else{const k=f(0.18,0.24);place(0,"hxP4",k);place(1,"hxP5",k);if(b>0.2){const k2=f(0.2,0.24);place(2,"hxP6",k2);place(3,"hxP7",k2);place(4,"hxP8",k2);}}}
+      RA.classList.toggle("lit",b<0.12);LA.classList.toggle("lit",b<0.12);
+      V.classList.toggle("lit",b>=0.18&&b<0.34);V.classList.toggle("dim",b>=0.34&&b<0.52);
+      cr.setAttribute("width",ex(Math.min(b,BEAT)));const dot=P("hxEcgDot");dot.setAttribute("cx",ex(b));dot.setAttribute("cy",ey(b));
+      ecgSvg.querySelectorAll(".hx-wl").forEach(t=>t.setAttribute("opacity",b>=Number(t.dataset.b)?1:0));
+      let si=0;STEPS.forEach((s,i)=>{if(b>=s[0])si=i;});if(si!==lastStep){lastStep=si;stepEl.innerHTML=`<b>${STEPS[si][1]}</b><span>${STEPS[si][2]}</span>`;}}
+    let playing=false,slow=true,t0=0,raf=0,beatMode=false;
+    function loop(now){if(!playing)return;const k=slow?5:1.6;const b=((now-t0)/1000/k)%BEAT;frame(b);raf=requestAnimationFrame(loop);}
+    function play(on){playing=on;P("hxPlay").textContent=on?"❚❚ Pause":"▶ Play";if(on){t0=performance.now();raf=requestAnimationFrame(loop);}else cancelAnimationFrame(raf);}
+    P("hxPlay").onclick=()=>play(!playing);
+    P("hxSlow").onclick=()=>{slow=!slow;P("hxSlow").textContent="Slow motion: "+(slow?"on":"off");if(playing){t0=performance.now();}};
+    root.querySelectorAll("[data-hxt]").forEach(b=>b.onclick=()=>{root.querySelectorAll("[data-hxt]").forEach(x=>x.classList.toggle("on",x===b));
+      beatMode=b.dataset.hxt==="beat";root.classList.toggle("beat",beatMode);P("hxBeat").hidden=!beatMode;P("hxLeadUI").hidden=beatMode;eyes.style.display=beatMode?"none":"";beams.style.display=beatMode?"none":"";
+      if(beatMode){light([]);frame(0);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)play(true);}else{play(false);for(let i=0;i<6;i++)place(i,"hxP1",null);RA.classList.remove("lit");LA.classList.remove("lit");V.classList.remove("lit","dim");selGroup(0);}});
+    document.addEventListener("visibilitychange",()=>{if(document.hidden&&playing)play(false);});
+    window.__hxStop=()=>{if(playing)play(false);};
+  })();
   window.__learnShow=drawAll;
+  window.__ecgDrawIn=sel=>document.querySelectorAll(sel+" [data-ecg]").forEach(n=>{if(n.firstChild)return;const k=n.dataset.ecg;try{n.innerHTML=drawings[k]();}catch(e){n.hidden=true;}});
   if(!document.getElementById("page-learnecg").hidden)drawAll();
 })();
 </script>

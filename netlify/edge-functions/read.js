@@ -303,7 +303,8 @@ export default async (req) => {
       return json({ stj, found: n > 0, read: n, agree, a: ta, b: tb });
     }
     let r = await askJson(key, images, STJ_LOCATE, fast, 200);
-    if (!r || r.err) r = await askJson(key, images, STJ_LOCATE, main, 200);
+    // 5.3: the fast model's "no table" gets a second opinion from the main model before the table is given up.
+    if (!r || r.err || !(Number(r.img) >= 1)) r = await askJson(key, images, STJ_LOCATE, main, 200);
     const n = r && Number.isInteger(Number(r.img)) ? Number(r.img) : -1;
     const box = r && Array.isArray(r.box) ? r.box.map(Number) : null;
     const ok = n >= 1 && n <= images.length && box && box.length === 4 && box.every((v) => isFinite(v) && v >= 0 && v <= 1) && box[2] > box[0] && box[3] > box[1];

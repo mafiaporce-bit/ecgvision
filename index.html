@@ -1366,7 +1366,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="5.3";
+  const APP_VERSION="5.4";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2343,7 +2343,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const self=S(d.primary&&d.primary.confidence).toLowerCase();if(self==="low"){sc-=15;why.push("AI unsure of its own read");}else if(self==="moderate")sc-=5;
     const stj=!!(d._stjUsed!==undefined&&(d.printed||{}).stj&&Object.keys(d.printed.stj).some(k=>typeof d.printed.stj[k]==="number"));
     const nv=(d._stjVerified||[]).length;
-    if(stj){sc+=nv>=6?10:5;why.push(nv>=6?"J-points from the monitor's STJ table, verified by two readers":nv?"J-points from the monitor's STJ table ("+nv+" verified by two readers)":"J-points from the monitor's STJ table as copied by the AI (not verified)");}
+    if(stj){sc+=nv>=6?10:5;why.push(nv>=6?"J-points from the monitor's STJ table, verified by two readers":nv?"J-points from the monitor's STJ table ("+nv+" verified by two readers)":"J-points from the monitor's STJ table as copied by the AI, NOT verified"+(d._stjv&&d._stjv.old?" (server file read.js is old)":d._stjv&&d._stjv.reason?" ("+d._stjv.reason+")":""));}
     if(d._stjUnclear&&d._stjUnclear.length){sc-=Math.min(15,5*d._stjUnclear.length);why.push("Printed STJ unclear in "+d._stjUnclear.join(", ")+" (readers disagree): photo values used");}
     if(d._axisNote){why.push("Limb-lead T waves set from the monitor's T axis");}
     if(d._lowv){sc-=20;why.push("ST elevation only in leads with small complexes");}
@@ -2732,6 +2732,13 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       if(!inv||seen.some(k=>!have.has(k))){const up=await withinMs(leadInventory(list,rot),6000);
         if(Array.isArray(up)&&up.length){inv=[...new Set([...(inv||[]),...up])];d._invUpright=true;}}}
     return inv;}
+  // 5.4: the printed-table check normally finishes while the photo uploads. If the main read copied STJ numbers
+  // and the check is still running, wait for it (up to 25 s) rather than fall back to the main read's copy.
+  async function stjFor(d){const list=files.slice(0,maxCount);const p=stjCheck(list);
+    const ai=d&&d.printed&&d.printed.stj&&typeof d.printed.stj==="object"?Object.values(d.printed.stj).filter(v=>v!==null&&v!=="").length:0;
+    let v=await withinMs(p,ai>=3?1500:6000);
+    if(v===null&&ai>=3){setStatus("Reading the printed STJ table from a close-up…",{pulse:true});v=await withinMs(p,25000);}
+    return v;}
   function applyVisible(d){if(!d||!d.leads)return d;d._invented=Array.isArray(d._invented)?d._invented:[];
     const norm=normLead;
     const lists=[d.visible_leads,d._inv].filter(a=>Array.isArray(a)&&a.length).map(a=>new Set(a.map(norm).filter(Boolean))).filter(x=>x.size);
@@ -2863,7 +2870,7 @@ ${dyn}`;}
       const tim=[];
       const raw=await sample.json(buildPrompt(zz.zoom,"thorough"),{images:zz.imgs,modelTier:"complex",effort:"",signal:me.ctl.signal,cache:false,onTiming:t=>tim.push(t)});
       if(bg!==me||lastReport!==fast)return;
-      const ex=expandCompact(raw);ex._votesOther=(fast.stemi&&fast.stemi.cands)||[];ex._inv=await invFor(ex);ex._stjv=fast._stjv||await withinMs(stjCheck(files.slice(0,maxCount)),8000);if(bg!==me||lastReport!==fast)return;
+      const ex=expandCompact(raw);ex._votesOther=(fast.stemi&&fast.stemi.cands)||[];ex._inv=await invFor(ex);ex._stjv=(fast._stjv&&fast._stjv.found)?fast._stjv:await stjFor(ex);if(bg!==me||lastReport!==fast)return;
       const data=finishRead(ex,"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
       data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};
       if(data._from.decision==="met"&&data.stemi.decision!=="met"){const fl=(fast.stemi.metLeads||[]).join(", ");
@@ -2917,16 +2924,18 @@ ${dyn}`;}
     const code=store.get("eqg-code");if(!code)return Promise.resolve(null);
     const post=async(body,ms)=>{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),ms);
       try{const r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify(body),signal:ctl.signal});
-        if(!r.ok)return null;return await r.json().catch(()=>null);}catch(e){return null;}finally{clearTimeout(t);}};
+        if(!r.ok)return {err:r.status};return await r.json().catch(()=>null);}catch(e){return null;}finally{clearTimeout(t);}};
     const p=(async()=>{try{
       const images=[];for(const f of list){const img=await loadImg(f);images.push(turnedJpeg(img,0,1400));}
       const loc=await post({stj:true,images},30000);
-      if(!loc||typeof loc!=="object"||loc.error)return null;            // old server or no answer: fall back to the main read's copy
-      if(!(Number(loc.img)>=0))return {found:false};                     // no STJ table printed
+      // An old server (read.js before 5.2) answers 400 to this request: say so, instead of quietly using the main read's copy.
+      if(loc&&(loc.err===400||loc.err===404||loc.error==="bad_request"))return {found:false,old:true,reason:"the server file read.js is still the old version"};
+      if(!loc||typeof loc!=="object"||loc.error||loc.err)return {found:false,failed:true,reason:"no answer from the server"};
+      if(!(Number(loc.img)>=0))return {found:false,reason:"no STJ table found in the photo"};
       const crop=await cropTurn(list[Number(loc.img)],loc.box,Number(loc.rot)||0,1400);
       const rd=await post({stj:true,crop:true,images:[crop]},30000);
-      if(!rd||typeof rd!=="object"||rd.error)return null;
-      if(!rd.found)return {found:false};
+      if(!rd||typeof rd!=="object"||rd.error||rd.err)return {found:false,failed:true,reason:"the close-up could not be read"};
+      if(!rd.found)return {found:false,reason:"no STJ numbers readable in the close-up"};
       const stj={};LEADS.forEach(k=>{if(typeof rd.stj[k]==="number"&&isFinite(rd.stj[k]))stj[k]=rd.stj[k];});
       const unclear=LEADS.filter(k=>!(k in stj)&&((rd.a&&rd.a[k]!=null)||(rd.b&&rd.b[k]!=null)));
       return {found:true,stj,unclear,a:rd.a||null,b:rd.b||null};
@@ -2988,7 +2997,7 @@ ${dyn}`;}
     if(raws.length>1){const a=applyVisible(expandCompact(raws[0])),b=applyVisible(expandCompact(raws[1]));const ca=readCands(a),cb=readCands(b);data=mergeReads(a,b);data._votesOther=ca.filter(n=>cb.includes(n));
       if(Array.isArray(a.visible_leads)&&Array.isArray(b.visible_leads))data.visible_leads=[...new Set([...(a._vis||[]),...(b._vis||[])])];else data.visible_leads=null;
       data._invented=[...new Set([...(a._invented||[]),...(b._invented||[])])];}else data=expandCompact(raws[0]);
-    data._inv=await invFor(data);data._stjv=await withinMs(stjCheck(files.slice(0,maxCount)),8000);
+    data._inv=await invFor(data);data._stjv=await stjFor(data);
     const out=finishRead(data,mode,t0);
     if(raws.length>1){try{const a=expandCompact(raws[0]),b=expandCompact(raws[1]);if(lookFromReads(out,a,b,"double"))out._conf=computeConfidence(out);}catch(e){}}
     return out;}
@@ -3273,6 +3282,10 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"5.4",d:"15 Oct 2026",t:"Says when the STJ table was not verified",i:[
+      "When the printed STJ numbers could not be verified from a close-up, the report now says so at the top and why: the server file read.js is still old, the table was not found, or the check did not finish. Before, it quietly used the main read's copy.",
+      "If the main read copied STJ numbers and the close-up check is still running, the app waits for it (up to 25 s, with a status line) instead of giving up after 8 s.",
+      "Settings shows the app version; the Monitor printout card says whether the numbers were verified."]},
     {v:"5.3",d:"15 Oct 2026",t:"Printed STJ first, photo second",i:[
       "The rule, in order: a printed STJ table that is verified is followed exactly; a printed table that could not be verified is still used, with 'check paper' flags; only with no table printed are the photo measurements used (complete beats, second look, lone-lead cut-off rule).",
       "When the two close-up readers disagree on a number, the main read's own copy of the table is the tie-breaker: a number any two of the three read the same is used. Only when all three differ does that lead fall back to the photo value.",
@@ -3566,6 +3579,9 @@ ${dyn}`;}
     if(d._stjCheck&&d._stjCheck.length){const w="Check these printed STJ values on the paper: "+d._stjCheck.join("; ")+". Small print in a photo can be misread. For a sharper read, add a close-up photo of the STJ table.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}
     if(d._stjUsed&&d._stjUsed.length)st.warnings=(st.warnings||[]).concat(["J-points taken from the monitor's printed STJ measurement where the photo read differed: "+d._stjUsed.join(", ")+"."]);
     if(d._stjFixed&&d._stjFixed.length)st.warnings=(st.warnings||[]).concat(["The AI's copy of the printed STJ table had "+d._stjFixed.length+" misread number"+(d._stjFixed.length>1?"s":"")+" ("+d._stjFixed.join(", ")+"); the close-up read by two readers was used instead."]);
+    {const v=d._stjv,nAi=(d._stjUsed!==undefined&&d.printed&&d.printed.stj)?Object.keys(d.printed.stj).filter(k=>typeof d.printed.stj[k]==="number").length:0;
+      if(nAi&&!(d._stjVerified||[]).length){const why=v&&v.old?"the server file netlify/edge-functions/read.js is still the old version (upload the 5.2+ file)":v&&v.reason?v.reason:"the check did not finish in time";
+        st.warnings=["⚠ The printed STJ numbers could NOT be verified from a close-up ("+why+"). The numbers shown are the main read's copy, which can misread the LP15's slashed zeros (0.04 as 0.84). Check them against the STJ table on the paper."].concat(st.warnings||[]);}}
     if(d._stjUnclear&&d._stjUnclear.length)st.warnings=(st.warnings||[]).concat(["Printed STJ unclear in "+d._stjUnclear.join(", ")+": three readers gave three different numbers, so the photo value is used there. Read "+(d._stjUnclear.length>1?"those numbers":"that number")+" on the paper."]);
     if(d._rotNote){const n=el("p","lbl");n.textContent="↻ "+d._rotNote;n.style.margin="2px 6px 8px";report.appendChild(n);}
     (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
@@ -3613,7 +3629,7 @@ ${dyn}`;}
       if(pm.length)w.appendChild(el("p",null,pm.map(x=>x[0]+" "+S(x[1])).join(" · ")));
       if(pi.length)w.appendChild(list(pi));
       if(stj.length){const t=el("div","ltags");t.style.marginTop="8px";stj.forEach(([k,v])=>t.appendChild(el("span",null,k+" "+S(v))));const nv=(d._stjVerified||[]).length;
-        w.appendChild(el("p","lbl","Printed STJ level (mm)"+(nv>=6?" · verified by two readers from a close-up":nv?" · "+nv+" verified by two readers":" · as copied by the AI, not verified")));w.appendChild(t);}
+        w.appendChild(el("p","lbl","Printed STJ level (mm)"+(nv>=6?" · verified by two readers from a close-up":nv?" · "+nv+" verified by two readers":" · as copied by the AI, NOT verified"+(d._stjv&&d._stjv.old?": server file read.js is old":d._stjv&&d._stjv.reason?": "+d._stjv.reason:""))));w.appendChild(t);}
       const n=el("p","lbl","The monitor's automatic statement is unconfirmed. Your own reading and UMOC decide.");n.style.marginTop="8px";w.appendChild(n);
       report.appendChild(card("Monitor printout",w));}
 

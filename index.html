@@ -187,6 +187,7 @@ textarea{min-height:64px;resize:vertical}
 .lead.std span.need{background:var(--warn);color:#fff}
 .lnote{margin:8px 0 0;font-size:.8rem}
 .lead.stjchk{outline:2px dashed #C27C00;outline-offset:1px}
+.lead.edge{background:#FFF0D6;border-color:#E08A00}.lead.edge b,.lead.edge span{color:#5A3600}.lead.edge span.need{background:#E08A00;color:#fff}.lead.edge span.chkline{background:#FFD79A;border-color:#E08A00}
 .lead.lkp{background:#FFF6D6;border:2px dashed #E0A800}.lead.lkp b,.lead.lkp span{color:#5A4300}.lead.lkp span.need{background:#F2DFA0;color:#5A4300}
 .lead.lkx{background:#FFE17A;border-color:#E0A800}.lead.lkx b,.lead.lkx span{color:#3A2A00}.lead.lkx span.need{background:#3A2A00;color:#FFE17A}
 .lead span.lk2{display:block;margin:3px auto 0;font-size:clamp(.5rem,2.4vw,.62rem);font-weight:800;line-height:1.2;opacity:.92}
@@ -1365,7 +1366,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="5.0";
+  const APP_VERSION="5.1";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2210,7 +2211,7 @@ HOW TO MEASURE (follow exactly, lead by lead):
 1. Calibration: find the 1 mV calibration pulse and count its height in small boxes (normally 10). Report it as calibration.mm_per_mv. Paper speed is printed (normally 25 mm/s).
 2. Baseline: the TP segment (flat line between end of T and next P). Use the PR segment only if TP is not visible.
 2b. COMPLETE BEATS ONLY: each lead's strip runs from its own label / lead-change marker to the next one, and the printer switches leads in the MIDDLE of a beat, so the first and last beats of every strip are often cut off. Measure only complete beats: the QRS and the ST-T after it entirely inside this lead's strip, with a TP baseline visible before the QRS. Right after a lead switch the trace commonly sits on a short flat shelf at a different level (often 1-2 mm above or below the baseline) for a few millimetres before the first full beat: that shelf is a lead-change artifact, NOT ST elevation or depression. Never measure it, and never measure a cut-off beat. Report the MEDIAN J-point of the complete beats (normally 2-3 per strip); if a strip has only one complete beat, measure that beat and say so in the quality line.
-3. J-point: the exact point where the QRS ends and the ST segment starts, i.e. where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Measure the vertical distance between the J-point and the baseline in SMALL BOXES as seen on this paper, to the nearest 0.5. Positive = above baseline, negative = below.
+3. J-point: the exact point where the QRS ends and the ST segment starts, i.e. where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Measure the vertical distance between the J-point and the baseline in SMALL BOXES as seen on this paper, to the nearest 0.5. Positive = above baseline, negative = below. This is STJ, measured AT the J-point (0 ms), NOT ST60 or ST80: in a normal young heart the ST can read 0 at the J-point, +0.5 one small box later and +1 two small boxes later as it climbs into the T wave; only the 0 ms value counts. If the J-point is less than half a small box above the TP line, report 0.
 3b. ST DEPRESSION matters as much as ST elevation: missing it misses left main / multivessel ischaemia and posterior MI. In EVERY lead, check whether the J-point sits BELOW the TP baseline. If it does, report the negative value even when the ST then slopes upward into the T wave (upsloping depression is measured at the J-point). Look especially at I, II, III, aVF and V3-V6. When several leads show ST depression, look carefully at aVR and V1 for ST ELEVATION: diffuse ST depression with ST elevation in aVR is a critical pattern. Do not report 0 in a lead where the ST segment clearly starts below the baseline.
 4. NEVER measure at the T-wave, at the peak of the ST hump, in the middle of the ST segment, or 1-2 small boxes after the QRS on the ST upslope. In young patients and in V2-V5 the ST often climbs steeply into a tall T wave: the J-point is where the QRS ends, BEFORE the climb. A tall T wave is not ST elevation.
 5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. In V4-V6, I and II a concave ST that rises smoothly into an upright T wave and starts AT the baseline has a J-point of 0 to +0.5 mm; do not measure the rising ST or the T wave. If the J-point is BELOW the baseline, that is ST depression: report it (rule 3b). This is very common in young men and in early repolarisation. Report the real J-point value.
@@ -2443,8 +2444,9 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   // Evidence lines built by the app from the measurements (replaces the AI's prose in fast mode).
   function buildEvidence(d){
     const st=d.stemi||{},J=st.J||(()=>null),thr=st.thr||(()=>1),L=d.leads||{},ev=[];
-    const ste=LEADS.filter(k=>J(k)!==null&&J(k)>=thr(k)),sub=LEADS.filter(k=>J(k)!==null&&J(k)>0&&J(k)<thr(k)),dep=LEADS.filter(k=>J(k)!==null&&J(k)<=-0.5);
+    const edge=st.edge||[];const ste=LEADS.filter(k=>J(k)!==null&&J(k)>=thr(k)&&!edge.includes(k)),sub=LEADS.filter(k=>J(k)!==null&&J(k)>0&&J(k)<thr(k)),dep=LEADS.filter(k=>J(k)!==null&&J(k)<=-0.5);
     if(ste.length)ev.push({claim:"ST elevation at threshold: "+ste.map(k=>k+" +"+J(k)+" mm").join(", "),leads:ste,criterion:"meets this patient's threshold"});
+    if(edge.length)ev.push({claim:"Exactly at the cut-off in a lone lead: "+edge.map(k=>k+" +"+J(k)+" mm").join(", "),leads:edge,criterion:"no neighbouring lead elevated; a photo can't measure to half a box"});
     if(sub.length)ev.push({claim:"ST elevation below threshold: "+sub.map(k=>k+" +"+J(k)).join(", "),leads:sub,criterion:"below threshold"});
     if(dep.length)ev.push({claim:"ST depression: "+dep.map(k=>k+" "+J(k)).join(", "),leads:dep,criterion:dep.length>=2?"check reciprocal change / posterior leads":""});
     const inv=LEADS.filter(k=>/inverted|biphasic/.test(S(L[k]&&L[k].t))&&!tExpected(d,k));if(inv.length)ev.push({claim:"T-wave inversion / biphasic: "+inv.join(", "),leads:inv,criterion:""});
@@ -2523,6 +2525,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const thr=k=>(k==="V2"||k==="V3")?v23:1.0;r.thr=thr;
     LEADS.forEach(k=>{if(J(k)===null)r.missing.push(k);});
     const meets=k=>J(k)!==null&&J(k)>=thr(k);
+    // 5.1: a lead read from the photo that lands exactly on its cut-off (less than 0.5 mm over) with no neighbouring
+    // lead elevated or near. A photo can't measure to half a box, so it is shown as "at the cut-off", not as met.
+    // The criteria are unchanged: one lead alone never activates.
+    r.edge=LEADS.filter(k=>meets(k)&&!exact(k)&&J(k)<thr(k)+0.5&&!CONTIG.some(([a,b])=>{const p=a===k?b:b===k?a:null;return p&&J(p)!==null&&J(p)>=thr(p)-0.5;}));
     const near=k=>J(k)!==null&&!meets(k)&&J(k)>=(exact(k)?thr(k)-0.1:Math.max(0.5,thr(k)-0.5));
     const c=d.conduction||{};const bbb=String(c.bbb||"none");const lbbb=/LBBB|paced/i.test(bbb);const rbbb=/RBBB|bifascicular/i.test(bbb);const lvh=c.lvh===true;
     const fmt=k=>k+" "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")";
@@ -2760,7 +2766,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
 HOW TO MEASURE (follow exactly):
 1. Find each named lead by its printed LABEL and its grid position. Most printouts are 4 columns x 3 rows: column 1 = I, II, III (top to bottom); column 2 = aVR, aVL, aVF; column 3 = V1, V2, V3; column 4 = V4, V5, V6. LIFEPAK prints a vertical marker bar before each label: "| I" is lead I, "| II" is lead II. Strip printouts label each row at the left. Never name a lead by counting marker bars.
 2. STRIP BOUNDARIES: a lead's strip runs from its label / lead-change marker to the next one, and the printer switches leads in the MIDDLE of a beat. Go through every beat in the strip and classify it: COMPLETE (its QRS and the ST-T after it lie entirely inside this lead's strip, with a TP baseline visible before the QRS) or CUT (anything straddling the start or end of the strip). A short flat shelf right after a lead switch, sitting at a different level from the rest of the strip, is a lead-change artifact: it is not a beat and must not be measured.
-3. For each COMPLETE beat: baseline = the flat TP segment just before it (PR segment only if TP is not visible). J-point = the exact end of the QRS, where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Count the small boxes from the baseline to the J-point: positive above, negative below, nearest 0.5. Do NOT measure on the ST upslope 1-2 boxes later, at the ST hump, or at the T wave; in young patients and in V2-V5 the ST climbs steeply into a tall T wave and the J-point is BEFORE the climb. For deep S waves in V1-V3 the J-point is where the S upstroke ends.
+3. For each COMPLETE beat: baseline = the flat TP segment just before it (PR segment only if TP is not visible). J-point = the exact end of the QRS, where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Count the small boxes from the baseline to the J-point: positive above, negative below, nearest 0.5. Measure AT the J-point (0 ms), NOT ST60 or ST80: in a normal young heart the ST can read 0 at the J-point, +0.5 one small box later and +1 two small boxes later as it climbs into the T wave; only the 0 ms value counts. Less than half a small box above the TP line = 0. Do NOT measure on the ST upslope 1-2 boxes later, at the ST hump, or at the T wave; in young patients and in V2-V5 the ST climbs steeply into a tall T wave and the J-point is BEFORE the climb. For deep S waves in V1-V3 the J-point is where the S upstroke ends.
 4. Calibration: count the height of the 1 mV calibration pulse in small boxes (normally 10) and report it as "cal".
 5. Report EVERY complete beat, then the median. If a strip has fewer than 2 complete beats, report what you can and mark it unclear.
 
@@ -3127,7 +3133,7 @@ ${dyn}`;}
           else if(exc){cls+=" ste";badge="ST/S ≥25%";}
           else if(disc&&Math.abs(j)>=0.5){cls+=" disc";badge="expected";bcls="need dexp";}
         }else{
-          if(j>=thr(k))cls+=" ste";else if(j<=-0.5)cls+=" std";else if(j>0)cls+=" sub";
+          if(j>=thr(k))cls+=(r.edge||[]).includes(k)?" edge":" ste";else if(j<=-0.5)cls+=" std";else if(j>0)cls+=" sub";
           if(k==="V2"||k==="V3"||j>0)badge="needs ≥"+thr(k);
           if(o.stj_exact&&j<thr(k)&&j>=thr(k)-0.1){badge="just below ≥"+thr(k);bcls="need nearb";}
         }}
@@ -3135,13 +3141,14 @@ ${dyn}`;}
       if(o.stj_check)cls+=" stjchk";
       // 5.0: second look. Pending = not red yet; disputed = amber "check this lead"; confirmed = a small tick.
       const lkPend=!!(lk&&lk.report===d&&lk.leads.includes(k)),lkx=!!(look&&look.done&&look.disagree.includes(k)),lkok=!!(look&&look.done&&look.agree.includes(k));
-      if(lkPend&&!lb)cls=cls.replace(/ (ste|sub|std)\b/,"")+" lkp";else if(lkx&&!lb)cls=cls.replace(/ (ste|sub|std)\b/,"")+" lkx";
+      if(lkPend&&!lb)cls=cls.replace(/ (ste|sub|std|edge)\b/,"")+" lkp";else if(lkx&&!lb)cls=cls.replace(/ (ste|sub|std|edge)\b/,"")+" lkx";
       const box=el("div",cls);box.appendChild(el("b",null,k));
       if(j===null)box.appendChild(el("span",null,line));else{const jv=el("span","jv",line.replace(" mm",""));jv.appendChild(el("small",null," mm"));box.appendChild(jv);}
       if(badge)box.appendChild(el("span",bcls,badge));
+      if(cls.includes(" edge"))box.appendChild(el("span","chkline","at cut-off"));
       if(lkPend)box.appendChild(el("span","lk2","2nd look…"));
       else if(lkx){const x=look.leads[k];const mm=v=>(v>0?"+":v<0?"−":"")+Math.abs(v)+" mm";box.appendChild(el("span","lk2",(look.src==="look"?"2nd look ":"reads ")+(look.src==="look"?mm(x.b):mm(x.a)+" / "+mm(x.b))));box.appendChild(el("span","chkline","check this lead"));}
-      else if(lkok)box.appendChild(el("span","lk2","✓ 2 looks"));
+      else if(lkok)box.appendChild(el("span","lk2",look.src==="look"?"✓ 2 looks":"✓ 2 reads"));
       if(j!==null&&t&&t!=="upright"&&t!=="unclear"){
         const tag=tx?(/RBBB/.test(tx)?" (RBBB)":/LBBB/.test(tx)?" (LBBB)":/paced/.test(tx)?" (paced)":" (normal)"):"";
         const sp=el("span",tAbn?"tl tabn":tx?"tl tok":"tl","T "+t+tag);if(tx)sp.title=tx;box.appendChild(sp);}
@@ -3152,13 +3159,14 @@ ${dyn}`;}
     wrap.appendChild(g);
     const lg=el("div","legend");
     const items=lb?[["var(--crit)","Concordant ST or ST/S ≥25% (Sgarbossa)"],["#9AA9BA","Discordant: expected with "+(/paced/i.test(bbb)?"paced rhythm":"LBBB")],["var(--warn)","Concordant ST depression V1–V3"],["var(--field-b)","Normal / not in photo"]]
-      :[["var(--crit)","Meets threshold"],["#7B3FC4","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--field-b)","Normal / not in photo"]].concat(look&&look.disagree.length?[["#FFE17A","Second look disagrees: check the paper"]]:(lk&&lk.report===d)?[["#FFF6D6","Second look in progress"]]:[]);
+      :[["var(--crit)","Meets threshold"],["#7B3FC4","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--field-b)","Normal / not in photo"]].concat((r.edge||[]).length?[["#FFD79A","Exactly at the cut-off, lone lead"]]:[]).concat(look&&look.disagree.length?[["#FFE17A","Second look disagrees: check the paper"]]:(lk&&lk.report===d)?[["#FFF6D6","Second look in progress"]]:[]);
     items.forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
     {const s=el("span");s.append(el("em","tkey","T"),"Blue T label = abnormal T wave");lg.appendChild(s);}
     wrap.appendChild(lg);
     if(lb)wrap.appendChild(el("p","lbl lnote",(/paced/i.test(bbb)?"Paced rhythm":"LBBB")+": the standard mm thresholds don't apply. ST and T going the opposite way to the QRS is expected; the app checks modified Sgarbossa instead."));
     if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal), (RBBB) or (LBBB) is expected in that lead and is not counted as abnormal."));
     if(order.some(k=>(L[k]||{}).stj_check))wrap.appendChild(el("p","lbl lnote","⚠ check paper: the printed STJ number may have been misread from the photo. Read it on the paper."));
+    if((r.edge||[]).length)wrap.appendChild(el("p","lbl lnote","At the cut-off: "+r.edge.map(k=>k+" reads exactly "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")").join(", ")+" with no neighbouring lead elevated. A photo can't measure to half a box, so this is not called ST elevation. Check "+(r.edge.length>1?"these leads":"this lead")+" on the paper if the patient has symptoms."));
     {const lkp=lk&&lk.report===d?lk.leads:[];const mm=v=>(v>0?"+":v<0?"−":"")+Math.abs(v)+" mm";
       if(lkp.length)wrap.appendChild(el("p","lbl lnote","Second look in progress on "+lkp.join(", ")+": these leads are measured again on complete beats only before they are coloured."));
       else if(look){const parts=[];
@@ -3214,6 +3222,11 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"5.1",d:"15 Oct 2026",t:"Lone lead at the cut-off",i:[
+      "Fix: on a normal LP15 ECG (20-year-old woman) V4 still read +1 mm and turned red, even though the AI's own summary said no ST deviation. Measured on the paper, V4 is 0 mm at the J-point and +1 mm two small boxes later, where the ST climbs into the tall T wave: both reads were measuring there. Both reads are now told to measure at the J-point itself (0 ms, not ST60/ST80), with that example, and that less than half a box above the line is 0.",
+      "A lead read from the photo that lands exactly on its cut-off (less than 0.5 mm over) with no neighbouring lead elevated is shown amber as 'at the cut-off · lone lead', not red. A photo can't measure to half a box. Red stays for leads clearly over the cut-off, for leads whose neighbour is also elevated or near, and for printed STJ numbers. The STEMI decision is unchanged: one lead alone never activates.",
+      "'Why this reading' lists such leads separately.",
+      "Double-check and the thorough read mark compared leads as '✓ 2 reads'; only the focused second look says '✓ 2 looks'."]},
     {v:"5.0",d:"15 Oct 2026",t:"Complete beats only, with a second look",i:[
       "Fix: a lead-change artifact was read as ST elevation (V4 +1.5 mm on a normal LP15 ECG of a 20-year-old). The printer switches leads mid-beat, and right after the switch the trace sits on a short shelf at a different level. The AI now measures only complete beats in every lead, skips the cut-off beat at the start and end of each strip, and reports the median.",
       "J-point placed exactly where the QRS ends, not 1–2 boxes later on the ST upslope into a tall T wave (V2 and V3 were read 0.5–1 mm high on the same ECG).",

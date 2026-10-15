@@ -187,6 +187,9 @@ textarea{min-height:64px;resize:vertical}
 .lead.std span.need{background:var(--warn);color:#fff}
 .lnote{margin:8px 0 0;font-size:.8rem}
 .lead.stjchk{outline:2px dashed #C27C00;outline-offset:1px}
+.lead.lkp{background:#FFF6D6;border:2px dashed #E0A800}.lead.lkp b,.lead.lkp span{color:#5A4300}.lead.lkp span.need{background:#F2DFA0;color:#5A4300}
+.lead.lkx{background:#FFE17A;border-color:#E0A800}.lead.lkx b,.lead.lkx span{color:#3A2A00}.lead.lkx span.need{background:#3A2A00;color:#FFE17A}
+.lead span.lk2{display:block;margin:3px auto 0;font-size:clamp(.5rem,2.4vw,.62rem);font-weight:800;line-height:1.2;opacity:.92}
 .lead span.chkline{display:inline-block;margin:4px auto 1px;background:#FFE17A;color:#3A2A00!important;border:1px solid #E0A800;border-radius:7px;padding:1px 4px;font-size:clamp(.54rem,2.5vw,.64rem);line-height:1.25;font-weight:800;overflow-wrap:normal;word-break:keep-all}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:10px;font-size:.78rem;color:var(--soft)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
@@ -590,77 +593,92 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .lx-tab th,.lx-tab td{border:1px solid var(--line);padding:8px 6px;text-align:center}
 .lx-tab td:first-child,.lx-tab td:nth-child(2){font-size:1.3rem;width:56px}
 .lx-tab td:last-child{text-align:left}
-/* ===== Learn ECG: heart & leads (4.7) ===== */
-.hx{background:radial-gradient(120% 90% at 50% 0%,#14263c 0%,#0a1524 55%,#060d18 100%);color:#e8f0fa;border-radius:22px;padding:16px 14px 14px;box-shadow:0 14px 34px rgba(6,13,24,.35);border:1px solid rgba(120,170,255,.14)}
-.hx-head h3{margin:0;font-size:1.12rem;color:#fff}
-.hx-head p{margin:4px 0 0;font-size:.82rem;line-height:1.4;color:rgba(232,240,250,.75)}
-.hx-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(255,255,255,.06);border-radius:12px;padding:4px;margin:12px 0 4px}
-.hx-tabs button{border:0;border-radius:9px;padding:8px 4px;font:inherit;font-size:.82rem;font-weight:700;color:rgba(232,240,250,.7);background:none;cursor:pointer}
-.hx-tabs button.on{background:#2A6FD6;color:#fff;box-shadow:0 2px 10px rgba(42,111,214,.45)}
-.hx-svg{display:block;width:100%;max-width:420px;margin:0 auto;height:auto;touch-action:manipulation}
-.hx-ring{fill:none;stroke:rgba(120,170,255,.14);stroke-dasharray:3 6}
-.hx-ves{fill:none;stroke:#5b2a46;stroke-width:16;stroke-linecap:round}
-.hx-ves.pa{stroke:#2e3f74;stroke-width:13}
-.hx-atr{fill:url(#hxAtr);stroke:rgba(255,140,170,.25);stroke-width:1.2;transition:filter .2s}
-.hx-vent{fill:url(#hxBody);stroke:rgba(255,140,170,.3);stroke-width:1.4}
-.hx-post{fill:none;stroke:rgba(255,209,102,.18);stroke-width:2;stroke-dasharray:5 5}
-.hx-post.on{stroke:#FFD166;stroke-width:3.4;filter:url(#hxGlow)}
-.hx-reg{fill:transparent;transition:fill .25s}
-.hx-reg.on{fill:var(--rc);opacity:.55}
-.hx-sep{fill:none;stroke:rgba(255,160,190,.35);stroke-width:2}
-.hx-cham{fill:rgba(255,255,255,.45);font:700 12px Inter,system-ui,sans-serif;text-anchor:middle;pointer-events:none}
-.hx-cham.sm{font-size:10px}
-.hx-cond path{fill:none;stroke:rgba(255,196,77,.5);stroke-width:2.2;stroke-linecap:round}
-.hx.beat .hx-cond path{stroke:rgba(255,196,77,.85)}
-.hx-node{fill:#FFC44D;filter:url(#hxGlow)}
-.hx-spark{fill:#fff;filter:url(#hxGlow)}
-.hx-atr.lit{fill:#ff5a7d;filter:url(#hxGlow)}
-.hx-vent.lit{fill:#ff5a7d;filter:url(#hxGlow)}
-.hx-vent.dim{fill:#7a2e4a}
-.hx-eye{cursor:pointer}
-.hx-eye circle{fill:#0d1a2b;stroke:rgba(140,190,255,.55);stroke-width:1.5;transition:all .2s}
-.hx-eye text{fill:#cfe1ff;font:800 10.5px Inter,system-ui,sans-serif;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-.hx-eye.on circle{fill:var(--rc);stroke:#fff;filter:url(#hxGlow)}
-.hx-eye.on text{fill:#0a1524}
-.hx-eye.chest circle{fill:#0d1a2b;stroke:rgba(140,190,255,.4)}
-.hx-eye.chest.on circle{fill:var(--rc);stroke:#fff;filter:url(#hxGlow)}
-.hx.beat .hx-post,.hx.beat .hx-ring{display:none}
-.hx-beam{stroke:var(--rc);stroke-width:2;stroke-dasharray:4 5;fill:none;opacity:.9;animation:hxDash 1s linear infinite}
-@keyframes hxDash{to{stroke-dashoffset:-18}}
-.hx-groups{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
-.hx-groups button{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#e8f0fa;font:inherit;font-size:.76rem;font-weight:700;border-radius:999px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:6px}
-.hx-groups button i{width:9px;height:9px;border-radius:50%;background:var(--rc)}
-.hx-groups button.on{background:var(--rc);color:#0a1524;border-color:transparent}
-.hx-groups button.on i{background:#0a1524}
-.hx-chips{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;margin-bottom:10px}
-.hx-chips>span{font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:rgba(232,240,250,.55)}
-.hx-chips>div{display:flex;flex-wrap:wrap;gap:5px}
-.hx-chips button{min-width:40px;border:1px solid rgba(140,190,255,.3);background:rgba(13,26,43,.8);color:#cfe1ff;font:inherit;font-size:.78rem;font-weight:800;border-radius:9px;padding:6px 7px;cursor:pointer}
-.hx-chips button.on{background:var(--rc);color:#0a1524;border-color:transparent}
-.hx-info{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px;min-height:120px}
-.hx-info h4{margin:0;font-size:1.05rem;color:#fff;display:flex;align-items:center;gap:8px}
-.hx-info h4 i{width:12px;height:12px;border-radius:50%;background:var(--rc);box-shadow:0 0 10px var(--rc)}
-.hx-info .hx-k{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0;font-size:.82rem}
-.hx-info .hx-k b{color:rgba(232,240,250,.6);font-weight:700}
-.hx-info ul{margin:6px 0 0;padding-left:18px;font-size:.84rem;line-height:1.45}
-.hx-info li{margin:2px 0}
-.hx-mini{display:flex;gap:10px;align-items:center;margin-top:8px}
-.hx-mini svg{width:132px;height:58px;flex:none;border-radius:8px;background:#fff6f6}
-.hx-mini span{font-size:.76rem;color:rgba(232,240,250,.7);line-height:1.35}
-.hx-beat{margin-top:4px}
-.hx-ecg{display:block;width:100%;height:auto;background:#fff6f6;border-radius:12px}
-.hx-ecg-bg{fill:none;stroke:#d8c2c6;stroke-width:1.4}
-.hx-ecg-tr{fill:none;stroke:#C3283A;stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round}
-.hx-ecg-dot{fill:#C3283A}
-.hx-step{margin:10px 2px;min-height:58px}
-.hx-step b{display:block;color:#FFC44D;font-size:.95rem}
-.hx-step span{font-size:.84rem;color:rgba(232,240,250,.85);line-height:1.4}
-.hx-ctrl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.hx-ctrl .btn{min-height:42px;font-size:.86rem}
-.hx-ctrl .btn.ghost{color:#fff!important;background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.3)!important}
-.hx-wrong{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.hx-wrong div{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px 10px;font-size:.76rem;line-height:1.3;color:rgba(232,240,250,.8)}
-.hx-wrong b{display:block;font-size:.8rem;color:var(--rc)}
+/* ===== Learn ECG: heart & the 12 leads (4.8) ===== */
+.hxc-host{margin-top:12px;min-height:160px}
+.hxc-boot{border-radius:22px;background:#0b1120;color:#9aa7c2;padding:60px 16px;text-align:center;font-size:.9rem}
+.ecgx{--bg:#f3f5f9;--card:#ffffff;--ink:#14213d;--soft:#5b6782;--line:rgba(20,33,61,.1);--chip:#fff;--chipInk:#1a2440;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);
+  border-radius:28px;padding:18px;box-sizing:border-box;width:100%;-webkit-font-smoothing:antialiased}
+.ecgx *{box-sizing:border-box}
+.ecgx.dark{--bg:#0b1120;--card:#121a2c;--ink:#e8eefb;--soft:#9aa7c2;--line:rgba(232,238,251,.1);--chip:#f6f8fc;--chipInk:#141d33}
+@media (prefers-color-scheme:dark){.ecgx.auto{--bg:#0b1120;--card:#121a2c;--ink:#e8eefb;--soft:#9aa7c2;--line:rgba(232,238,251,.1);--chip:#f6f8fc;--chipInk:#141d33}}
+.ecgx-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.ecgx.wide .ecgx-grid{grid-template-columns:minmax(0,1fr) 340px;align-items:start}
+.ecgx-head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin:2px 4px 12px}
+.ecgx-head h2{margin:0;font-size:clamp(1.15rem,2.4vw,1.6rem);letter-spacing:-.02em;font-weight:800}
+.ecgx .ecgx-head p{margin:2px 0 0;color:var(--soft);font-size:.9rem}
+.ecgx-pills{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.ecgx-pill{appearance:none;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;
+  font:inherit;font-size:.85rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .2s;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.ecgx-pill i{width:10px;height:10px;border-radius:50%;background:var(--pc);box-shadow:0 0 0 3px color-mix(in srgb,var(--pc) 22%,transparent)}
+.ecgx-pill[aria-pressed="true"]{background:var(--pc);border-color:var(--pc);color:#fff;box-shadow:0 6px 18px color-mix(in srgb,var(--pc) 40%,transparent)}
+.ecgx-pill[aria-pressed="true"] i{background:#fff;box-shadow:none}
+.ecgx-pill:focus-visible,.ecgx-btn:focus-visible,.ecgx-prob:focus-visible{outline:3px solid #3d8bff;outline-offset:2px}
+.ecgx-stagecard{background:radial-gradient(120% 90% at 50% 20%,#ffffff 0%,#eef1f7 70%,#e6eaf2 100%);border-radius:24px;border:1px solid var(--line);
+  box-shadow:0 18px 50px rgba(20,33,61,.12);padding:10px 8px 12px;position:relative;overflow:hidden}
+.ecgx.dark .ecgx-stagecard{background:radial-gradient(120% 90% at 50% 20%,#1a2540 0%,#0f172a 75%)}
+@media (prefers-color-scheme:dark){.ecgx.auto .ecgx-stagecard{background:radial-gradient(120% 90% at 50% 20%,#1a2540 0%,#0f172a 75%)}}
+.ecgx-stage{position:relative;width:100%}
+.ecgx-stage svg{display:block;width:100%;height:auto}
+.ecgx-layer{position:absolute;inset:0;pointer-events:none}
+.ecgx-layer .hit{pointer-events:all;cursor:pointer;outline:none}
+.ecgx-layer .hit:focus-visible text:first-of-type{text-decoration:underline;text-decoration-thickness:3px}
+.ecgx-ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:10px 6px 0}
+.ecgx-btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:800;font-size:.85rem;cursor:pointer;
+  background:linear-gradient(160deg,#ffcf4a,#ff9f1a);color:#3a2300;box-shadow:0 6px 16px rgba(255,159,26,.35)}
+.ecgx-btn.ghost{background:var(--card);color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.ecgx-strip{flex:1 1 220px;min-width:200px;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 10px}
+.ecgx-strip svg{width:150px;height:44px;flex:none}
+.ecgx-strip b{display:block;font-size:.85rem}
+.ecgx-strip span{font-size:.74rem;color:var(--soft);line-height:1.3}
+.ecgx-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px 16px;box-shadow:0 8px 24px rgba(20,33,61,.06)}
+.ecgx-card h3{margin:0 0 4px;font-size:1.05rem;letter-spacing:-.01em}
+.ecgx-card h3 small{display:block;font-size:.82rem;color:var(--soft);font-weight:600;margin-top:2px}
+.ecgx-side{display:grid;gap:14px}
+.ecgx-focus{border-left:6px solid var(--fc)}
+.ecgx-focus .k{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.86rem;margin:8px 0}
+.ecgx-focus .k b{color:var(--soft);font-weight:700}
+.ecgx .ecgx-focus ul{margin:6px 0 0;padding-left:18px;font-size:.86rem;line-height:1.45}
+.ecgx-tag{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:800;color:#fff;background:var(--fc);border-radius:999px;padding:3px 9px;margin-bottom:6px}
+.ecgx-wrong{display:grid;gap:10px}
+.ecgx-w{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:8px 10px;background:linear-gradient(180deg,var(--card),color-mix(in srgb,var(--card) 92%,var(--wc)));transition:transform .2s,box-shadow .2s}
+.ecgx-w:hover{transform:translateY(-2px);box-shadow:0 10px 22px color-mix(in srgb,var(--wc) 25%,transparent)}
+.ecgx-w svg{width:118px;height:46px;flex:none}
+.ecgx-w b{display:block;color:var(--wc);font-size:.95rem}
+.ecgx-w span{font-size:.84rem;color:var(--soft)}
+.ecgx-bottom{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:14px}
+.ecgx.wide .ecgx-bottom,.ecgx.mid .ecgx-bottom{grid-template-columns:1.05fr .9fr 1.2fr;align-items:start}
+.ecgx-legend{display:grid;gap:12px;align-content:center}
+.ecgx-legend div{display:flex;align-items:center;gap:12px;font-size:.88rem}
+.ecgx-legend svg{width:46px;height:14px;flex:none}
+.ecgx-problist{display:grid;gap:6px;margin-top:8px}
+.ecgx-prob{appearance:none;text-align:left;font:inherit;font-size:.86rem;color:var(--ink);background:none;border:1px solid transparent;border-radius:10px;padding:6px 8px;cursor:pointer;display:flex;gap:8px;align-items:center}
+.ecgx-prob::before{content:"";width:7px;height:7px;border-radius:50%;background:#ff4d6d;flex:none}
+.ecgx-prob[aria-pressed="true"]{background:color-mix(in srgb,#ff4d6d 12%,transparent);border-color:color-mix(in srgb,#ff4d6d 40%,transparent);font-weight:700}
+.ecgx-probwrap{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}
+.ecgx .ecgx-short ul{margin:6px 0 0;padding-left:18px;font-size:.88rem;line-height:1.5}
+.ecgx-body svg{width:100%;max-width:440px;height:auto;display:block;margin:0 auto}
+.ecgx .ecgx-note{font-size:.76rem;color:var(--soft);margin:10px 4px 0}
+.ecgx.compact{padding:12px;border-radius:22px}
+.ecgx.compact .ecgx-stagecard{padding:6px 2px 10px;border-radius:20px}
+.ecgx.compact .ecgx-pills{gap:6px}
+.ecgx.compact .ecgx-pill{padding:6px 10px;font-size:.78rem;gap:6px}
+.ecgx.compact .ecgx-ctrl{margin:8px 6px 0}
+.ecgx.compact .ecgx-btn{padding:9px 12px;font-size:.8rem}
+.ecgx.compact .ecgx-strip svg{width:110px}
+@keyframes ecgxPulse{0%,100%{opacity:.72}50%{opacity:1}}
+@keyframes ecgxFlow{to{stroke-dashoffset:-21}}
+@keyframes ecgxRing{0%{transform:scale(.7);opacity:.95}100%{transform:scale(1.9);opacity:0}}
+@keyframes ecgxFlicker{0%{opacity:.25}13%{opacity:.85}21%{opacity:.35}34%{opacity:.75}47%{opacity:.2}58%{opacity:.9}71%{opacity:.3}86%{opacity:.7}100%{opacity:.25}}
+.ecgx .wall-on{animation:ecgxPulse 2.2s ease-in-out infinite}
+.ecgx .flow{stroke-dasharray:12 9;animation:ecgxFlow .9s linear infinite}
+.ecgx .ring{transform-box:fill-box;transform-origin:center;animation:ecgxRing 1.6s ease-out infinite}
+.ecgx .flicker{animation:ecgxFlicker 1.3s steps(1,end) infinite}
+.ecgx .lead-g{transition:opacity .35s}
+@media (prefers-reduced-motion:reduce){.ecgx .wall-on,.ecgx .flow,.ecgx .ring,.ecgx .flicker{animation:none}}
+.ecgx-mini{display:flex;gap:10px;align-items:center;margin-top:10px}
+.ecgx-mini svg{width:132px;height:58px;flex:none;border-radius:8px;background:#fff6f6}
+.ecgx-mini span{font-size:.8rem;color:var(--soft);line-height:1.35}
 .rh-live{position:relative;height:172px;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,#0B1726,#06101C);box-shadow:0 10px 26px rgba(6,16,28,.25)}
 .rh-live canvas{position:absolute;inset:0;width:100%;height:100%}
 .rh-cap{position:absolute;left:14px;top:10px;color:#fff;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.8)}
@@ -1055,71 +1073,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     <p class="lbl" id="lxCount" style="margin:6px 0 0">0 of 15 done</p>
     <div class="lx-chips" id="lxChips"></div>
   </div>
-  <div class="hx" id="hx">
-    <div class="hx-head"><h3>Your heart &amp; the 12 leads</h3><p>Each lead is a camera looking at one part of the heart. Tap a lead or a group to see where it looks and what it checks.</p></div>
-    <div class="hx-tabs" role="tablist"><button type="button" class="on" data-hxt="leads">The 12 cameras</button><button type="button" data-hxt="beat">One heartbeat</button></div>
-    <div class="hx-stage">
-      <svg class="hx-svg" id="hxSvg" viewBox="0 0 380 380" role="img" aria-label="Heart with the 12 ECG leads and the electrical system">
-        <defs>
-          <radialGradient id="hxBody" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#3a1f3a"/><stop offset=".6" stop-color="#25142c"/><stop offset="1" stop-color="#160c1d"/></radialGradient>
-          <radialGradient id="hxAtr" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#4a2242"/><stop offset="1" stop-color="#22102a"/></radialGradient>
-          <filter id="hxGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          <filter id="hxSoft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>
-          <clipPath id="hxVent"><path d="M98 138 C84 198 150 278 236 302 C266 260 298 196 282 132 C236 118 146 122 98 138 Z"/></clipPath>
-        </defs>
-        <circle cx="190" cy="200" r="150" class="hx-ring"/>
-        <!-- posterior wall (behind) -->
-        <path id="hxPost" class="hx-post" d="M112 146 C100 204 162 282 248 304 C278 262 306 198 292 138"/>
-        <!-- great vessels -->
-        <path class="hx-ves" d="M134 112 L134 40"/>
-        <path class="hx-ves" d="M186 118 C182 70 196 44 222 40 C252 36 266 52 264 80"/>
-        <path class="hx-ves pa" d="M206 122 C214 96 236 86 262 92"/>
-        <!-- atria -->
-        <ellipse id="hxRA" class="hx-atr" cx="126" cy="116" rx="42" ry="34"/>
-        <ellipse id="hxLA" class="hx-atr" cx="236" cy="106" rx="38" ry="27"/>
-        <!-- ventricles -->
-        <path id="hxVentBody" class="hx-vent" d="M98 138 C84 198 150 278 236 302 C266 260 298 196 282 132 C236 118 146 122 98 138 Z"/>
-        <g clip-path="url(#hxVent)">
-          <path data-reg="rv" class="hx-reg" d="M90 132 L184 126 C190 190 204 248 222 300 L150 286 L80 200 Z"/>
-          <path data-reg="sept" class="hx-reg" d="M174 126 L196 126 C204 190 220 248 240 300 L218 300 C200 250 186 190 174 126 Z"/>
-          <path data-reg="ant" class="hx-reg" d="M196 126 L252 124 L256 214 L240 300 C222 250 204 190 196 126 Z"/>
-          <path data-reg="lat" class="hx-reg" d="M252 168 L300 168 L300 250 L246 300 L238 300 L256 214 Z"/>
-          <path data-reg="hlat" class="hx-reg" d="M246 118 L300 118 L300 168 L252 168 Z"/>
-          <path data-reg="inf" class="hx-reg" d="M60 160 C100 200 160 236 226 254 C240 262 252 272 262 284 L330 300 L330 340 L40 340 Z"/>
-          <path data-reg="avr" class="hx-reg" d="M90 126 L212 124 L206 150 C170 152 130 154 92 166 Z"/>
-        </g>
-        <path class="hx-sep" d="M184 126 C192 192 208 250 232 300"/>
-        <text x="132" y="214" class="hx-cham">RV</text><text x="232" y="210" class="hx-cham">LV</text>
-        <text x="110" y="120" class="hx-cham sm">RA</text><text x="232" y="110" class="hx-cham sm">LA</text>
-        <!-- electrical system -->
-        <g class="hx-cond">
-          <path id="hxP1" d="M118 92 C134 108 150 122 168 136"/>
-          <path id="hxP2" d="M118 92 C160 80 204 84 240 98"/>
-          <path id="hxP3" d="M168 136 L182 152"/>
-          <path id="hxP4" d="M182 152 C198 188 214 232 230 280"/>
-          <path id="hxP5" d="M182 152 C176 192 158 228 140 248"/>
-          <path id="hxP6" d="M204 196 C232 196 262 184 276 156"/>
-          <path id="hxP7" d="M216 236 C244 246 264 236 280 210"/>
-          <path id="hxP8" d="M160 220 C134 214 116 196 104 170"/>
-        </g>
-        <circle class="hx-node" cx="118" cy="92" r="5"/><circle class="hx-node" cx="168" cy="136" r="4.5"/>
-        <g id="hxSparks"></g>
-        <!-- beams and eyes -->
-        <g id="hxBeams"></g>
-        <g id="hxEyes"></g>
-      </svg>
-      <div class="hx-beat" id="hxBeat" hidden>
-        <svg viewBox="0 0 320 90" class="hx-ecg"><path id="hxEcgBg" class="hx-ecg-bg"/><path id="hxEcg" class="hx-ecg-tr"/><circle id="hxEcgDot" r="4" class="hx-ecg-dot"/></svg>
-        <div class="hx-step" id="hxStep"><b>Tap play</b><span>Watch the spark travel through the heart and draw the ECG.</span></div>
-        <div class="hx-ctrl"><button type="button" class="btn" id="hxPlay">▶ Play</button><button type="button" class="btn ghost" id="hxSlow">Slow motion: on</button></div>
-      </div>
-    </div>
-    <div id="hxLeadUI">
-      <div class="hx-groups" id="hxGroups"></div>
-      <div class="hx-chips"><span>Limb leads</span><div id="hxLimb"></div><span>Chest leads</span><div id="hxChest"></div></div>
-      <div class="hx-info" id="hxInfo"></div>
-    </div>
-  </div>
+  <div class="hxc-host" id="hxChart"><div class="hxc-boot">Loading the heart…</div></div>
 
   <div class="lx-step" data-s="1"><button type="button" class="lx-h"><span class="lx-n">1</span><span class="lx-t">What is an ECG?<small>The heart's electricity, drawn on paper</small></span><span class="lx-ck">✓</span></button><div class="lx-b">
     <p>Your heart is a pump. Before each squeeze, a tiny spark of <b>electricity</b> runs through it, like a wave going through a stadium crowd.</p>
@@ -1411,7 +1365,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="4.7";
+  const APP_VERSION="5.0";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2188,7 +2142,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const bot=el("div","rm-bot");bot.appendChild(el("p","rm-phase",small?"Deeper read":"Reading the ECG"));
     if(!small)bot.appendChild(el("p","rm-cap","A slow or weak internet connection can make the reading take longer. You can switch apps: it keeps reading."));
     w.appendChild(bot);w.appendChild(el("span","rm-orb"));
-    glowAttach(cv,small?{mode:"sine",cursor:0.62,cy:0.64,amp:0.11,ctop:0.34,cbot:0.92,barBoost:1.6,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s","thorough read"]}:{mode:"sine",cursor:0.62,cy:0.38,amp:0.12,ctop:0.13,cbot:0.6,barBoost:1.7,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s",sec.dataset.sub||"elapsed"]});
+    glowAttach(cv,small?{mode:"sine",cursor:0.62,cy:0.64,amp:0.11,ctop:0.34,cbot:0.92,barBoost:1.6,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s",sec.dataset.sub||"thorough read"]}:{mode:"sine",cursor:0.62,cy:0.38,amp:0.12,ctop:0.13,cbot:0.6,barBoost:1.7,bg:["#060A10","#0B1420"],label:()=>[sec.textContent||"0 s",sec.dataset.sub||"elapsed"]});
     return w;}
   let mon=null;
   function monStart(){const h=$("readMon");h.textContent="";mon=makeMonitor(false);h.appendChild(mon);h.hidden=false;statusEl.hidden=true;}
@@ -2255,9 +2209,10 @@ HOW TO MEASURE (follow exactly, lead by lead):
 0d. SMALL OR NOISY COMPLEXES: limb leads are often low voltage (QRS only 2-5 mm). Measure the J-point against the flat TP baseline in at least 3 beats; a wavy or noisy baseline, a P wave or a T wave is NOT ST elevation. If you cannot clearly see the same ELEVATION in most beats, report 0 for that lead. This caution is about false elevation only: ST DEPRESSION that is visible in most beats must always be reported (rule 3b).
 1. Calibration: find the 1 mV calibration pulse and count its height in small boxes (normally 10). Report it as calibration.mm_per_mv. Paper speed is printed (normally 25 mm/s).
 2. Baseline: the TP segment (flat line between end of T and next P). Use the PR segment only if TP is not visible.
+2b. COMPLETE BEATS ONLY: each lead's strip runs from its own label / lead-change marker to the next one, and the printer switches leads in the MIDDLE of a beat, so the first and last beats of every strip are often cut off. Measure only complete beats: the QRS and the ST-T after it entirely inside this lead's strip, with a TP baseline visible before the QRS. Right after a lead switch the trace commonly sits on a short flat shelf at a different level (often 1-2 mm above or below the baseline) for a few millimetres before the first full beat: that shelf is a lead-change artifact, NOT ST elevation or depression. Never measure it, and never measure a cut-off beat. Report the MEDIAN J-point of the complete beats (normally 2-3 per strip); if a strip has only one complete beat, measure that beat and say so in the quality line.
 3. J-point: the exact point where the QRS ends and the ST segment starts, i.e. where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Measure the vertical distance between the J-point and the baseline in SMALL BOXES as seen on this paper, to the nearest 0.5. Positive = above baseline, negative = below.
 3b. ST DEPRESSION matters as much as ST elevation: missing it misses left main / multivessel ischaemia and posterior MI. In EVERY lead, check whether the J-point sits BELOW the TP baseline. If it does, report the negative value even when the ST then slopes upward into the T wave (upsloping depression is measured at the J-point). Look especially at I, II, III, aVF and V3-V6. When several leads show ST depression, look carefully at aVR and V1 for ST ELEVATION: diffuse ST depression with ST elevation in aVR is a critical pattern. Do not report 0 in a lead where the ST segment clearly starts below the baseline.
-4. NEVER measure at the T-wave, at the peak of the ST hump, or in the middle of the ST segment. A tall T wave is not ST elevation.
+4. NEVER measure at the T-wave, at the peak of the ST hump, in the middle of the ST segment, or 1-2 small boxes after the QRS on the ST upslope. In young patients and in V2-V5 the ST often climbs steeply into a tall T wave: the J-point is where the QRS ends, BEFORE the climb. A tall T wave is not ST elevation.
 5. Normal variants that are NOT ST elevation: deep S waves in V1-V3 whose upstroke rises into a concave ST segment and a tall upright T wave, with the J-point at 0-2 mm. In V4-V6, I and II a concave ST that rises smoothly into an upright T wave and starts AT the baseline has a J-point of 0 to +0.5 mm; do not measure the rising ST or the T wave. If the J-point is BELOW the baseline, that is ST depression: report it (rule 3b). This is very common in young men and in early repolarisation. Report the real J-point value.
 5b. WIDE QRS (LBBB, paced, RBBB, IVCD; QRS 120 ms or more): the J-point is the END of the whole wide QRS complex, never a point inside the R or S wave. Measure it against the baseline (TP / PR segment), not against the QRS. In LBBB and paced rhythm the ST segment normally goes the OPPOSITE way to the main QRS ("appropriate discordance"): depressed after an upright QRS (usually I, aVL, V5-V6) and elevated after a deep S (usually V1-V3, often III/aVF). Report that real sign. Only report ST going the SAME way as the QRS (concordant) if you clearly see it in that lead.
 6. ST shape: isoelectric, concave (smiley), straight, convex (frowny/tombstone), horizontal, upsloping or downsloping. Only call it convex or tombstone if the ST segment clearly bows upward above the line from J-point to T peak.
@@ -2266,8 +2221,8 @@ HOW TO MEASURE (follow exactly, lead by lead):
 9. Leads not visible in the photo (for example, when only part of the printout is photographed) must be reported with "present": false and j_mm null. Never guess a lead you cannot see.
 10. Only list reciprocal change, tombstone morphology, or any finding if your own measurements show it. The headline and summary MUST agree with your j_mm values: do not write "STEMI" unless contiguous leads meet the patient's threshold.
 11. Monitor printout: copy any printed data (HR, PR, QRS, QT/QTc, axes, age, sex, "STJ Level" numbers, interpretation statements) exactly into "printed". A printed STJ number may be used for a lead's J-point ONLY when that lead's waveform in the photo is unreadable. NEVER use the printed interpretation text (e.g. "inferior/lateral ST-T abnormality", "LVH with repolarization abnormality") to decide what any lead looks like: machine statements are often wrong and describe lead groups loosely. Every lead's J-point and T wave must come from looking at that lead's own waveform, never from the printed words.
-${fast?"12. For each lead, look at EVERY beat in that lead's segment (usually 3-4 beats) and report what most beats show.":"12. For each lead, look at EVERY beat in that lead's segment (usually 3-4 beats) and report what most beats show. First write in \"t_seen\" where the T wave goes after the QRS (for example \"dips below baseline after each QRS\" or \"small hump above baseline\"), then set \"t\" from that description."}
-13. FINAL CHECK before answering: go through all 12 leads again in grid order and confirm (a) the label matches the grid position (column 1 = I, II, III), (b) the J-point value, (c) the T-wave polarity${fast?"":" matches your t_seen"}. Fix any mismatch. Do not copy a pattern from one lead to its neighbours; each lead is judged on its own.
+${fast?"12. For each lead, look at EVERY complete beat in that lead's strip (rule 2b; usually 2-3) and report the median of what they show.":"12. For each lead, look at EVERY complete beat in that lead's strip (rule 2b; usually 2-3) and report the median of what they show. First write in \"t_seen\" where the T wave goes after the QRS (for example \"dips below baseline after each QRS\" or \"small hump above baseline\"), then set \"t\" from that description."}
+13. FINAL CHECK before answering: go through all 12 leads again in grid order and confirm (a) the label matches the grid position (column 1 = I, II, III), (b) the J-point value, (c) the T-wave polarity${fast?"":" matches your t_seen"}, (d) any lead whose J-point is 1 mm or more above BOTH of its neighbours in the same column or territory while they sit at 0 (for example V4 +1.5 with V3 0 and V5 0) is suspicious for a lead-change artifact or a cut-off beat: re-measure it on a complete beat before reporting it. Fix any mismatch. Do not copy a pattern from one lead to its neighbours; each lead is judged on its own.
 
 ALSO ASSESS: rate (R-R method), rhythm, P waves, PR, QRS width in ms, bundle branch block (RBBB, LBBB, paced, LAFB, bifascicular), LVH voltage, QTc if estimable, axis if limb leads visible.
 Posterior (V7-V9) or right-sided (V3R, V4R) leads: measure them only if they are printed and labelled.
@@ -2367,6 +2322,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     let sc=100;const why=[];const st=d.stemi||{};
     const miss=(st.missing||[]);if(miss.length){sc-=35;why.push("Leads not in photo: "+miss.join(", "));}else why.push("All 12 leads visible");
     if(d._invented&&d._invented.length){sc-=15;why.push("The AI described leads that are not in the photo ("+d._invented.join(", ")+"): less reliable read");}
+    if(d._viaStj&&d._viaStj.length){sc-=5;why.push("Lead check couldn't find "+d._viaStj.join(", ")+"; the monitor's printed STJ numbers were used for them");}
     const cal=Number(d.calibration&&d.calibration.mm_per_mv);if(!(cal>=3&&cal<=25)){sc-=10;why.push("Calibration pulse not measured");}
     if(d.quality&&d.quality.adequate===false){sc-=20;why.push("Image quality limited");}
     if(/Borderline|Possible|suspected/i.test(S(st.criterion))){sc-=20;why.push("Values near the threshold");}
@@ -2375,7 +2331,8 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(stj){sc+=10;why.push("J-points from the monitor's STJ measurement");}
     if(d._axisNote){why.push("Limb-lead T waves set from the monitor's T axis");}
     if(d._lowv){sc-=20;why.push("ST elevation only in leads with small complexes");}
-    if([90,180,270].includes(Number(d._rot||d.rot))){sc-=20;why.push("Photo was sideways or upside down");}
+    if([90,180,270].includes(Number(d._rot||d.rot))){const ok=Array.isArray(d._inv)&&d._inv.length>0&&!(d._invented||[]).length&&!(d._viaStj||[]).length;
+      sc-=ok?10:20;why.push(ok?"Photo was sideways or upside down (read the right way up; every lead confirmed)":"Photo was sideways or upside down");}
     if(d._stjCheck&&d._stjCheck.length){sc-=Math.min(15,5*d._stjCheck.length);why.push("Printed STJ may be misread in "+d._stjCheck.map(x=>x.split(" ")[0]).join(", "));}
     if(d._double){const ns=(d._settled||[]).length;
       if(d._disagree.length){sc-=Math.min(30,8*d._disagree.length);why.push("Two reads disagreed: "+d._disagree.slice(0,4).join("; "));}
@@ -2389,6 +2346,16 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     {const wide=/LBBB|paced/i.test(S((d.conduction||{}).bbb)),rate=Number(d.rate_bpm)||0;
       if(wide){const c2=rate>100?55:65;if(c2<cap){cap=c2;why.push((/paced/i.test(S((d.conduction||{}).bbb))?"Paced rhythm":"LBBB")+(rate>100?" with a fast rate ("+rate+"/min)":"")+": ST is hard to measure from a photo in a wide QRS; highest possible is "+cap+"%");}}}
     sc=Math.max(5,Math.min(cap,sc));
+    // 5.0: second look at the leads near or over their threshold (complete beats only). A disagreement is taken off
+    // AFTER the single-read ceiling, so it always shows in the score.
+    {const lk=d._look;const mm=v=>(v>0?"+":"")+v+" mm";
+      if(lk&&lk.done){
+        if(lk.disagree.length){sc-=Math.min(25,10*lk.disagree.length);why.push("Second look disagreed on "+lk.disagree.map(k=>k+" ("+mm(lk.leads[k].a)+" vs "+mm(lk.leads[k].b)+")").join(", ")+": check on the paper");}
+        if(lk.agree.length)why.push("Second look confirmed "+lk.agree.join(", ")+(lk.src==="look"?" on complete beats":""));
+        if(lk.unclear&&lk.unclear.length)why.push("Second look found "+lk.unclear.join(", ")+" hard to read");}
+      else if(lk&&lk.failed){sc-=5;why.push("Second look at "+(lk.names||[]).join(", ")+" didn't finish");}
+      else if(lk&&lk.pending)why.push("Second look at "+(lk.names||[]).join(", ")+" in progress");
+      sc=Math.max(5,sc);}
     return {score:sc,level:sc>=80?"High":sc>=55?"Moderate":"Low",why};
   }
   function applyMonitorAxis(d){
@@ -2688,6 +2655,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(miss.length){const chest=["V1","V2","V3","V4","V5","V6"].filter(k=>miss.includes(k)),limb=miss.filter(k=>!chest.includes(k));
       r.warnings.unshift((chest.length===6?"Chest leads V1–V6 are NOT in this photo":limb.length===5?"Limb leads are NOT in this photo":"Leads not in this photo: "+miss.join(", "))+". The decision only covers the "+(12-r.missing.length)+" leads shown. Add a photo of the missing page(s) and analyze again.");}
     if(d._invented&&d._invented.length)r.warnings.unshift("The AI gave readings for "+d._invented.join(", ")+", but the lead check found these leads are not in the photo. Those readings were ignored.");
+    if(d._viaStj&&d._viaStj.length)r.warnings.push("The lead check couldn't find "+d._viaStj.join(", ")+" in the photo. Their values are the monitor's printed STJ numbers: check these leads on the paper.");
     r.incomplete=miss.length>=3;
     if(r.decision==="not_met"){r.criterion="No activation criterion met";r.reasoning="Measured J-points are below this patient's thresholds and no enhanced criterion applies."+(miss.length?" Limited to the leads visible in the photo.":"");}
     return r;
@@ -2730,16 +2698,33 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   const LEAD_RE=/^(I{1,3}|aV[RLF]|V[1-6])$/;
   // Two sources: the reading AI's own list ("vis") and the separate lead check (d._inv). A lead counts only
   // if every source that answered says it is in the photo.
+  const normLead=x=>{const t=String(x||"").trim().replace(/^avr$/i,"aVR").replace(/^avl$/i,"aVL").replace(/^avf$/i,"aVF").replace(/^v(\d)$/i,"V$1");return LEAD_RE.test(t)?t:null;};
+  // 4.9: the lead check looks at the photo as it was taken. On a sideways or upside-down photo it can miss lead labels
+  // (I, II, III were once marked "not in photo" on a sideways LP15 photo). When the reading AI says the photo was turned
+  // and the lead check is missing leads the AI read, check again with the photo turned the right way up.
+  // A lead then counts if either check saw it, so a lead that is really not in the photo is still set aside.
+  async function invFor(d){
+    const list=files.slice(0,maxCount);let inv=await withinMs(leadInventory(list,0),4000);
+    const rot=Number(d&&(d._rot||d.rot))||0;
+    if([90,180,270].includes(rot)){
+      const seen=Array.isArray(d.visible_leads)?d.visible_leads.map(normLead).filter(Boolean):LEADS,have=new Set((inv||[]).map(normLead));
+      if(!inv||seen.some(k=>!have.has(k))){const up=await withinMs(leadInventory(list,rot),6000);
+        if(Array.isArray(up)&&up.length){inv=[...new Set([...(inv||[]),...up])];d._invUpright=true;}}}
+    return inv;}
   function applyVisible(d){if(!d||!d.leads)return d;d._invented=Array.isArray(d._invented)?d._invented:[];
-    const norm=x=>{const t=String(x||"").trim().replace(/^avr$/i,"aVR").replace(/^avl$/i,"aVL").replace(/^avf$/i,"aVF").replace(/^v(\d)$/i,"V$1");return LEAD_RE.test(t)?t:null;};
+    const norm=normLead;
     const lists=[d.visible_leads,d._inv].filter(a=>Array.isArray(a)&&a.length).map(a=>new Set(a.map(norm).filter(Boolean))).filter(x=>x.size);
     if(!lists.length)return d;const vis=new Set(LEADS.filter(k=>lists.every(x=>x.has(k))));
     LEADS.forEach(k=>{if(vis.has(k))return;const o=d.leads[k];if(o&&o.present!==false&&typeof o.j_mm==="number"&&!d._invented.includes(k))d._invented.push(k);d.leads[k]={present:false,j_mm:null,note:"not in photo"};});
     d._vis=[...vis];return d;}
   function finishRead(data,mode,t0){
-    applyVisible(data);
-    if(data._invented&&data._invented.length&&data.primary&&S(data.primary.rhythm))data.primary.rhythm=S(data.primary.rhythm)+" (⚠ "+data._invented.join(", ")+" not in photo: ignored)";
-    applyMonitorSTJ(data);applyMonitorAxis(data);settleDisagreements(data);applyDevice(data);data._lowv=null;
+    applyVisible(data);applyMonitorSTJ(data);
+    // 4.9: a lead the lead check couldn't find but the monitor printed an STJ number for is on the printout.
+    // Its printed number is used, so it is not "ignored": it is listed separately with a smaller confidence cost.
+    {const L=data.leads||{},inv=data._invented||[];data._viaStj=inv.filter(k=>L[k]&&L[k].stj_exact);data._invented=inv.filter(k=>!(L[k]&&L[k].stj_exact));
+      data._viaStj.forEach(k=>{L[k].note=S(L[k].note).replace(/^not in photo;\s*/,"lead check missed it; ");});}
+    if(data._invented.length&&data.primary&&S(data.primary.rhythm))data.primary.rhythm=S(data.primary.rhythm)+" (⚠ "+data._invented.join(", ")+" not in photo: ignored)";
+    applyMonitorAxis(data);settleDisagreements(data);applyDevice(data);data._lowv=null;
     data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._lowv=lowVoltageNote(data);data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
     if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);return data;
   }
@@ -2757,6 +2742,95 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const small=st.metLeads.filter(k=>{const q=Number(L[k]&&L[k].qrs_mm)||0;return q>0&&q<=5;});
     return small.length===st.metLeads.length?"Small complexes (QRS 5 mm or less) in "+small.join(", ")+": ST elevation in small leads is easy to misread from a photo. Check these leads on the paper before you act.":null;}
   const DEC_TXT={met:"YES — activate",consult:"consult UMOC",not_met:"NO"};
+  // ---------- Second look (5.0) ----------
+  // Any lead read from the photo that is at, or within 0.5 mm below, its threshold gets a second, focused
+  // measurement on complete beats only, before it is trusted. Leads with a printed STJ number are exact and skip it.
+  function lookLeads(d){const st=d.stemi||{};if(typeof st.J!=="function"||typeof st.thr!=="function")return [];const L=d.leads||{};
+    if(/LBBB|paced/i.test(S((d.conduction||{}).bbb)))return [];
+    const J=st.J,thr=st.thr;
+    const out=LEADS.filter(k=>{const o=L[k];if(!o||o.present===false||o.stj_exact)return false;const j=J(k);return j!==null&&j>0&&j>=thr(k)-0.5;});
+    out.sort((a,b)=>((J(b)>=thr(b))-(J(a)>=thr(a)))||((thr(a)-J(a))-(thr(b)-J(b))));
+    return out.slice(0,8);}
+  const lookF=d=>{const cal=Number(d.calibration&&d.calibration.mm_per_mv);return (cal>=3&&cal<=25)?10/cal:1;};
+  function lookPrompt(leads,d,zoom){
+    const rot=Number(d._rot||d.rot)||0;
+    const dyn=["LEADS TO RE-MEASURE: "+leads.join(", ")+".",rot?"ORIENTATION: this photo is turned; turn it "+rot+" degrees clockwise in your mind so the printed text reads normally and the calibration pulse rises upward, then measure.":"ORIENTATION: the photo should be the right way up (the calibration pulse rises upward). If it is not, turn it in your mind first.",zoom?"IMAGES: "+zoom+".":"IMAGES: each image is a photo of this one tracing."].join("\n");
+    return `You are the second-look measurer of EMS Quick ECG Guide (an Abu Dhabi EMS service). The attached image(s) are photos of one printed 12-lead ECG (LIFEPAK, corpuls or similar). A first read of this photo was already made; you are deliberately NOT shown its values so that you are not influenced by them. Your only job is to re-measure the J-point ST deviation in a few named leads, beat by beat, exactly as the paper shows. Do not interpret, do not mention thresholds or STEMI.
+
+HOW TO MEASURE (follow exactly):
+1. Find each named lead by its printed LABEL and its grid position. Most printouts are 4 columns x 3 rows: column 1 = I, II, III (top to bottom); column 2 = aVR, aVL, aVF; column 3 = V1, V2, V3; column 4 = V4, V5, V6. LIFEPAK prints a vertical marker bar before each label: "| I" is lead I, "| II" is lead II. Strip printouts label each row at the left. Never name a lead by counting marker bars.
+2. STRIP BOUNDARIES: a lead's strip runs from its label / lead-change marker to the next one, and the printer switches leads in the MIDDLE of a beat. Go through every beat in the strip and classify it: COMPLETE (its QRS and the ST-T after it lie entirely inside this lead's strip, with a TP baseline visible before the QRS) or CUT (anything straddling the start or end of the strip). A short flat shelf right after a lead switch, sitting at a different level from the rest of the strip, is a lead-change artifact: it is not a beat and must not be measured.
+3. For each COMPLETE beat: baseline = the flat TP segment just before it (PR segment only if TP is not visible). J-point = the exact end of the QRS, where the S-wave upstroke (or R-wave downstroke) ends and the slope changes abruptly. Count the small boxes from the baseline to the J-point: positive above, negative below, nearest 0.5. Do NOT measure on the ST upslope 1-2 boxes later, at the ST hump, or at the T wave; in young patients and in V2-V5 the ST climbs steeply into a tall T wave and the J-point is BEFORE the climb. For deep S waves in V1-V3 the J-point is where the S upstroke ends.
+4. Calibration: count the height of the 1 mV calibration pulse in small boxes (normally 10) and report it as "cal".
+5. Report EVERY complete beat, then the median. If a strip has fewer than 2 complete beats, report what you can and mark it unclear.
+
+Reply with ONLY this compact JSON, nothing else:
+{"cal":10,"L":{"V4":{"n":3,"b":[0,0,0.5],"j":0,"q":"c","w":""}}}
+n = number of complete beats you measured; b = the J-point of each complete beat in order (small boxes); j = median of b; q = "c" clear, "u" unclear (noisy, wandering baseline, fewer than 2 complete beats); w = at most 8 words on what you skipped (e.g. "first beat cut by lead switch") or "". Include every lead named below; a lead whose strip is not in the photo is null.
+
+#DYNAMIC
+${dyn}`;}
+  // Shared record of how two looks at a lead compare. a = first value, b = second value (both at 10 mm/mV).
+  function lookRecord(d,leads,getA,getB,src,extra){const st=d.stemi||{},thr=st.thr||(()=>1);
+    const look={src,done:true,failed:false,pending:false,leads:{},agree:[],disagree:[],unclear:[],missing:[],names:leads.slice()};
+    leads.forEach(k=>{const o=(d.leads||{})[k];if(!o||o.present===false)return;const a=getA(k),b=getB(k);
+      if(a===null||b===null){look.missing.push(k);return;}
+      const agree=((a>=thr(k))===(b>=thr(k)))&&Math.abs(a-b)<=0.5;const x=extra?extra(k):{};
+      look.leads[k]=Object.assign({a,b,agree},x);(agree?look.agree:look.disagree).push(k);if(x.q==="u")look.unclear.push(k);
+      if(agree){o.look_ok=true;delete o.look_check;}else{o.look_check=true;delete o.look_ok;}});
+    const byLead=(x,y)=>LEADS.indexOf(x)-LEADS.indexOf(y);["agree","disagree","unclear","missing","names"].forEach(k=>look[k].sort(byLead));
+    d._look=look;return look;}
+  // The second look's own answer (API) compared with the first read.
+  function applyLook(d,leads,res){const st=d.stemi||{},J=st.J;const f=lookF(d);const Lr=(res&&res.L&&typeof res.L==="object")?res.L:{};
+    const med=a=>{const v=a.filter(x=>typeof x==="number"&&isFinite(x)).sort((x,y)=>x-y);if(!v.length)return null;const m=v.length>>1;return v.length%2?v[m]:(v[m-1]+v[m])/2;};
+    const second=k=>{const r=Lr[k];if(!r||typeof r!=="object")return null;const j=typeof r.j==="number"&&isFinite(r.j)?r.j:(Array.isArray(r.b)?med(r.b):null);return j===null?null:Math.round(j*f*2)/2;};
+    const look=lookRecord(d,leads,k=>J(k),second,"look",k=>{const r=Lr[k]||{};return {n:Number(r.n)||(Array.isArray(r.b)?r.b.length:0),beats:Array.isArray(r.b)?r.b.slice(0,6):[],q:r.q==="u"?"u":"c",w:S(r.w).slice(0,80)};});
+    leads.forEach(k=>{const x=look.leads[k],o=d.leads[k];if(!x||!o)return;const mm=(x.b>0?"+":"")+x.b+" mm";
+      o.note=((o.note?S(o.note)+"; ":"")+"second look: "+mm+" on "+x.n+" complete beat"+(x.n===1?"":"s")+(x.w?" ("+x.w+")":"")).slice(0,160);});
+    return look;}
+  // A second look that disagrees never hides anything: the decision can only move towards "consult".
+  function lookDecide(d){const look=d._look,st=d.stemi;if(!look||!look.done||!look.disagree.length)return;
+    const dis=look.disagree,mm=v=>(v>0?"+":"")+v+" mm";const rank={not_met:0,consult:1,met:2};
+    const used=(st.metLeads||[]).filter(k=>dis.includes(k));
+    if(st.decision==="met"&&used.length){
+      st.decision="consult";st.criterion="Reads disagree on ST elevation";
+      st.reasoning="The first read found ST elevation meeting criteria in "+used.join(", ")+", but a second, focused look at complete beats only measured "+used.map(k=>k+" "+mm(look.leads[k].b)).join(", ")+". Check these leads on the paper yourself and call UMOC to discuss.";
+      st.warnings=["Two looks at this photo disagree about ST elevation in "+used.join(", ")+". Look at the paper: if you see ST elevation, treat it as STEMI and call UMOC."].concat(st.warnings||[]);return;}
+    // The second look measured MORE than the first read: re-run the criteria with its values; an upgrade means consult.
+    try{const c=JSON.parse(JSON.stringify(d));const f=lookF(d);dis.forEach(k=>{if(c.leads&&c.leads[k])c.leads[k].j_mm=look.leads[k].b/f;});
+      const alt=evaluate(c,{age:parseInt($("age").value,10),sex:$("sex").value});
+      if(rank[alt.decision]>rank[st.decision]){const up=dis.filter(k=>look.leads[k].b>look.leads[k].a);
+        st.decision="consult";st.criterion="Second look found more ST elevation";
+        st.reasoning="The first read measured "+up.map(k=>k+" "+mm(look.leads[k].a)).join(", ")+", but a second, focused look at complete beats measured "+up.map(k=>k+" "+mm(look.leads[k].b)).join(", ")+", which would "+(alt.decision==="met"?"meet":"come close to")+" the activation criteria. Check these leads on the paper and call UMOC to discuss.";
+        st.warnings=["Two looks at this photo disagree about ST elevation in "+up.join(", ")+". Look at the paper: if you see ST elevation, treat it as STEMI and call UMOC."].concat(st.warnings||[]);}
+      else{const lower=rank[alt.decision]<rank[st.decision];
+        st.warnings=(st.warnings||[]).concat(["Second look disagreed on "+dis.map(k=>k+" ("+mm(look.leads[k].a)+" first read, "+mm(look.leads[k].b)+" on complete beats)").join(", ")+". "+(lower?"With the second look's value"+(dis.length>1?"s":"")+" the decision would be "+(DEC_TXT[alt.decision]||alt.decision)+"; the first read's value is kept so that nothing is hidden.":"Neither value changes the decision.")+" Check "+(dis.length>1?"these leads":"this lead")+" on the paper."]);}}
+    catch(e){}}
+  // Two full reads (Double-check, or the fast read followed by the thorough read) act as each other's second look.
+  function lookFromReads(d,A,B,src){const f=lookF(d);const raw=x=>k=>{const o=(x.leads||{})[k];return o&&o.present!==false&&typeof o.j_mm==="number"&&isFinite(o.j_mm)?Math.round(o.j_mm*f*2)/2:null;};
+    const leads=LEADS.filter(k=>[d,A,B].some(x=>{try{return lookLeads(x).includes(k);}catch(e){return false;}}));if(!leads.length)return null;return lookRecord(d,leads,raw(A),raw(B),src);}
+  let lk=null;
+  function lookCancel(){if(lk){lk.ctl.abort();clearInterval(lk.timer);lk=null;}}
+  async function lookStart(d){
+    lookCancel();if(!isNetlify||!files.length||!d||!d.leads)return;const leads=lookLeads(d);if(!leads.length)return;
+    const me={ctl:new AbortController(),t0:Date.now(),report:d,leads,timer:null};lk=me;
+    d._look={pending:true,done:false,failed:false,src:"look",names:leads,leads:{},agree:[],disagree:[],unclear:[],missing:[]};d._conf=computeConfidence(d);
+    me.timer=setInterval(()=>{const e=document.getElementById("lkSecs");if(e)e.textContent=Math.round((Date.now()-me.t0)/1000)+" s";},1000);
+    try{
+      const zz=await zoomFor(files.slice(0,maxCount));
+      const raw=await sample.json(lookPrompt(leads,d,zz.zoom),{images:zz.imgs,effort:"",signal:me.ctl.signal});
+      if(lk!==me||lastReport!==d)return;
+      clearInterval(me.timer);lk=null;
+      applyLook(d,leads,raw);lookDecide(d);d._conf=computeConfidence(d);sessReport(d);
+      const y=window.scrollY;render(d);window.scrollTo({top:y});
+      const look=d._look;
+      setStatus(look.disagree.length?"Second look finished: it disagrees on "+look.disagree.join(", ")+". Check "+(look.disagree.length>1?"those leads":"that lead")+" on the paper.":"Second look finished: "+(look.agree.length?look.agree.join(", ")+" confirmed on complete beats.":"no lead could be re-measured."));
+    }catch(e){
+      if(lk!==me)return;clearInterval(me.timer);lk=null;if(e&&e.code==="cancelled"){if(d._look&&d._look.pending){d._look.pending=false;d._look.failed=true;d._conf=computeConfidence(d);}return;}
+      d._look={pending:false,done:false,failed:true,src:"look",names:leads,leads:{},agree:[],disagree:[],unclear:[],missing:[]};d._conf=computeConfidence(d);sessReport(d);
+      if(lastReport===d){const y=window.scrollY;render(d);window.scrollTo({top:y});}
+    }
+  }
   // ---------- Background thorough read for borderline fast results ----------
   let bg=null;
   function bgCancel(){if(bg){bg.ctl.abort();clearInterval(bg.timer);bg=null;}}
@@ -2768,7 +2842,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const tim=[];
       const raw=await sample.json(buildPrompt(zz.zoom,"thorough"),{images:zz.imgs,modelTier:"complex",effort:"",signal:me.ctl.signal,cache:false,onTiming:t=>tim.push(t)});
       if(bg!==me||lastReport!==fast)return;
-      const ex=expandCompact(raw);ex._votesOther=(fast.stemi&&fast.stemi.cands)||[];ex._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);if(bg!==me||lastReport!==fast)return;
+      const ex=expandCompact(raw);ex._votesOther=(fast.stemi&&fast.stemi.cands)||[];ex._inv=await invFor(ex);if(bg!==me||lastReport!==fast)return;
       const data=finishRead(ex,"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
       data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};
       if(data._from.decision==="met"&&data.stemi.decision!=="met"){const fl=(fast.stemi.metLeads||[]).join(", ");
@@ -2776,6 +2850,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
         data.stemi.reasoning="The fast read found ST elevation meeting criteria"+(fl?" in "+fl:"")+", but a second, deeper read of the same photo did not. Check these leads on the paper yourself and call UMOC to discuss.";
         data.stemi.warnings=["Two reads of this photo disagree about ST elevation"+(fl?" in "+fl:"")+". Look at the paper: if you see ST elevation, treat it as STEMI and call UMOC."].concat(data.stemi.warnings||[]);}
       else if(data._from.decision==="met"&&data.stemi.decision==="met")data._confirmedYes=true;
+      lookCancel();try{if(lookFromReads(data,fast,data,"thorough"))data._conf=computeConfidence(data);}catch(e){}
       clearInterval(me.timer);bg=null;
       const y=window.scrollY;lastReport=data;render(data);window.scrollTo({top:y});
       setStatus("Thorough read finished ("+timeTxt(data)+")."+tx+" "+(data._from.decision===data.stemi.decision?"Decision unchanged.":"Decision CHANGED: see the top of the report."));
@@ -2789,16 +2864,18 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   }
   // Independent check of which leads are in the photos (3.7). Runs while the photo uploads.
   let invCache=null;
-  function leadInventory(list){
+  // deg: look at the photos turned clockwise by deg (4.9: used to re-check a sideways or upside-down photo the right way up).
+  function leadInventory(list,deg){deg=[90,180,270].includes(deg)?deg:0;
     if(!isNetlify)return Promise.resolve(null);
-    if(invCache&&sameFiles(invCache.list,list))return invCache.p;
+    if(!invCache||!sameFiles(invCache.list,list))invCache={list:list.slice(),byDeg:{}};
+    if(invCache.byDeg[deg])return invCache.byDeg[deg];
     const code=store.get("eqg-code");if(!code)return Promise.resolve(null);
-    const p=(async()=>{try{const images=[];for(const f of list){const img=await loadImg(f);images.push(turnedJpeg(img,0,1400));}
+    const p=(async()=>{try{const images=[];for(const f of list){const img=await loadImg(f);images.push(turnedJpeg(img,deg,1400));}
       const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),30000);
       try{const r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({leads:true,images}),signal:ctl.signal});
         if(!r.ok)return null;const j=await r.json().catch(()=>({}));return Array.isArray(j.leads)&&j.leads.length?j.leads:null;}finally{clearTimeout(t);}}
       catch(e){return null;}})();
-    invCache={list:list.slice(),p};return p;}
+    invCache.byDeg[deg]=p;return p;}
   const withinMs=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
   // Warm the analysis server and prepare the photos before Analyze is tapped.
   let warmed=false;
@@ -2816,7 +2893,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     readMode=mode;
     if(!sample||!files.length||busy)return;
     if(files.some(f=>orienting.has(f))){setStatus("Checking which way is up… one moment.");return;}
-    bgCancel();
+    bgCancel();lookCancel();
     if(isNetlify&&navigator.onLine===false){setStatus("No connection. ECG analysis needs internet. Reference pages and the UMOC call still work offline.",{err:true});return;}
     busy=true;ctl=new AbortController();stopBtn.hidden=false;refresh();
     const t0=Date.now();let phase=mode==="fast"?"Fast read":"Thorough read";
@@ -2838,7 +2915,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"fast":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onJob:id=>sessJob(id),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       const raws=dbl?await Promise.all([one(),one()]):[await one()];
       const data=await settleReads(raws,mode,t0);
-      const tx=applyTiming(data,takeTiming(tim));bgCancel();lastReport=data;sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
+      const tx=applyTiming(data,takeTiming(tim));bgCancel();lookCancel();lastReport=data;sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);else if(isNetlify&&!data._double)lookStart(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
       logRead(data);track("result",{decision:data.stemi&&data.stemi.decision,secs:data._secs||0,mode,double:!!data._double});
     }catch(e){
       clearInterval(timer);if(!(e&&e.code==="cancelled"))track("error",{msg:String((e&&e.code)||"error")});
@@ -2856,8 +2933,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(raws.length>1){const a=applyVisible(expandCompact(raws[0])),b=applyVisible(expandCompact(raws[1]));const ca=readCands(a),cb=readCands(b);data=mergeReads(a,b);data._votesOther=ca.filter(n=>cb.includes(n));
       if(Array.isArray(a.visible_leads)&&Array.isArray(b.visible_leads))data.visible_leads=[...new Set([...(a._vis||[]),...(b._vis||[])])];else data.visible_leads=null;
       data._invented=[...new Set([...(a._invented||[]),...(b._invented||[])])];}else data=expandCompact(raws[0]);
-    data._inv=await withinMs(leadInventory(files.slice(0,maxCount)),4000);
-    return finishRead(data,mode,t0);}
+    data._inv=await invFor(data);
+    const out=finishRead(data,mode,t0);
+    if(raws.length>1){try{const a=expandCompact(raws[0]),b=expandCompact(raws[1]);if(lookFromReads(out,a,b,"double"))out._conf=computeConfidence(out);}catch(e){}}
+    return out;}
 
   // ---------- Keep the patient when the phone closes the app (3.8) ----------
   // Phones (especially iPhone) may close the app in the background. The age/sex, photos, a read in
@@ -2897,7 +2976,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       monStart();tick();const timer=setInterval(tick,1000);
       try{const raws=await Promise.all(pd.ids.slice(0,pd.dbl?2:1).map(id=>pollJob(id,code,ctl.signal)));
         const data=await settleReads(raws,pd.mode||"fast",t0);lastReport=data;sessReport(data);
-        if(data._mode==="fast"&&needsThorough(data)&&files.length)bgThorough(data);render(data);
+        if(data._mode==="fast"&&needsThorough(data)&&files.length)bgThorough(data);else if(isNetlify&&!data._double)lookStart(data);render(data);
         setStatus("Reading picked up after the app was closed ("+timeTxt(data)+"). Confirm against your own reading before acting.");logRead(data);}
       catch(e){setStatus(e&&e.code==="cancelled"?"Stopped.":"The app was closed during the reading and it couldn't be picked up. Your photos are still here: tap Analyze ECG.",{err:!(e&&e.code==="cancelled")});}
       finally{clearInterval(timer);sessPend(null);monStop();busy=false;ctl=null;stopBtn.hidden=true;refresh();}
@@ -2905,7 +2984,9 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(pd){sessPend(null);if(files.length)setStatus("The app was closed before the reading started. Your photos are still here: tap Analyze ECG.");return;}
     const rp=o.report;
     if(rp&&rp.data&&Date.now()-rp.at<SESS_MAX){const d=rp.data;lastReport=d;
+      if(d.stemi&&typeof d.stemi.J!=="function"){try{d.stemi=Object.assign(evaluate(d,{age:parseInt($("age").value,10),sex:$("sex").value}),{decision:d.stemi.decision,criterion:d.stemi.criterion,reasoning:d.stemi.reasoning,warnings:d.stemi.warnings});}catch(e){}}
       if(d._mode==="fast"&&yesFromPhoto(d)&&!d._confirmedYes){if(files.length&&isNetlify)bgThorough(d);else d._verifyFailed=true;}
+      else if(d._look&&d._look.pending){if(files.length&&isNetlify)lookStart(d);else{d._look.pending=false;d._look.failed=true;d._conf=computeConfidence(d);}}
       render(d);setStatus("Your last result is back (the app was closed). Tap New patient to start a new one.");return;}
     if(files.length&&patientOK())setStatus("Your patient is back (the app was closed). Tap Analyze ECG.");
   }
@@ -3000,7 +3081,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       else if(e.ev==="error")sp.append("Reading failed"+(e.d&&e.d.msg?" ("+e.d.msg+")":""));
       else if(e.ev==="analyze")sp.append("Started a "+(e.d&&e.d.mode==="thorough"?"thorough ":"")+"reading"+(e.d&&e.d.double?" (double-check)":""));
       else sp.append(EVT[e.ev]||e.ev);row.appendChild(sp);ev.appendChild(row);});}
-  clearBtn.onclick=()=>{bgCancel();zoomCache=null;dropUpload();sessClear();
+  clearBtn.onclick=()=>{bgCancel();lookCancel();zoomCache=null;dropUpload();sessClear();
     files=[];$("samePtChk").checked=false;renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
     $("age").value="";$("sex").value="";$("notes").value="";syncPick();window.__cxReset&&window.__cxReset();
     setStatus("Enter age and sex, then add an ECG image.");refresh();window.scrollTo({top:0});
@@ -3026,7 +3107,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     return "";
   }
   function leadMap(d){
-    const r=d.stemi||{},J=r.J||(()=>null),thr=r.thr||(()=>1),L=d.leads||{};
+    const r=d.stemi||{},J=r.J||(()=>null),thr=r.thr||(()=>1),L=d.leads||{};const look=d._look&&d._look.done?d._look:null;
     const order=["I","aVR","V1","V4","II","aVL","V2","V5","III","aVF","V3","V6"];
     const bbb=S((d.conduction||{}).bbb);
     // LBBB / paced: the standard mm thresholds don't apply. ST normally goes the OPPOSITE way to the QRS
@@ -3052,9 +3133,15 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
         }}
       const tx=tExpected(d,k);const tAbn=j!==null&&["inverted","biphasic","hyperacute"].includes(t)&&!tx;
       if(o.stj_check)cls+=" stjchk";
+      // 5.0: second look. Pending = not red yet; disputed = amber "check this lead"; confirmed = a small tick.
+      const lkPend=!!(lk&&lk.report===d&&lk.leads.includes(k)),lkx=!!(look&&look.done&&look.disagree.includes(k)),lkok=!!(look&&look.done&&look.agree.includes(k));
+      if(lkPend&&!lb)cls=cls.replace(/ (ste|sub|std)\b/,"")+" lkp";else if(lkx&&!lb)cls=cls.replace(/ (ste|sub|std)\b/,"")+" lkx";
       const box=el("div",cls);box.appendChild(el("b",null,k));
       if(j===null)box.appendChild(el("span",null,line));else{const jv=el("span","jv",line.replace(" mm",""));jv.appendChild(el("small",null," mm"));box.appendChild(jv);}
       if(badge)box.appendChild(el("span",bcls,badge));
+      if(lkPend)box.appendChild(el("span","lk2","2nd look…"));
+      else if(lkx){const x=look.leads[k];const mm=v=>(v>0?"+":v<0?"−":"")+Math.abs(v)+" mm";box.appendChild(el("span","lk2",(look.src==="look"?"2nd look ":"reads ")+(look.src==="look"?mm(x.b):mm(x.a)+" / "+mm(x.b))));box.appendChild(el("span","chkline","check this lead"));}
+      else if(lkok)box.appendChild(el("span","lk2","✓ 2 looks"));
       if(j!==null&&t&&t!=="upright"&&t!=="unclear"){
         const tag=tx?(/RBBB/.test(tx)?" (RBBB)":/LBBB/.test(tx)?" (LBBB)":/paced/.test(tx)?" (paced)":" (normal)"):"";
         const sp=el("span",tAbn?"tl tabn":tx?"tl tok":"tl","T "+t+tag);if(tx)sp.title=tx;box.appendChild(sp);}
@@ -3065,13 +3152,21 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     wrap.appendChild(g);
     const lg=el("div","legend");
     const items=lb?[["var(--crit)","Concordant ST or ST/S ≥25% (Sgarbossa)"],["#9AA9BA","Discordant: expected with "+(/paced/i.test(bbb)?"paced rhythm":"LBBB")],["var(--warn)","Concordant ST depression V1–V3"],["var(--field-b)","Normal / not in photo"]]
-      :[["var(--crit)","Meets threshold"],["#7B3FC4","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--field-b)","Normal / not in photo"]];
+      :[["var(--crit)","Meets threshold"],["#7B3FC4","Elevated, below threshold"],["var(--warn)","ST depression"],["var(--field-b)","Normal / not in photo"]].concat(look&&look.disagree.length?[["#FFE17A","Second look disagrees: check the paper"]]:(lk&&lk.report===d)?[["#FFF6D6","Second look in progress"]]:[]);
     items.forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
     {const s=el("span");s.append(el("em","tkey","T"),"Blue T label = abnormal T wave");lg.appendChild(s);}
     wrap.appendChild(lg);
     if(lb)wrap.appendChild(el("p","lbl lnote",(/paced/i.test(bbb)?"Paced rhythm":"LBBB")+": the standard mm thresholds don't apply. ST and T going the opposite way to the QRS is expected; the app checks modified Sgarbossa instead."));
     if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal), (RBBB) or (LBBB) is expected in that lead and is not counted as abnormal."));
     if(order.some(k=>(L[k]||{}).stj_check))wrap.appendChild(el("p","lbl lnote","⚠ check paper: the printed STJ number may have been misread from the photo. Read it on the paper."));
+    {const lkp=lk&&lk.report===d?lk.leads:[];const mm=v=>(v>0?"+":v<0?"−":"")+Math.abs(v)+" mm";
+      if(lkp.length)wrap.appendChild(el("p","lbl lnote","Second look in progress on "+lkp.join(", ")+": these leads are measured again on complete beats only before they are coloured."));
+      else if(look){const parts=[];
+        if(look.disagree.length)parts.push("Disagreed on "+look.disagree.map(k=>{const x=look.leads[k];return k+" ("+(look.src==="look"?"first read "+mm(x.a)+", second look "+mm(x.b)+(x.n?" on "+x.n+" complete beat"+(x.n===1?"":"s"):""):mm(x.a)+" vs "+mm(x.b))+")";}).join("; ")+": check "+(look.disagree.length>1?"these leads":"this lead")+" on the paper.");
+        if(look.agree.length)parts.push("Confirmed"+(look.src==="look"&&!look.disagree.length?" on complete beats":"")+": "+look.agree.join(", ")+".");
+        if(look.missing.length)parts.push("Could not re-measure "+look.missing.join(", ")+".");
+        if(parts.length)wrap.appendChild(el("p","lbl lnote",(look.src==="look"?"Second look (complete beats only): ":look.src==="double"?"Two reads compared: ":"Fast and thorough reads compared: ")+parts.join(" ")));}
+      else if(d._look&&d._look.failed)wrap.appendChild(el("p","lbl lnote","The second look at "+(d._look.names||[]).join(", ")+" didn't finish; these values are from one read only."));}
     const notes=LEADS.filter(k=>L[k]&&L[k].note).map(k=>k+": "+S(L[k].note));
     if(notes.length){const n=list(notes);n.style.marginTop="10px";n.style.fontSize=".88rem";wrap.appendChild(n);}
     return wrap;
@@ -3119,6 +3214,28 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"5.0",d:"15 Oct 2026",t:"Complete beats only, with a second look",i:[
+      "Fix: a lead-change artifact was read as ST elevation (V4 +1.5 mm on a normal LP15 ECG of a 20-year-old). The printer switches leads mid-beat, and right after the switch the trace sits on a short shelf at a different level. The AI now measures only complete beats in every lead, skips the cut-off beat at the start and end of each strip, and reports the median.",
+      "J-point placed exactly where the QRS ends, not 1–2 boxes later on the ST upslope into a tall T wave (V2 and V3 were read 0.5–1 mm high on the same ECG).",
+      "Final check: a lead that stands 1 mm or more above both its neighbours while they sit at 0 is re-measured before it is reported.",
+      "Second look (all 12 leads): any lead read from the photo that is at, or within 0.5 mm below, its threshold is measured again by a separate, focused read that counts the complete beats and is not shown the first values. Until it answers, the lead is shown amber with '2nd look…' instead of red.",
+      "Second look agrees: the lead turns red (or stays purple) with a '✓ 2 looks' mark. Second look disagrees: the lead is shown amber with both values and 'check this lead', confidence drops 10% per lead, and a YES that rested on that lead becomes 'consult UMOC'. Nothing is hidden: if the second look measures MORE than the first read, that also becomes 'consult UMOC'.",
+      "Double-check and the automatic thorough read now compare the two reads lead by lead the same way.",
+      "Sideways or upside-down photo: when the lead check confirms every lead the right way up, the big yellow warning is replaced by a small grey note. The full warning still shows if any lead couldn't be confirmed.",
+      "Leads with a printed STJ number skip the second look (the monitor's number is exact). LBBB and paced rhythms skip it (the mm thresholds don't apply)."]},
+    {v:"4.9",d:"11 Oct 2026",t:"Sideways and upside-down photos",i:[
+      "Fix: on a sideways or upside-down photo the separate lead check could miss lead names (I, II, III on an LP15 photo), mark them 'not in photo' and drop the confidence. It now checks again with the photo turned the right way up before setting any lead aside.",
+      "Leads with an STJ number printed by the monitor are no longer shown as 'not in photo: ignored' (the printed numbers were already used in the criteria).",
+      "A turned photo now lowers confidence by 10% instead of 20% when every lead is confirmed.",
+      "Your photo is never turned or changed: only the quick lead check looks at a turned copy."]},
+    {v:"4.8",d:"10 Oct 2026",t:"A real heart in Learn ECG",i:[
+      "Learn ECG: 'Your heart & the 12 leads' now shows a real-looking heart, cut open from the front: the four chambers, the septum, the valves and the electrical system inside.",
+      "Tap a lead group or any lead: its wall lights up on the heart and its sight line flows to it. The anterior wall (cut away in this view) shows as a see-through layer.",
+      "The spark runs SA node → AV node → bundle of His → bundle branches → Purkinje fibres with a live P-QRS-T strip, slow motion and pause.",
+      "New groups from your protocol: Posterior (V7–V9, the back wall seen inside the heart) and Right ventricle (V3R, V4R), each with its extra leads drawn on the heart.",
+      "Tap any lead: its wall, artery, where the sticker goes, its mirror lead, what to check and a small strip of what it normally looks like.",
+      "Common problem areas: tap SA node dysfunction, AV block, bundle branch block, AF or VT/VF to see where it is; the live strip shows the dropped beat, the pause, the missing P waves or VF.",
+      "The animation stops when you leave the page or scroll past it, to save battery."]},
     {v:"4.7",d:"10 Oct 2026",t:"Your heart & the 12 leads",i:[
       "Learn ECG: new interactive heart. Tap any of the 12 leads to see which wall it looks at, the usual artery, where the sticker goes, its mirror lead, what it checks, and what it normally looks like.",
       "Lead groups (inferior, lateral, septal, anterior, right side, posterior) light up their wall and leads together.",
@@ -3365,11 +3482,16 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       if(/^(M|MALE)$/.test(ps)&&es==="Female")mm.push("sex M (you entered Female)");if(/^(F|FEMALE)$/.test(ps)&&es==="Male")mm.push("sex F (you entered Male)");
       if(mm.length)st.warnings=["Printout shows "+mm.join(" and ")+". The V2–V3 threshold depends on age and sex. Check the patient details and analyze again."].concat(st.warnings||[]);}
     if(d._lowv&&!(st.warnings||[]).includes(d._lowv))st.warnings=[d._lowv].concat(st.warnings||[]);
-    {const rot=Number(d._rot||d.rot)||0;if([90,180,270].includes(rot)){const w="⚠ This photo was "+(rot===180?"upside down":"sideways")+"; the AI read it turned the right way. Check the leads it flagged on the paper. If the result doesn't match the paper, tap ↻ on the photo and analyze again.";if(!(st.warnings||[]).includes(w))st.warnings=[w].concat(st.warnings||[]);}}
+    {const rot=Number(d._rot||d.rot)||0;if([90,180,270].includes(rot)){
+      // 5.0: when the lead check confirmed every lead the right way up, a small grey note is enough.
+      const ok=Array.isArray(d._inv)&&d._inv.length>0&&!(d._invented||[]).length&&!(d._viaStj||[]).length;
+      if(ok)d._rotNote="Photo was "+(rot===180?"upside down":"sideways")+"; read the right way up, "+((st.missing||[]).length?"every lead in the photo":"all 12 leads")+" confirmed.";
+      else{d._rotNote=null;const w="⚠ This photo was "+(rot===180?"upside down":"sideways")+"; the AI read it turned the right way. Check the leads it flagged on the paper. If the result doesn't match the paper, tap ↻ on the photo and analyze again.";if(!(st.warnings||[]).includes(w))st.warnings=[w].concat(st.warnings||[]);}}}
     if(d._device&&!(st.warnings||[]).includes(d._device))st.warnings=[d._device].concat(st.warnings||[]);
     if(d._axisNote)st.warnings=(st.warnings||[]).concat([d._axisNote]);
     if(d._stjCheck&&d._stjCheck.length){const w="Check these printed STJ values on the paper: "+d._stjCheck.join("; ")+". Small print in a photo can be misread. For a sharper read, add a close-up photo of the STJ table.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}
     if(d._stjUsed&&d._stjUsed.length)st.warnings=(st.warnings||[]).concat(["J-points taken from the monitor's printed STJ measurement where the photo read differed: "+d._stjUsed.join(", ")+"."]);
+    if(d._rotNote){const n=el("p","lbl");n.textContent="↻ "+d._rotNote;n.style.margin="2px 6px 8px";report.appendChild(n);}
     (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
     if((st.checks||[]).length){const u=el("ul","why");
       const KEY={"i":"stemi","ii":"post","iii":"lcx","iv":"lm","v":"lbbbv","vi":"rbbbv","W":"wellens"};
@@ -3447,6 +3569,11 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
         const p=el("p","lbl",(d.stemi&&d.stemi.decision==="met")?"Checking the YES above with a second, deeper read of the same photo. The report updates by itself.":"The fast read says NO but saw an OMI pattern, so a deeper read started automatically to make sure nothing is missed. You can act on the result above now; the report updates by itself when the thorough read finishes (usually 45–70 s).");tc.appendChild(p);
         const cb=el("button","btn ghost","Cancel thorough read");cb.type="button";cb.onclick=()=>{bgCancel();if(yesFromPhoto(d))d._verifyFailed=true;render(d);};tc.appendChild(cb);report.appendChild(tc);}
 }
+    if(isNetlify&&lk&&lk.report===d&&!(bg&&bg.fast===d)){const tc=el("div","card thorough refining");tc.id="bgCard";
+      tc.appendChild(el("h3",null,"Second look at "+lk.leads.join(", ")+"…"));
+      const mm=makeMonitor(true);const sec=mm.querySelector(".rm-secs");sec.id="lkSecs";sec.textContent=Math.round((Date.now()-lk.t0)/1000)+" s";sec.dataset.sub="second look";mm.querySelector(".rm-live").textContent="SECOND LOOK";mm.querySelector(".rm-phase").textContent="Complete beats only";tc.appendChild(mm);
+      tc.appendChild(el("p","lbl","These leads are at or near their threshold, so they are being measured again on complete beats only, without seeing the first values. The report updates by itself (usually 20–40 s)."));
+      const cb=el("button","btn ghost","Cancel second look");cb.type="button";cb.onclick=()=>{lookCancel();if(d._look&&d._look.pending){d._look.pending=false;d._look.failed=true;d._conf=computeConfidence(d);}render(d);};tc.appendChild(cb);report.appendChild(tc);}
     {const bc=document.getElementById("bgCard");const sb=report.querySelector(".stemi");if(bc&&sb)sb.after(bc);else if(bc&&report.children.length>1)report.insertBefore(bc,report.children[1]);}
     if(isNetlify)report.appendChild(reviewCard(d));
     applySections(d);
@@ -3561,131 +3688,701 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   qh.after(retry);
   paint();
   const first=steps.find(s=>!done.has(+s.dataset.s))||steps[0];first.classList.add("open");
-  // ===== Heart & the 12 leads (4.7): tap a lead to see which wall it looks at; watch one heartbeat =====
+  // ===== Learn ECG: heart & the 12 leads (4.8): the heart cut open, the 12 lead "cameras" and a live heartbeat =====
+  // Plain SVG + JS, no libraries. Built when it first scrolls into view; the animation only runs while it is on screen.
   (function(){
-    const root=document.getElementById("hx");if(!root)return;
-    const SV="http://www.w3.org/2000/svg",svgEl=document.getElementById("hxSvg");
-    const mk=(t,a,p)=>{const e=document.createElementNS(SV,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
-    const COL={inf:"#FFB547",lat:"#3DDC84",hlat:"#2DD4BF",ant:"#FF5D73",sept:"#5AA9FF",rv:"#B07CFF",avr:"#FF8AD8",post:"#FFD166"};
-    const CEN={inf:[176,256],lat:[278,222],hlat:[274,142],ant:[226,206],sept:[204,214],rv:[140,202],avr:[150,140],post:[262,262]};
-    const C0=[190,200],R=165;
-    const LEADS={
-      I:{a:0,reg:["hlat"],wall:"High lateral wall (upper left side)",art:"Circumflex (LCx) or a diagonal branch of the LAD",norm:"up",mirror:"III / aVF",
-        tip:"Looks from the left arm straight across the heart.",checks:["With aVL: high lateral STEMI if ST rises in both.","Part of the lateral group (I, aVL, V5, V6)."]},
-      II:{a:60,reg:["inf"],wall:"Inferior wall (bottom of the heart)",art:"Usually the right coronary artery (RCA)",norm:"up",mirror:"aVL",
-        tip:"Looks up from the left leg, along the heart's normal electrical path.",checks:["Best lead to see P waves and the rhythm (the monitor's default).","ST up in II, III and aVF = inferior STEMI: record V4R for the right ventricle."]},
-      III:{a:120,reg:["inf"],wall:"Inferior wall (bottom of the heart)",art:"Usually the RCA",norm:"var",mirror:"aVL",
-        tip:"Looks up from the right side of the belly.",checks:["ST higher in III than II points to the RCA.","An inverted T in III alone can be normal."]},
-      aVF:{a:90,reg:["inf"],wall:"Inferior wall (bottom of the heart)",art:"Usually the RCA",norm:"up",mirror:"aVL",
-        tip:"Looks straight up from the feet.",checks:["The middle of the inferior group (II, III, aVF)."]},
-      aVL:{a:-30,reg:["hlat"],wall:"High lateral wall (upper left side)",art:"LCx or a diagonal branch",norm:"var",mirror:"III",
-        tip:"Looks from the left shoulder.",checks:["The mirror of III: ST DOWN in aVL can be the first sign of an inferior STEMI.","ST up in aVL and I = high lateral (South African flag if V2 too, with ST down in III)."]},
-      aVR:{a:-150,reg:["avr"],wall:"Right upper heart, looking into the ventricles",art:"Left main / proximal LAD (when it shows ST elevation)",norm:"down",mirror:"most other leads",
-        tip:"Looks from the right shoulder, so normally everything points DOWN here.",checks:["ST UP in aVR with ST DOWN in many leads = left main or multivessel disease (criterion iv).","A positive QRS in aVR? Check the leads are on the right arms."]},
-      V1:{d:[166,232],reg:["sept","rv"],wall:"Septum and right ventricle",art:"LAD (septal branches); right ventricle: RCA",norm:"rS",mirror:"Posterior wall",
-        tip:"4th rib space, right of the sternum.",checks:["ST DOWN in V1–V3 = mirror of a posterior MI: record V7–V9.","ST up in V1 with an inferior STEMI = right ventricle involved."]},
-      V2:{d:[198,244],reg:["sept"],wall:"Septum (the wall between the ventricles)",art:"LAD",norm:"rS",mirror:"Posterior wall",
-        tip:"4th rib space, left of the sternum.",checks:["V2–V3 thresholds depend on age and sex (1.5 / 2 / 2.5 mm).","Wellens waves (T changes) show up in V2–V3."]},
-      V3:{d:[222,264],reg:["ant"],wall:"Anterior wall (front)",art:"LAD",norm:"RS",mirror:"Inferior leads",
-        tip:"Halfway between V2 and V4.",checks:["The R wave grows from V1 to V4 (R wave progression).","Anterior STEMI: V2–V4. Check V2–V3 thresholds."]},
-      V4:{d:[246,284],reg:["ant"],wall:"Anterior wall and apex (tip)",art:"LAD",norm:"up",mirror:"Inferior leads",
-        tip:"5th rib space, mid-clavicle (under the nipple line).",checks:["De Winter and hyperacute T waves often show here first.","V4R (same spot, right side) checks the right ventricle."]},
-      V5:{d:[282,276],reg:["lat"],wall:"Lateral wall (left side)",art:"LCx or a diagonal of the LAD",norm:"up",mirror:"V1–V2",
-        tip:"Same level as V4, front of the armpit.",checks:["Part of the lateral group (I, aVL, V5, V6).","ST DOWN in V5–V6 with ST up in V1–V2 = precordial swirl."]},
-      V6:{d:[316,256],reg:["lat"],wall:"Lateral wall (left side)",art:"LCx",norm:"up",mirror:"V1–V2",
-        tip:"Same level as V4, middle of the armpit.",checks:["Lateral STEMI with V5, I and aVL.","Tall R and normal upright T here."]}
+    const host=document.getElementById("hxChart");if(!host)return;
+    // Lead groups. `walls` light up on the heart; `extra` = leads outside the standard 12 (shown only for that group).
+    // `rows` and `points` fill the info card.
+    const GROUPS = {
+      all: { label: "All leads", color: "#7c8aa5", leads: [], walls: [] },
+      anterior: {
+        label: "Anterior", color: "#ff4d6d", leads: ["V3", "V4"], walls: ["anterior"],
+        text: "The front of the left ventricle and the apex. LAD, the 'widow maker' artery. Anteroseptal = V1–V4.",
+        rows: [["Artery", "Left anterior descending (LAD)"], ["Mirror", "Inferior leads (II, III, aVF)"]],
+      },
+      inferior: {
+        label: "Inferior", color: "#ffad1f", leads: ["II", "III", "aVF"], walls: ["inferior"],
+        text: "The bottom (diaphragmatic) wall. With an inferior STEMI, record V4R for the right ventricle.",
+        rows: [["Artery", "Usually the right coronary artery (RCA), sometimes the circumflex"], ["Mirror", "I and aVL (aVL often shows it first)"]],
+      },
+      lateral: {
+        label: "Lateral", color: "#22c77a", leads: ["I", "aVL", "V5", "V6"], walls: ["lateral", "highLateral"],
+        text: "The left side of the left ventricle. I and aVL = high lateral, V5–V6 = low lateral.",
+        rows: [["Artery", "Circumflex (LCx) or a diagonal branch of the LAD"], ["Mirror", "III and aVF"]],
+      },
+      septal: {
+        label: "Septal", color: "#3d8bff", leads: ["V1", "V2"], walls: ["septal", "rv"],
+        text: "The wall between the two ventricles. V1 also sees the right ventricle.",
+        rows: [["Artery", "LAD (septal branches); right ventricle: RCA"], ["Mirror", "Posterior wall: ST DOWN in V1–V3 can be a posterior STEMI"]],
+      },
+      posterior: {
+        label: "Posterior", pill: "V7–V9", color: "#2dd4bf", leads: [], walls: ["posterior"], extra: ["V7–V9"],
+        text: "The back wall of the left ventricle. No standard lead looks at it, so record V7–V9 on the back.",
+        rows: [["Artery", "Circumflex (LCx), sometimes the RCA"], ["Extra leads", "V7–V9 on the back, same level as V6: V7 back of the armpit, V8 under the shoulder blade, V9 next to the spine"], ["Mirror", "ST DOWN in V1–V3, often with tall R and upright T waves"]],
+        points: ["ST elevation ≥0.5 mm in V7–V9 confirms a posterior STEMI.", "ST down in V1–V3 = think posterior: do V7–V9."],
+      },
+      right: {
+        label: "Right ventricle", pill: "V3R V4R", color: "#b07cff", leads: [], walls: ["rv"], extra: ["V3R", "V4R"],
+        text: "The right ventricle. No standard lead looks straight at it, so record V3R and V4R on the right chest.",
+        rows: [["Artery", "Right coronary artery (RCA)"], ["Extra leads", "V4R: right 5th rib space, mid-clavicle (V4's spot on the right). V3R: halfway between V1 and V4R"], ["Clue", "ST up in V1, or ST in III higher than II, with an inferior STEMI"]],
+        points: ["ST elevation ≥1 mm in V3R and V4R = right ventricle STEMI.", "Usually comes with an inferior STEMI (RCA): inferior STEMI → do V4R."],
+      },
+      avr: {
+        label: "aVR", color: "#ff5fcf", leads: ["aVR"], walls: ["basal"],
+        text: "Looks from the right shoulder into the heart, so a normal aVR is all negative.",
+        rows: [["Artery", "Left main / proximal LAD when it shows ST elevation"], ["Mirror", "Most other leads"]],
+        points: ["ST UP in aVR with ST DOWN in many leads = left main or multivessel disease (criterion iv).", "A positive QRS in aVR? Check the leads are on the right arms."],
+      },
     };
-    const GROUPS=[
-      {n:"Inferior",reg:["inf"],leads:["II","III","aVF"],txt:"The bottom of the heart. Usually the RCA. Mirror: aVL."},
-      {n:"Lateral",reg:["lat","hlat"],leads:["I","aVL","V5","V6"],txt:"The left side. Usually the circumflex (LCx)."},
-      {n:"Septal",reg:["sept"],leads:["V1","V2"],txt:"The wall between the ventricles. LAD."},
-      {n:"Anterior",reg:["ant"],leads:["V3","V4"],txt:"The front of the heart. LAD, the 'widow maker' artery."},
-      {n:"Right side",reg:["rv","avr"],leads:["aVR","V1"],txt:"Right ventricle and right upper heart. Add V4R for the right ventricle."},
-      {n:"Posterior",reg:["post"],leads:[],txt:"The back wall: no standard lead looks at it. ST DOWN in V1–V3 is its mirror; record V7–V9 (ST up ≥0.5 mm confirms)."}
+    const GROUP_ORDER = ["all", "anterior", "inferior", "lateral", "septal", "posterior", "right", "avr"];
+    // Extra leads (not part of the 12): a dashed sight line from a small chip. box / boxC = chip on wide / phone layout.
+    const EXTRA = [
+      { id: "V3R", g: "right", anchor: [404, 562], box: [282, 548], boxC: [262, 500] },
+      { id: "V4R", g: "right", anchor: [423, 604], box: [282, 596], boxC: [262, 556] },
+      { id: "V7–V9", g: "posterior", anchor: [726, 500], box: [836, 418], boxC: [846, 384] },
     ];
-    const NORMTXT={up:"Normal: mostly UP (tall R), upright T.",down:"Normal: everything DOWN (P, QRS and T), because it looks from the opposite side.",var:"Normal: small or mixed (up and down). Can look odd and still be normal.",rS:"Normal: small r, deep S (mostly DOWN).",RS:"Normal: up and down about equal (the transition zone)."};
-    const eyes=document.getElementById("hxEyes"),beams=document.getElementById("hxBeams");
-    const eyeEl={};
-    Object.entries(LEADS).forEach(([k,L])=>{let x,y,chest=!L.a&&L.a!==0;
-      if(!chest){const r=L.a*Math.PI/180;x=C0[0]+R*Math.cos(r);y=C0[1]+R*Math.sin(r);}else{[x,y]=L.d;}
-      L.pos=[x,y];const g=mk("g",{class:"hx-eye"+(chest?" chest":""),transform:`translate(${x},${y})`,role:"button","aria-label":"Lead "+k},eyes);
-      mk("circle",{r:chest?12:16},g);const t=mk("text",{y:0.5},g);t.textContent=k;g.addEventListener("click",()=>selLead(k));eyeEl[k]=g;});
-    const regs=[...svgEl.querySelectorAll(".hx-reg")],post=document.getElementById("hxPost");
-    function light(list){const on=new Set(list);regs.forEach(r=>{const k=r.dataset.reg;r.classList.toggle("on",on.has(k));r.style.setProperty("--rc",COL[k]);});post.classList.toggle("on",on.has("post"));}
-    function beam(from,reg){const [cx,cy]=CEN[reg];const l=mk("line",{x1:from[0],y1:from[1],x2:cx,y2:cy,class:"hx-beam"},beams);l.style.setProperty("--rc",COL[reg]);}
-    const chipsL=document.getElementById("hxLimb"),chipsC=document.getElementById("hxChest"),chip={};
-    ["I","II","III","aVR","aVL","aVF"].forEach(k=>{const b=document.createElement("button");b.type="button";b.textContent=k;b.onclick=()=>selLead(k);chipsL.appendChild(b);chip[k]=b;});
-    ["V1","V2","V3","V4","V5","V6"].forEach(k=>{const b=document.createElement("button");b.type="button";b.textContent=k;b.onclick=()=>selLead(k);chipsC.appendChild(b);chip[k]=b;});
-    const gWrap=document.getElementById("hxGroups"),gBtn=[];
-    GROUPS.forEach((G,i)=>{const b=document.createElement("button");b.type="button";b.style.setProperty("--rc",COL[G.reg[0]]);b.innerHTML="<i></i>";b.append(G.n);b.onclick=()=>selGroup(i);gWrap.appendChild(b);gBtn.push(b);});
-    const info=document.getElementById("hxInfo");
-    function clearSel(){beams.textContent="";Object.values(eyeEl).forEach(e=>e.classList.remove("on"));Object.values(chip).forEach(c=>c.classList.remove("on"));gBtn.forEach(b=>b.classList.remove("on"));}
-    function mini(type){const W=132,H=58,base=34,sc=24;const yv=b=>{let p=0,q=0,t=0;
-        const P={up:1,var:0.5,rS:0.5,RS:0.7,down:-1}[type],Rr={up:1,var:0.45,rS:0.25,RS:0.65,down:0.15}[type],Ss={up:0.15,var:0.35,rS:0.85,RS:0.6,down:0.9}[type],T={up:0.35,var:0.15,rS:0.2,RS:0.3,down:-0.3}[type];
-        if(b>=0.05&&b<0.14)p=P*0.14*Math.sin(Math.PI*(b-0.05)/0.09);
-        if(b>=0.2&&b<0.225)q=Rr*(b-0.2)/0.025;else if(b>=0.225&&b<0.25)q=Rr-(Rr+Ss)*(b-0.225)/0.025;else if(b>=0.25&&b<0.27)q=-Ss*(1-(b-0.25)/0.02);
-        if(b>=0.37&&b<0.55)t=T*Math.sin(Math.PI*(b-0.37)/0.18);return p+q+t;};
-      let d="";for(let i=0;i<=120;i++){const b=i/120*0.62,x=4+i/120*(W-8),y=base-yv(b)*sc;d+=(i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);}
-      let grid="";for(let gx=0;gx<=W;gx+=11)grid+=`M${gx} 0V${H}`;for(let gy=1;gy<=H;gy+=11)grid+=`M0 ${gy}H${W}`;
-      return `<svg viewBox="0 0 ${W} ${H}"><path d="${grid}" stroke="#f0cdd2" stroke-width=".8" fill="none"/><path d="${d}" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;}
-    const esc=t=>String(t).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]);
-    function selLead(k){const L=LEADS[k];if(!L)return;clearSel();light(L.reg);eyeEl[k].classList.add("on");eyeEl[k].style.setProperty("--rc",COL[L.reg[0]]);chip[k].classList.add("on");chip[k].style.setProperty("--rc",COL[L.reg[0]]);
-      L.reg.forEach(r=>beam(L.pos,r));
-      info.style.setProperty("--rc",COL[L.reg[0]]);
-      info.innerHTML=`<h4><i></i>Lead ${esc(k)}</h4><div class="hx-k"><b>Looks at</b><span>${esc(L.wall)}</span><b>Artery</b><span>${esc(L.art)}</span><b>Where</b><span>${esc(L.tip)}</span><b>Mirror</b><span>${esc(L.mirror)}</span></div><ul>${L.checks.map(c=>"<li>"+esc(c)+"</li>").join("")}</ul><div class="hx-mini">${mini(L.norm)}<span>${esc(NORMTXT[L.norm])}</span></div>`;}
-    function selGroup(i){const G=GROUPS[i];clearSel();light(G.reg);gBtn[i].classList.add("on");
-      G.leads.forEach(k=>{const L=LEADS[k];const c=COL[G.reg.find(r=>L.reg.includes(r))||G.reg[0]];eyeEl[k].classList.add("on");eyeEl[k].style.setProperty("--rc",c);chip[k].classList.add("on");chip[k].style.setProperty("--rc",c);beam(L.pos,G.reg.find(r=>L.reg.includes(r))||G.reg[0]);});
-      if(!G.leads.length)["V1","V2"].forEach(k=>beam(LEADS[k].pos,"post"));
-      info.style.setProperty("--rc",COL[G.reg[0]]);
-      info.innerHTML=`<h4><i></i>${esc(G.n)}${G.leads.length?" · "+G.leads.join(", "):" · V7–V9"}</h4><p style="margin:6px 0 0;font-size:.86rem">${esc(G.txt)}</p><ul><li>ST elevation in 2 or more neighbouring leads of one group = STEMI in that wall (check the mm threshold).</li><li>Look for the mirror (reciprocal) change on the opposite side: it makes a real STEMI more likely.</li></ul>`;}
-    // "What can the ECG tell you?" grid
-    const wr=document.createElement("div");wr.className="hx-wrong";
-    [["#FF5D73","ST elevation","Heart attack (STEMI) in that wall"],["#FFB547","ST depression","Ischaemia, or the mirror of a STEMI"],["#3DDC84","T wave inversion","Ischaemia, strain, Wellens"],["#B07CFF","Q waves","An old (or completed) heart attack"],["#5AA9FF","Rhythm problems","AF, SVT, VT, blocks"],["#FF8AD8","Bundle branch block","LBBB / RBBB: wide QRS"]]
-      .forEach(([c,a,b])=>{const d=document.createElement("div");d.style.setProperty("--rc",c);d.innerHTML=`<b>${a}</b>${b}`;wr.appendChild(d);});
-    document.getElementById("hxLeadUI").appendChild(wr);
-    selGroup(0);
 
-    // ----- One heartbeat: the spark runs the electrical system while the ECG draws itself -----
-    const P=id=>document.getElementById(id),paths={};["hxP1","hxP2","hxP3","hxP4","hxP5","hxP6","hxP7","hxP8"].forEach(id=>{paths[id]=P(id);});
-    const RA=P("hxRA"),LA=P("hxLA"),V=P("hxVentBody"),sparks=P("hxSparks");
-    const ecgY=b=>{let v=0;if(b>=0&&b<0.09)v=0.13*Math.sin(Math.PI*b/0.09);
-      else if(b>=0.16&&b<0.175)v=-0.1*(b-0.16)/0.015;else if(b>=0.175&&b<0.2)v=-0.1+1.1*(b-0.175)/0.025;else if(b>=0.2&&b<0.225)v=1-1.28*(b-0.2)/0.025;else if(b>=0.225&&b<0.24)v=-0.28*(1-(b-0.225)/0.015);
-      else if(b>=0.34&&b<0.52)v=0.3*Math.sin(Math.PI*(b-0.34)/0.18);return v;};
-    const BEAT=0.8,ex=b=>12+b/BEAT*296,ey=b=>62-ecgY(b)*44;
-    let dd="";for(let i=0;i<=400;i++){const b=i/400*BEAT;dd+=(i?"L":"M")+ex(b).toFixed(1)+" "+ey(b).toFixed(1);}
-    P("hxEcg").setAttribute("d",dd);P("hxEcgBg").setAttribute("d",dd);
-    const ecgSvg=P("hxEcg").ownerSVGElement;const cp=mk("clipPath",{id:"hxEcgClip"},mk("defs",{},ecgSvg));const cr=mk("rect",{x:0,y:0,width:0,height:90},cp);P("hxEcg").setAttribute("clip-path","url(#hxEcgClip)");
-    [["P",0.045,"#2A6FD6"],["QRS",0.2,"#C3283A"],["T",0.43,"#1F7A55"]].forEach(([t,b,c])=>{const e=mk("text",{x:ex(b),y:86,"text-anchor":"middle","font-size":"11","font-weight":"800",fill:c,opacity:"0",class:"hx-wl","data-b":b},ecgSvg);e.textContent=t;});
-    const STEPS=[[0,"SA node fires → atria squeeze → P wave","The heart's natural pacemaker sends a spark across both atria (top chambers)."],
-      [0.09,"AV node pause → flat PR segment","The spark waits a moment at the AV node so the atria can empty into the ventricles."],
-      [0.16,"Bundle branches + Purkinje → ventricles squeeze → QRS","The spark races down the bundle of His, left and right bundle branches and Purkinje fibres. The big chambers fire together."],
-      [0.24,"Ventricles squeezing → flat ST segment","The ventricles are fully squeezed. This is where ST elevation or depression shows up."],
-      [0.34,"Ventricles recharge → T wave","The ventricles reset electrically, ready for the next beat."],
-      [0.52,"Rest → flat line","Everything is quiet until the SA node fires again."]];
-    const stepEl=P("hxStep");let lastStep=-1;
-    const ptAt=(p,f)=>{const L=p.getTotalLength();const q=p.getPointAtLength(Math.max(0,Math.min(1,f))*L);return [q.x,q.y];};
-    const sp=[];for(let i=0;i<6;i++)sp.push(mk("circle",{r:4.5,class:"hx-spark",opacity:0},sparks));
-    function place(i,path,f){const s=sp[i];if(f==null){s.setAttribute("opacity",0);return;}const [x,y]=ptAt(paths[path],f);s.setAttribute("cx",x);s.setAttribute("cy",y);s.setAttribute("opacity",1);}
-    function frame(b){const f=(a,z)=>(b-a)/(z-a);
-      for(let i=0;i<6;i++)place(i,"hxP1",null);
-      if(b<0.09){place(0,"hxP1",f(0,0.09));place(1,"hxP2",f(0,0.09));}
-      else if(b<0.16){place(0,"hxP1",1);sp[0].setAttribute("r",4+2*Math.abs(Math.sin(b*80)));}
-      else if(b<0.24){sp[0].setAttribute("r",4.5);if(b<0.18)place(0,"hxP3",f(0.16,0.18));else{const k=f(0.18,0.24);place(0,"hxP4",k);place(1,"hxP5",k);if(b>0.2){const k2=f(0.2,0.24);place(2,"hxP6",k2);place(3,"hxP7",k2);place(4,"hxP8",k2);}}}
-      RA.classList.toggle("lit",b<0.12);LA.classList.toggle("lit",b<0.12);
-      V.classList.toggle("lit",b>=0.18&&b<0.34);V.classList.toggle("dim",b>=0.34&&b<0.52);
-      cr.setAttribute("width",ex(Math.min(b,BEAT)));const dot=P("hxEcgDot");dot.setAttribute("cx",ex(b));dot.setAttribute("cy",ey(b));
-      ecgSvg.querySelectorAll(".hx-wl").forEach(t=>t.setAttribute("opacity",b>=Number(t.dataset.b)?1:0));
-      let si=0;STEPS.forEach((s,i)=>{if(b>=s[0])si=i;});if(si!==lastStep){lastStep=si;stepEl.innerHTML=`<b>${STEPS[si][1]}</b><span>${STEPS[si][2]}</span>`;}}
-    let playing=false,slow=true,t0=0,raf=0,beatMode=false;
-    function loop(now){if(!playing)return;const k=slow?5:1.6;const b=((now-t0)/1000/k)%BEAT;frame(b);raf=requestAnimationFrame(loop);}
-    function play(on){playing=on;P("hxPlay").textContent=on?"❚❚ Pause":"▶ Play";if(on){t0=performance.now();raf=requestAnimationFrame(loop);}else cancelAnimationFrame(raf);}
-    P("hxPlay").onclick=()=>play(!playing);
-    P("hxSlow").onclick=()=>{slow=!slow;P("hxSlow").textContent="Slow motion: "+(slow?"on":"off");if(playing){t0=performance.now();}};
-    root.querySelectorAll("[data-hxt]").forEach(b=>b.onclick=()=>{root.querySelectorAll("[data-hxt]").forEach(x=>x.classList.toggle("on",x===b));
-      beatMode=b.dataset.hxt==="beat";root.classList.toggle("beat",beatMode);P("hxBeat").hidden=!beatMode;P("hxLeadUI").hidden=beatMode;eyes.style.display=beatMode?"none":"";beams.style.display=beatMode?"none":"";
-      if(beatMode){light([]);frame(0);if(!matchMedia("(prefers-reduced-motion: reduce)").matches)play(true);}else{play(false);for(let i=0;i<6;i++)place(i,"hxP1",null);RA.classList.remove("lit");LA.classList.remove("lit");V.classList.remove("lit","dim");selGroup(0);}});
-    document.addEventListener("visibilitychange",()=>{if(document.hidden&&playing)play(false);});
-    window.__hxStop=()=>{if(playing)play(false);};
+    // side: L / R column of the chart. y: label row. anchor: point on the heart. norm: what the lead normally looks like.
+    const LEADS = [
+      { id: "aVR", g: "avr", side: "L", y: 84, anchor: [402, 542], lines: ["Right upper heart", "(base, looking inside)"], norm: "down",
+        art: "Left main / proximal LAD (when it shows ST elevation)", mirror: "Most other leads", tip: "Looks from the right shoulder, so normally everything points DOWN here.",
+        checks: ["ST UP in aVR with ST DOWN in many leads = left main or multivessel disease (criterion iv).", "A positive QRS in aVR? Check the leads are on the right arms."] },
+      { id: "V1", g: "septal", side: "L", y: 222, anchor: [566, 574], lines: ["Septum &", "right ventricle"], norm: "rS",
+        art: "LAD (septal branches); right ventricle: RCA", mirror: "Posterior wall", tip: "4th rib space, right of the sternum.",
+        checks: ["ST DOWN in V1–V3 = mirror of a posterior MI: record V7–V9.", "ST up in V1 with an inferior STEMI = right ventricle involved: record V4R."] },
+      { id: "V2", g: "septal", side: "L", y: 360, anchor: [606, 662], lines: ["Septum", "(wall between ventricles)"], norm: "rS",
+        art: "LAD", mirror: "Posterior wall", tip: "4th rib space, left of the sternum.",
+        checks: ["V2–V3 thresholds depend on age and sex (1.5 / 2 / 2.5 mm).", "Wellens waves (T changes) show up in V2–V3."] },
+      { id: "II", g: "inferior", side: "L", y: 498, anchor: [524, 722], lines: ["Inferior wall", "(bottom of the heart)"], norm: "up",
+        art: "Usually the right coronary artery (RCA)", mirror: "aVL", tip: "Looks up from the left leg, along the heart's normal electrical path.",
+        checks: ["Best lead to see P waves and the rhythm (the monitor's default).", "ST up in II, III and aVF = inferior STEMI: record V4R for the right ventricle."] },
+      { id: "III", g: "inferior", side: "L", y: 636, anchor: [438, 642], lines: ["Inferior wall", "(right side of the bottom)"], norm: "var",
+        art: "Usually the RCA", mirror: "aVL", tip: "Looks up from the right side of the belly.",
+        checks: ["ST higher in III than II points to the RCA.", "An inverted T in III alone can be normal."] },
+      { id: "aVF", g: "inferior", side: "L", y: 774, anchor: [598, 772], lines: ["Inferior wall", "(looking up from the feet)"], norm: "up",
+        art: "Usually the RCA", mirror: "aVL", tip: "Looks straight up from the feet.",
+        checks: ["The middle of the inferior group (II, III, aVF)."] },
+      { id: "aVL", g: "lateral", side: "R", y: 84, anchor: [786, 472], knee: 704, lines: ["High lateral wall", "(upper left side)"], norm: "var",
+        art: "LCx or a diagonal branch", mirror: "III", tip: "Looks from the left shoulder.",
+        checks: ["The mirror of III: ST DOWN in aVL can be the first sign of an inferior STEMI.", "ST up in aVL and I = high lateral (South African flag if V2 too, with ST down in III)."] },
+      { id: "I", g: "lateral", side: "R", y: 222, anchor: [814, 540], lines: ["High lateral wall", "(left side)"], norm: "up",
+        art: "Circumflex (LCx) or a diagonal branch of the LAD", mirror: "III / aVF", tip: "Looks from the left arm straight across the heart.",
+        checks: ["With aVL: high lateral STEMI if ST rises in both.", "Part of the lateral group (I, aVL, V5, V6)."] },
+      { id: "V3", g: "anterior", side: "R", y: 360, anchor: [716, 540], lines: ["Anterior wall", "(front of the LV)"], norm: "RS",
+        art: "LAD", mirror: "Inferior leads", tip: "Halfway between V2 and V4.",
+        checks: ["The R wave grows from V1 to V4 (R wave progression).", "Anterior STEMI: V2–V4. Check V2–V3 thresholds."] },
+      { id: "V4", g: "anterior", side: "R", y: 498, anchor: [716, 788], lines: ["Anterior wall", "& apex"], norm: "up",
+        art: "LAD", mirror: "Inferior leads", tip: "5th rib space, mid-clavicle (under the nipple line).",
+        checks: ["Hyperacute T waves and de Winter (upsloping ST down + tall T) show in V2–V4.", "V4R (same spot, right side) checks the right ventricle."] },
+      { id: "V5", g: "lateral", side: "R", y: 636, anchor: [798, 604], lines: ["Lateral wall", "(left side of the LV)"], norm: "up",
+        art: "LCx or a diagonal of the LAD", mirror: "V1–V2", tip: "Same level as V4, front of the armpit.",
+        checks: ["Part of the lateral group (I, aVL, V5, V6).", "ST DOWN in V5–V6 with ST up in V1–V2 = precordial swirl."] },
+      { id: "V6", g: "lateral", side: "R", y: 774, anchor: [778, 694], lines: ["Lateral wall", "(left side of the LV)"], norm: "up",
+        art: "LCx", mirror: "V1–V2", tip: "Same level as V4, middle of the armpit.",
+        checks: ["Lateral STEMI with V5, I and aVL.", "Tall R and normal upright T here."] },
+    ];
+    const LEAD_BY_ID = Object.fromEntries(LEADS.map((l) => [l.id, l]));
+    const NORMTXT = {
+      up: "Normal: mostly UP (tall R), upright T.",
+      down: "Normal: everything DOWN (P, QRS and T), because it looks from the opposite side.",
+      var: "Normal: small or mixed (up and down). Can look odd and still be normal.",
+      rS: "Normal: small r, deep S (mostly DOWN).",
+      RS: "Normal: up and down about equal (the transition zone).",
+    };
+
+    const WRONG = [
+      { k: "ste", title: "ST Elevation", text: "Heart attack (STEMI) in that wall", color: "#ff3b4f",
+        d: "M0 30 L14 30 Q18 25 22 30 L28 30 L31 33 L35 6 L39 38 L42 18 C 50 13, 60 10, 68 16 C 74 22, 79 28, 84 30 L120 30" },
+      { k: "std", title: "ST Depression", text: "Ischaemia, or the mirror of a STEMI", color: "#e8a200",
+        d: "M0 30 L14 30 Q18 25 22 30 L28 30 L31 33 L35 6 L39 38 L42 38 L56 40 C 64 34, 70 24, 78 26 C 84 28, 88 30, 92 30 L120 30" },
+      { k: "tinv", title: "T Wave Inversion", text: "Ischaemia, strain, Wellens", color: "#17a95a",
+        d: "M0 30 L14 30 Q18 25 22 30 L28 30 L31 33 L35 6 L39 38 L42 30 L50 30 C 58 33, 64 44, 72 42 C 78 40, 82 32, 88 30 L120 30" },
+      { k: "q", title: "Q Wave", text: "An old (or completed) heart attack", color: "#8b2bd8",
+        d: "M0 30 L14 30 Q18 25 22 30 L28 30 L31 46 L36 8 L40 34 L44 30 L52 30 C 60 27, 66 22, 74 26 C 80 29, 84 30, 88 30 L120 30" },
+      { k: "arr", title: "Arrhythmia", text: "AF, SVT, VT, heart blocks", color: "#1e88e5",
+        d: "M0 30 Q3 28 6 30 T12 30 L14 30 L16 10 L18 36 L20 30 Q24 28 28 31 T34 30 L36 12 L38 36 L40 30 Q46 27 50 31 T58 30 Q62 28 64 30 L66 9 L68 37 L70 30 Q74 28 78 31 L82 30 L84 12 L86 36 L88 30 Q94 27 98 31 T106 30 L108 10 L110 36 L112 30 L120 30" },
+      { k: "bbb", title: "Bundle Branch Block", text: "LBBB / RBBB: wide QRS", color: "#e5179a",
+        d: "M0 30 L12 30 Q16 25 20 30 L26 30 L29 14 L33 22 L38 8 L44 36 L48 30 L54 30 C 62 33, 68 40, 76 38 C 82 36, 86 31, 90 30 L120 30" },
+    ];
+
+    const PROBLEMS = [
+      { k: "sa", title: "SA node dysfunction", text: "The natural pacemaker fires too slowly or pauses (sinus bradycardia, sinus arrest)." },
+      { k: "av", title: "AV block", text: "The impulse is delayed or blocked at the AV node (1st, 2nd, 3rd degree heart block)." },
+      { k: "bbb", title: "Bundle branch block", text: "One bundle branch is blocked, so one ventricle fires late: wide QRS (RBBB / LBBB)." },
+      { k: "af", title: "Atrial fibrillation", text: "Chaotic electricity in the atria: no P waves, irregularly irregular rhythm." },
+      { k: "vtvf", title: "Ventricular tachycardia / fibrillation", text: "The ventricles fire on their own, fast or chaotically: check for a pulse, VF and pulseless VT are shockable." },
+    ];
+
+    /* ------------------------------------------------------------------------------------------------
+     * Geometry (chart viewBox 0 0 1040 884)
+     * Front view of the heart with the front half cut away, so the four chambers, the valves and the
+     * conduction system inside can be seen.
+     * ---------------------------------------------------------------------------------------------- */
+    const VB = "0 0 1040 884";
+    const VB_COMPACT = "196 0 768 884"; // phones: crop to the heart, lead names only
+    const SHAPE = {
+      // outline of the heart
+      sil: "M430 252 C402 256 364 288 352 340 C340 394 342 444 360 484 C368 502 380 516 390 524 C396 584 432 660 500 716 C556 762 622 798 680 806 C712 810 736 800 756 778 C796 730 818 652 822 572 C826 494 810 432 786 400 C804 380 810 340 794 312 C778 284 738 270 700 272 C664 274 634 286 608 290 C578 294 542 282 514 266 C500 258 488 253 476 252 Z",
+      // right atrium + right ventricle: one cavity, joined through the tricuspid valve
+      cavR: "M436 270 C408 276 380 300 372 346 C364 396 366 440 382 474 C390 490 400 500 408 506 C414 562 442 626 490 676 C536 724 590 750 630 754 Q634 752 626 744 C588 660 552 570 528 504 C546 462 554 412 552 372 C550 322 528 292 500 280 C488 274 476 271 466 271 Z",
+      // left atrium + left ventricle: joined through the mitral valve
+      cavL: "M588 336 C602 308 644 296 694 296 C740 296 776 308 786 332 C792 352 786 378 772 396 C776 466 774 556 762 636 C750 706 720 750 688 762 C680 766 668 762 660 752 C626 640 602 524 596 430 C590 404 584 366 588 336 Z",
+      // the parts above and below the valve plane
+      atria: "M430 252 C402 256 364 288 352 340 C340 394 342 444 360 484 C368 502 380 516 390 524 L410 510 L530 506 L572 482 L598 434 L772 398 L786 400 C804 380 810 340 794 312 C778 284 738 270 700 272 C664 274 634 286 608 290 C578 294 542 282 514 266 C500 258 488 253 476 252 Z",
+      vent: "M390 524 C396 584 432 660 500 716 C556 762 622 798 680 806 C712 810 736 800 756 778 C796 730 818 652 822 572 C826 494 810 432 786 400 L772 398 L598 434 L572 482 L530 506 L410 510 Z",
+    };
+    SHAPE.myo = `${SHAPE.sil} ${SHAPE.cavR} ${SHAPE.cavL}`; // the cut muscle (fill-rule evenodd)
+    // Inside the cut: valve leaflets, chordae, papillary muscles, moderator band, vein openings, coronary arteries
+    const INSIDE = {
+      leaflets: [
+        "M404 502 C412 526 424 552 438 576 C445 568 443 548 435 530 C427 514 416 505 404 502 Z", // tricuspid
+        "M530 500 C523 522 514 548 503 570 C497 562 498 542 506 526 C513 512 521 503 530 500 Z",
+        "M597 430 C613 454 632 480 654 508 C660 499 655 480 641 462 C628 447 613 436 597 430 Z", // mitral
+        "M773 398 C768 420 760 442 748 466 C742 458 744 438 752 420 C758 408 765 400 773 398 Z",
+      ],
+      chordae: ["M654 508 L742 584", "M650 504 L744 590", "M748 466 L748 582", "M745 463 L742 586"],
+      papillary: [
+        "M488 682 C492 662 512 652 526 662 C536 670 540 690 538 722 Z", // right ventricle (moderator band lands here)
+        "M774 548 C752 556 740 584 746 604 C750 618 762 626 770 630 Z", // left ventricle
+      ],
+      moderator: "M606 694 C584 686 552 676 526 666",
+      // [cx, cy, rx, ry, rotate, kind]
+      openings: [[451, 276, 15, 6, 0, "vein"], [397, 482, 14, 6.5, -24, "vein"], [772, 326, 8, 5.5, -30, "pv"], [778, 362, 8, 5.5, -10, "pv"]],
+      coronary: [[386, 524], [790, 402]], // right coronary artery and circumflex in the grooves
+    };
+    const TUBES = {
+      aorta: "M566 302 C560 246 552 200 558 164 C568 112 616 92 664 102 C708 112 728 160 722 220 L716 300",
+      bc1: "M590 116 C588 84 590 56 596 28",
+      bc2: "M628 102 C630 74 636 50 646 24",
+      bc3: "M664 104 C674 80 688 60 704 40",
+      svc: "M451 28 C451 100 452 180 454 262",
+      ivc: "M398 468 C400 560 404 650 408 744",
+      ptrunk: "M630 302 C634 276 640 254 650 234",
+      lpa: "M650 234 C690 216 746 214 800 224",
+      rpa: "M650 234 C612 214 560 208 486 216",
+      pv1: "M784 300 C812 294 840 292 866 294",
+      pv2: "M790 338 C816 336 842 336 868 340",
+    };
+    // Wall territories, drawn clipped to the ventricular muscle
+    const WALLS = {
+      rv: "M330 500 L412 500 L440 560 L520 660 L640 760 L640 830 L330 830 Z",
+      septal: "M512 494 L612 466 L678 760 L640 792 L606 760 Z",
+      anterior: "M610 640 L800 610 L840 700 L780 830 L600 830 Z",
+      lateral: "M736 500 L880 480 L880 720 L742 720 Z",
+      highLateral: "M720 384 L880 360 L880 530 L740 530 Z",
+      inferior: "M330 540 L400 560 L452 640 L540 712 L640 752 L720 764 L790 724 L880 760 L880 900 L300 900 Z",
+      basal: "M370 470 L800 370 L800 470 L608 512 L380 566 Z",
+    };
+    const NODE = { sa: [488, 264], av: [570, 452] };
+    // Conduction pathways and when they fire (fractions of one beat).
+    const COND = [
+      { k: "intA", d: "M488 264 C540 274 574 340 570 452", t: [0.0, 0.12], w: 3.2, spark: true },
+      { k: "intM", d: "M488 264 C500 330 530 400 570 452", t: [0.0, 0.12], w: 3.2 },
+      { k: "intP", d: "M488 264 C380 262 346 340 356 420 C362 470 470 482 570 452", t: [0.0, 0.12], w: 3.2 },
+      { k: "bach", d: "M488 264 C556 276 640 292 752 304", t: [0.0, 0.1], w: 3.2, spark: true },
+      { k: "his", d: "M570 452 C574 470 578 486 582 500", t: [0.22, 0.25], w: 5, spark: true },
+      { k: "lbb", d: "M582 500 C600 560 620 640 650 730", t: [0.25, 0.32], w: 4.2, spark: true, bb: true },
+      { k: "lant", d: "M604 578 C650 572 704 584 746 598", t: [0.27, 0.32], w: 3.4, bb: true },
+      { k: "lpost", d: "M633 678 C658 698 684 716 712 726", t: [0.27, 0.32], w: 3.4, bb: true },
+      { k: "rbb", d: "M582 500 C572 560 582 640 604 692 C584 686 552 676 526 666", t: [0.25, 0.32], w: 4.2, spark: true, bb: true },
+    ];
+    // Muscle ridges (trabeculae) on the inner walls of the ventricles: [x, y, direction into the chamber]
+    const TRAB_SEEDS = [
+      [770, 560, 3.3], [766, 610, 3.0], [756, 656, 3.6], [738, 706, 3.9], [716, 742, 4.3], [690, 760, 4.6], [668, 756, 5.2],
+      [622, 616, 0.2], [634, 668, -0.3], [646, 712, -0.6],
+      [430, 600, -0.6], [452, 640, -0.9], [482, 670, -0.7], [520, 704, -1.0], [560, 728, -1.3], [600, 744, -1.6],
+      [572, 640, 2.6], [588, 690, 2.9], [606, 730, 3.4],
+    ];
+    const PURK_SEEDS = [
+      // left ventricle free wall and apex
+      [776, 468, -0.2], [776, 468, 0.6], [772, 548, 0.0], [770, 620, 0.4], [760, 660, 1.2], [738, 724, 0.9], [712, 752, 1.5],
+      [688, 768, 1.2], [670, 770, 2.2], [652, 748, 1.6],
+      // septum
+      [598, 600, 1.4], [620, 690, 1.3], [580, 640, 2.0],
+      // right ventricle free wall
+      [422, 560, 2.2], [440, 610, 2.5], [470, 662, 2.3], [512, 704, 2.2], [556, 734, 1.9], [600, 752, 1.6],
+    ];
+
+    /* ------------------------------------------------------------------------------------------------
+     * Helpers
+     * ---------------------------------------------------------------------------------------------- */
+    function mulberry32(seed) {
+      let a = seed >>> 0;
+      return () => {
+        a = (a + 0x6d2b79f5) >>> 0;
+        let t = a;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    // Organic branching curves (Purkinje network, coronary capillaries).
+    function grow(rand, x, y, a, len, depth, out, lvl = 0) {
+      const ex = x + Math.cos(a) * len, ey = y + Math.sin(a) * len;
+      const bend = (rand() - 0.5) * len * 0.5;
+      const cx = (x + ex) / 2 - Math.sin(a) * bend, cy = (y + ey) / 2 + Math.cos(a) * bend;
+      out.push({ d: `M${x.toFixed(1)} ${y.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`, lvl });
+      if (depth > 0) {
+        const n = 2;
+        for (let i = 0; i < n; i++) {
+          const na = a + (i === 0 ? -1 : 1) * (0.32 + rand() * 0.45);
+          grow(rand, ex, ey, na, len * (0.58 + rand() * 0.22), depth - 1, out, lvl + 1);
+        }
+      }
+    }
+    const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+    const ramp = (p, a, b) => clamp01((p - a) / (b - a));
+    // One P-QRS-T beat for the live strip (p = 0..1 of the cardiac cycle), value: up = positive.
+    function beatY(p) {
+      if (p < 0.12) return 0.14 * Math.sin((Math.PI * p) / 0.12);
+      if (p >= 0.22 && p < 0.24) return -0.12 * ((p - 0.22) / 0.02);
+      if (p >= 0.24 && p < 0.27) return -0.12 + 1.12 * ((p - 0.24) / 0.03);
+      if (p >= 0.27 && p < 0.3) return 1 - 1.3 * ((p - 0.27) / 0.03);
+      if (p >= 0.3 && p < 0.32) return -0.3 * (1 - (p - 0.3) / 0.02);
+      if (p >= 0.45 && p < 0.65) return 0.3 * Math.sin((Math.PI * (p - 0.45)) / 0.2);
+      return 0;
+    }
+    const PHASES = [
+      [0, "P wave", "SA node fires, the atria contract"],
+      [0.12, "PR segment", "AV node holds the impulse so the ventricles can fill"],
+      [0.22, "QRS complex", "His → bundle branches → Purkinje: the ventricles contract"],
+      [0.34, "ST segment", "Ventricles fully contracted (where ST elevation shows)"],
+      [0.45, "T wave", "Ventricles recharge"],
+      [0.65, "Rest", "Waiting for the next spark"],
+    ];
+    const phaseAt = (p) => { let i = 0; PHASES.forEach((ph, k) => { if (p >= ph[0]) i = k; }); return i; };
+
+    /* ---------- settings for this app ---------- */
+    const TITLE = "Your heart & the 12 leads";
+    const SUBTITLE = "Each lead is a camera looking at one part of the heart. Tap a lead or a group to see where it looks and what it checks.";
+    const THEME = "dark"; // "dark" | "light" | "auto"
+
+    /* ---------- small helpers ---------- */
+    const ID = (s) => "hxc-" + s, U = (s) => "url(#hxc-" + s + ")";
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const HALO_RED = "paint-order:stroke;stroke:rgba(70,0,18,.55);stroke-width:5";
+    const HALO_BLUE = "paint-order:stroke;stroke:rgba(10,20,60,.6);stroke-width:4";
+    const modeFor = (w) => (w < 640 ? "compact" : w >= 1040 ? "wide" : w >= 760 ? "mid" : "base");
+
+    // Procedural networks (fixed seeds: the same picture every time)
+    const trabeculae = (() => { const r = mulberry32(5), out = []; TRAB_SEEDS.forEach(([x, y, a]) => { grow(r, x, y, a, 14 + r() * 12, 0, out); grow(r, x, y, a + 0.9 * (r() - 0.5), 10 + r() * 10, 0, out); }); return out; })();
+    // Purkinje network; `left` = fibres of the left ventricle (they fire late in bundle branch block)
+    const purkinje = (() => { const r = mulberry32(42), out = []; PURK_SEEDS.forEach(([x, y, a]) => { const n = out.length; grow(r, x, y, a, 40 + r() * 22, 2, out); for (let i = n; i < out.length; i++) out[i].left = x > 560 + (y - 500) * 0.35; }); return out; })();
+
+    /* ---------- state ---------- */
+    const reduced = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+    const S = { group: "all", lead: null, problem: null, playing: !reduced, slow: true, mode: "", started: false, visible: false, mounted: false };
+    let P = 0.28, beat = 0, phaseI = -1, noteTxt = null, raf = 0, last = 0, A = null;
+
+    const activeLeads = () => (S.lead ? new Set([S.lead]) : S.group !== "all" ? new Set(GROUPS[S.group].leads) : null);
+    function activeWalls() {
+      if (S.lead) {
+        const g = GROUPS[LEAD_BY_ID[S.lead].g];
+        return S.lead === "V1" ? ["septal", "rv"] : S.lead === "V2" ? ["septal"] : ["I", "aVL"].includes(S.lead) ? ["highLateral"] : ["V5", "V6"].includes(S.lead) ? ["lateral"] : g.walls;
+      }
+      return S.group !== "all" ? GROUPS[S.group].walls : [];
+    }
+    const selGroup = () => (S.lead ? LEAD_BY_ID[S.lead].g : S.group); // the group whose colour the lit walls take
+    const extraOn = () => (!S.lead && !S.problem ? EXTRA.filter((e) => e.g === S.group) : []);
+    const compact = () => S.mode === "compact";
+    const lx = () => (compact() ? { L: 204, R: 956, lineL: 292, lineR: 868, name: 46, desc: 0 } : { L: 26, R: 1014, lineL: 262, lineR: 828, name: 34, desc: 17 });
+    // Callout chips. `from` overrides where the leader leaves the chip.
+    const chips = (c) => [
+      { k: "sa", at: NODE.sa, box: c ? [300, 166] : [300, 154], t: c ? ["SA node"] : ["SA Node", "(starts each heartbeat)"] },
+      { k: "av", at: NODE.av, box: c ? [378, 394] : [368, 396], t: c ? ["AV node"] : ["AV Node", "(delays the impulse)"] },
+      { k: "his", at: [577, 478], box: c ? [600, 380] : [596, 384], from: c ? [636, 426] : [640, 415], t: c ? ["His"] : ["Bundle of His"] },
+      { k: "rbb", at: [560, 680], box: c ? [392, 826] : [292, 830], t: c ? ["RBB"] : ["Right Bundle Branch"] },
+      { k: "purk", at: [646, 790], box: c ? [492, 826] : [500, 830], t: c ? ["Purkinje"] : ["Purkinje Fibres", "(spread the impulse)"] },
+      { k: "lbb", at: [648, 724], box: c ? [680, 826] : [684, 830], t: c ? ["LBB"] : ["Left Bundle Branch"] },
+    ];
+
+    /* ---------- markup ---------- */
+    // A blood vessel drawn as a shaded cylinder: dark rim, body, light core, specular streak.
+    function tube(d, w, tone) {
+      const c = tone === "blue" ? { rim: "#0e1a40", body: U("tubeBlue"), core: "#6f97ff", spec: "#d9e6ff" } : { rim: "#4d0716", body: U("tubeRed"), core: "#ff6b84", spec: "#ffe1e6" };
+      return `<g stroke-linecap="round" fill="none"><path d="${d}" stroke="${c.rim}" stroke-width="${w + 5}"/><path d="${d}" stroke="${c.body}" stroke-width="${w}"/>`
+        + `<path d="${d}" stroke="${c.core}" stroke-width="${w * 0.42}" opacity="0.75" transform="translate(${-w * 0.16} ${-w * 0.12})" filter="${U("blur2")}"/>`
+        + `<path d="${d}" stroke="${c.spec}" stroke-width="${Math.max(1.2, w * 0.12)}" opacity="0.65" transform="translate(${-w * 0.26} ${-w * 0.2})" filter="${U("blur1")}"/></g>`;
+    }
+
+    // Layer 1: the anatomy. Heavy filters, drawn once per layout.
+    function artSVG(vb) {
+      const grad = (tag, id, at, stops) => `<${tag} id="${ID(id)}" ${at}>${stops.map(([o, c, op]) => `<stop offset="${o}" stop-color="${c}"${op != null ? ` stop-opacity="${op}"` : ""}/>`).join("")}</${tag}>`;
+      return `<svg viewBox="${vb}" role="img" aria-label="The heart cut open from the front: the four chambers, valves, great vessels and the conduction system"><defs>`
+        + grad("radialGradient", "cut", 'cx="36%" cy="28%" r="90%"', [["0", "#ff9fa9"], [".22", "#f2687c"], [".5", "#d63c57"], [".8", "#aa1e3b"], ["1", "#7a0e27"]])
+        + grad("linearGradient", "outer", 'x1="0" y1="0" x2="1" y2="1"', [["0", "#a31b35"], [".55", "#5e0718"], ["1", "#2c020b"]])
+        + grad("radialGradient", "cav", 'cx="60%" cy="66%" r="80%"', [["0", "#9c2536"], [".45", "#600c1d"], ["1", "#2a020b"]])
+        + grad("linearGradient", "valve", 'x1="0" y1="0" x2="0" y2="1"', [["0", "#fff5f0"], [".55", "#f7d3ca"], ["1", "#e09a91"]])
+        + grad("radialGradient", "fat", 'cx="45%" cy="40%" r="60%"', [["0", "#fff2bd"], [".6", "#f3ca64"], ["1", "#c98f2f"]])
+        + grad("linearGradient", "shadeV", 'x1="0" y1="0" x2="0" y2="1"', [["0", "#fff", ".22"], [".42", "#fff", "0"], [".8", "#000", ".12"], ["1", "#000", ".32"]])
+        + grad("linearGradient", "rim", 'x1="0" y1="0" x2="1" y2="1"', [["0", "#ffd6dc", ".95"], [".45", "#ff8fa0", ".35"], ["1", "#5a0716", ".6"]])
+        + grad("linearGradient", "tubeRed", 'x1="0" y1="0" x2="1" y2="1"', [["0", "#ff7088"], [".5", "#d3233f"], ["1", "#7c0b20"]])
+        + grad("linearGradient", "tubeBlue", 'x1="0" y1="0" x2="1" y2="1"', [["0", "#6d93ff"], [".5", "#2c4fc2"], ["1", "#14246b"]])
+        + grad("radialGradient", "spec", 'cx="50%" cy="50%" r="50%"', [["0", "#fff", ".75"], [".5", "#fff", ".2"], ["1", "#fff", "0"]])
+        + grad("radialGradient", "floor", 'cx="50%" cy="50%" r="50%"', [["0", "#3b0a1c", ".45"], ["1", "#3b0a1c", "0"]])
+        + `<filter id="${ID("blur1")}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.2"/></filter>`
+        + `<filter id="${ID("blur2")}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.4"/></filter>`
+        + `<filter id="${ID("blur8")}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>`
+        + `<filter id="${ID("glowRed")}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="b"/><feColorMatrix in="b" type="matrix" values="1 0 0 0 0.25  0 0.75 0 0 0.05  0 0 0.6 0 0  0 0 0 1.4 0" result="c"/><feMerge><feMergeNode in="c"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+        + `<filter id="${ID("glowGold")}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+        // hollow chambers: shadow under the cut edge on the upper-left inside
+        + `<filter id="${ID("cavShade")}" x="-10%" y="-10%" width="120%" height="120%"><feOffset in="SourceAlpha" dx="11" dy="15" result="o"/><feGaussianBlur in="o" stdDeviation="8" result="ob"/><feComposite in="SourceAlpha" in2="ob" operator="out" result="lip"/><feFlood flood-color="#140006" flood-opacity=".92" result="c"/><feComposite in="c" in2="lip" operator="in" result="sh"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sh"/></feMerge></filter>`
+        + `<filter id="${ID("leafShadow")}" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="1.5" dy="3" stdDeviation="1.8" flood-color="#2a000c" flood-opacity=".55"/></filter>`
+        // muscle-fibre texture: anisotropic fractal noise mapped to soft pink streaks
+        + `<filter id="${ID("fibre")}" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.005 0.05" numOctaves="3" seed="11" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 0.82  0 0 0 0 0.86  0 0 0 2.1 -0.98"/></filter>`
+        + `<filter id="${ID("drop")}" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#3a0a18" flood-opacity=".35"/></filter>`
+        + `<clipPath id="${ID("clipMyo")}"><path d="${SHAPE.myo}" clip-rule="evenodd"/></clipPath>`
+        + `<clipPath id="${ID("clipVent")}"><path d="${SHAPE.vent}"/></clipPath>`
+        + `<clipPath id="${ID("clipVenMyo")}" clip-path="${U("clipVent")}"><path d="${SHAPE.myo}" clip-rule="evenodd"/></clipPath>`
+        + `<clipPath id="${ID("clipCav")}" clip-path="${U("clipVent")}"><path d="${SHAPE.cavR}"/><path d="${SHAPE.cavL}"/></clipPath>`
+        + `<g id="${ID("art")}"><ellipse cx="596" cy="818" rx="250" ry="24" fill="${U("floor")}"/>`
+        // great vessels behind the heart, then the back half of the heart: outside wall, then the cut surface of the muscle
+        + `<g filter="${U("drop")}">${tube(TUBES.rpa, 28, "blue")}${[TUBES.bc1, TUBES.bc2, TUBES.bc3].map((d) => tube(d, 22, "red")).join("")}${tube(TUBES.aorta, 60, "red")}`
+        + `${tube(TUBES.pv1, 18, "red")}${tube(TUBES.pv2, 18, "red")}${tube(TUBES.ptrunk, 44, "blue")}${tube(TUBES.lpa, 28, "blue")}${tube(TUBES.svc, 46, "blue")}${tube(TUBES.ivc, 40, "blue")}`
+        + `<path d="${SHAPE.sil}" transform="translate(8 12)" fill="${U("outer")}"/><path d="${SHAPE.myo}" fill-rule="evenodd" fill="${U("cut")}"/></g>`
+        + `<g clip-path="${U("clipMyo")}"><rect x="300" y="220" width="600" height="640" filter="${U("fibre")}" opacity=".5" style="mix-blend-mode:soft-light" transform="rotate(-32 590 530)"/><path d="${SHAPE.sil}" fill="${U("shadeV")}"/></g>`
+        + `<path d="${SHAPE.sil}" fill="none" stroke="${U("rim")}" stroke-width="2.5"/>`
+        // the chambers: hollow, darker inside, shaded under the cut edge
+        + [SHAPE.cavR, SHAPE.cavL].map((d) => `<g><path d="${d}" fill="${U("cav")}" filter="${U("cavShade")}"/><path d="${d}" fill="none" stroke="#ffb3bd" stroke-width="1.6" opacity=".38"/></g>`).join("")
+        // muscle ridges inside the ventricles
+        + `<g clip-path="${U("clipCav")}"><g fill="none" stroke-linecap="round" filter="${U("blur1")}">`
+        + trabeculae.map((t) => `<path d="${t.d}" stroke="#16000a" stroke-width="9" opacity=".35" transform="translate(2 3)"/>`).join("")
+        + trabeculae.map((t) => `<path d="${t.d}" stroke="#8c1a30" stroke-width="7" opacity=".6"/>`).join("")
+        + trabeculae.map((t) => `<path d="${t.d}" stroke="#ff8fa0" stroke-width="1.6" opacity=".2" transform="translate(-1.5 -2)"/>`).join("")
+        + `</g></g>`
+        // openings of the veins: vena cavae (right atrium), pulmonary veins (left atrium)
+        + INSIDE.openings.map(([cx, cy, rx, ry, rot, kind]) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" transform="rotate(${rot} ${cx} ${cy})" fill="${kind === "vein" ? "#170a2e" : "#2a0410"}" stroke="${kind === "vein" ? "#6d84e6" : "#ff8a99"}" stroke-opacity=".55" stroke-width="1.4"/>`).join("")
+        // papillary muscles, moderator band, chordae and valve leaflets
+        + `<g fill="${U("cut")}" stroke="#6e0a20" stroke-width="1" stroke-opacity=".55">${INSIDE.papillary.map((d) => `<path d="${d}"/>`).join("")}</g>`
+        + `<path d="${INSIDE.moderator}" fill="none" stroke="#c9344f" stroke-width="10" stroke-linecap="round"/>`
+        + `<path d="${INSIDE.moderator}" fill="none" stroke="#ff8d9c" stroke-width="2.4" stroke-linecap="round" opacity=".55" transform="translate(-1 -2.5)"/>`
+        + `<g stroke="#ffe4dd" stroke-width="1.1" opacity=".6">${INSIDE.chordae.map((d) => `<path d="${d}"/>`).join("")}</g>`
+        + INSIDE.leaflets.map((d) => `<path d="${d}" fill="${U("valve")}" stroke="#a85250" stroke-width=".8" stroke-opacity=".6" filter="${U("leafShadow")}"/>`).join("")
+        // coronary arteries in their fat, cut across in the grooves
+        + INSIDE.coronary.map(([cx, cy]) => `<g filter="${U("glowRed")}"><ellipse cx="${cx}" cy="${cy}" rx="14" ry="11" fill="${U("fat")}"/><circle cx="${cx}" cy="${cy}" r="6.5" fill="#e52a3e" stroke="#7a0b1e" stroke-width="1.2"/><circle cx="${cx}" cy="${cy}" r="2.6" fill="#3a0008"/></g>`).join("")
+        // soft wet sheen on the cut surface
+        + `<g clip-path="${U("clipMyo")}"><g filter="${U("blur8")}" style="mix-blend-mode:screen">`
+        + `<ellipse cx="372" cy="370" rx="26" ry="80" fill="${U("spec")}" opacity=".6" transform="rotate(10 372 370)"/><ellipse cx="600" cy="292" rx="80" ry="14" fill="${U("spec")}" opacity=".5"/>`
+        + `<ellipse cx="560" cy="580" rx="18" ry="70" fill="${U("spec")}" opacity=".35" transform="rotate(-24 560 580)"/><ellipse cx="804" cy="520" rx="16" ry="80" fill="${U("spec")}" opacity=".35"/></g></g>`
+        // conduction system at rest (dim gold)
+        + `<g fill="none" stroke-linecap="round" stroke="#ffc94a" opacity=".55" filter="${U("glowGold")}">${COND.map((s) => `<path d="${s.d}" stroke-width="${s.w * 0.7}"/>`).join("")}`
+        + `<g clip-path="${U("clipVenMyo")}">${purkinje.map((p) => `<path d="${p.d}" stroke-width="${p.lvl === 0 ? 1.6 : p.lvl === 1 ? 1.1 : 0.8}" opacity=".75"/>`).join("")}</g></g>`
+        + `</g></defs><use href="#${ID("art")}"/></svg>`;
+    }
+
+    // Layer 2b: the travelling impulse (static per layout; animated by frame()). Holds the shared defs of layers 2a, 2c and 3.
+    function animSVG(vb) {
+      const wallGrads = GROUP_ORDER.filter((g) => g !== "all").map((g) => `<radialGradient id="${ID("wall-" + g)}" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".35" stop-color="${GROUPS[g].color}" stop-opacity=".8"/><stop offset="1" stop-color="${GROUPS[g].color}" stop-opacity=".55"/></radialGradient>`).join("")
+        // the back wall, seen inside the left ventricle
+        + `<radialGradient id="${ID("backwall")}" cx="55%" cy="45%" r="70%"><stop offset="0" stop-color="#c9fff6" stop-opacity=".6"/><stop offset=".5" stop-color="${GROUPS.posterior.color}" stop-opacity=".42"/><stop offset="1" stop-color="${GROUPS.posterior.color}" stop-opacity=".12"/></radialGradient>`;
+      return `<svg viewBox="${vb}" class="ecgx-layer" aria-hidden="true" style="will-change:transform"><defs>`
+        + `<filter id="${ID("aglow")}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+        + `<filter id="${ID("wglow")}" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+        + `<filter id="${ID("dotShadow")}" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.5" flood-color="#1b0b22" flood-opacity=".45"/></filter>`
+        + `<filter id="${ID("chipShadow")}" x="-20%" y="-40%" width="140%" height="180%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#1b1030" flood-opacity=".28"/></filter>`
+        + `<radialGradient id="${ID("nodeG")}" cx="40%" cy="35%" r="65%"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#fff2a8"/><stop offset=".7" stop-color="#ffbf2e"/><stop offset="1" stop-color="#ff7a00"/></radialGradient>`
+        + `<radialGradient id="${ID("flash")}" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#fff6cc" stop-opacity=".95"/><stop offset=".55" stop-color="#ffcf4a" stop-opacity=".55"/><stop offset="1" stop-color="#ff8a00" stop-opacity="0"/></radialGradient>`
+        + wallGrads
+        + `<clipPath id="${ID("clipMyo2")}"><path d="${SHAPE.myo}" clip-rule="evenodd"/></clipPath>`
+        + `<clipPath id="${ID("clipVent2")}"><path d="${SHAPE.vent}"/></clipPath>`
+        + `<clipPath id="${ID("clipVenMyo2")}" clip-path="${U("clipVent2")}"><path d="${SHAPE.myo}" clip-rule="evenodd"/></clipPath>`
+        + `<clipPath id="${ID("clipLV2")}" clip-path="${U("clipVent2")}"><path d="${SHAPE.cavL}"/></clipPath>`
+        + `<pattern id="${ID("hatch")}" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="14" height="14" fill="transparent"/><rect width="5" height="14" fill="#fff" opacity=".38"/></pattern>`
+        + `</defs>`
+        // atria / ventricle activation flash
+        + `<g data-ref="atria" style="opacity:0;mix-blend-mode:screen" clip-path="${U("clipMyo2")}"><path d="${SHAPE.atria}" fill="${U("flash")}"/></g>`
+        + `<g data-ref="vent" style="opacity:0;mix-blend-mode:screen" clip-path="${U("clipMyo2")}"><path d="${SHAPE.vent}" fill="${U("flash")}"/></g>`
+        // the travelling impulse
+        + `<g data-ref="active" fill="none" stroke-linecap="round">`
+        + COND.map((s, i) => `<g data-seg="${i}"><path d="${s.d}" stroke="#ffb21f" stroke-width="${s.w * 2.6}" opacity=".55" filter="${U("aglow")}"/><path d="${s.d}" stroke="#fff6c4" stroke-width="${s.w}"/></g>`).join("")
+        + `<g clip-path="${U("clipVenMyo2")}">${purkinje.map((p, i) => `<g data-pk="${i}"><path d="${p.d}" stroke="#ffbf2e" stroke-width="${p.lvl === 0 ? 4 : 2.6}" opacity=".5" filter="${U("aglow")}"/><path d="${p.d}" stroke="#fff3b8" stroke-width="${p.lvl === 0 ? 1.7 : 1.1}"/></g>`).join("")}</g></g>`
+        + COND.filter((s) => s.spark).map((s) => `<circle data-spark="${s.k}" r="7" fill="#fffbe6" filter="${U("aglow")}" style="opacity:0"/>`).join("")
+        + `<circle data-ref="sa" cx="${NODE.sa[0]}" cy="${NODE.sa[1]}" r="11" fill="${U("nodeG")}" filter="${U("aglow")}"/>`
+        + `<circle data-ref="av" cx="${NODE.av[0]}" cy="${NODE.av[1]}" r="10" fill="${U("nodeG")}" filter="${U("aglow")}"/></svg>`;
+    }
+
+    // Layer 2a: walls watched by the selected group / lead, and the problem areas (redrawn on every tap)
+    function dynInner() {
+      const walls = activeWalls(), pr = S.problem, g = selGroup(), col = g !== "all" ? GROUPS[g].color : "#fff";
+      const muscle = walls.filter((w) => WALLS[w]);
+      let h = `<g clip-path="${U("clipVenMyo2")}"${muscle.length ? ' class="wall-on"' : ""}>`
+        + muscle.map((w) => `<g><path d="${WALLS[w]}" fill="${U("wall-" + g)}" filter="${U("wglow")}"/><path d="${WALLS[w]}" fill="${U("hatch")}"/><path d="${WALLS[w]}" fill="none" stroke="#fff" stroke-width="3" opacity=".9"/><path d="${WALLS[w]}" fill="none" stroke="${col}" stroke-width="7" opacity=".55" filter="${U("wglow")}"/></g>`).join("")
+        + `</g>`;
+      // the posterior wall is the back of the left ventricle: we see its inside through the cut
+      if (walls.includes("posterior")) h += `<g clip-path="${U("clipLV2")}" class="wall-on"><path d="${SHAPE.cavL}" fill="${U("backwall")}"/><path d="${SHAPE.cavL}" fill="none" stroke="${GROUPS.posterior.color}" stroke-width="9" opacity=".8" filter="${U("wglow")}"/></g>`;
+      // the anterior wall sits in front of the cut: show it as a see-through ghost over the left ventricle
+      if (walls.includes("anterior")) h += `<g clip-path="${U("clipVent2")}" class="wall-on"><path d="${SHAPE.cavL}" fill="${GROUPS.anterior.color}" opacity=".3"/><path d="${SHAPE.cavL}" fill="${U("hatch")}"/><path d="${SHAPE.cavL}" fill="none" stroke="#fff" stroke-width="2.6" stroke-dasharray="9 7" opacity=".85"/></g>`;
+      if (pr === "af") h += `<g clip-path="${U("clipMyo2")}"><path d="${SHAPE.atria}" class="flicker" fill="#4d9dff" opacity=".85" style="mix-blend-mode:screen"/></g>`;
+      if (pr === "vtvf") h += `<g clip-path="${U("clipMyo2")}"><path d="${SHAPE.vent}" class="flicker" fill="#b14dff" opacity=".8" style="mix-blend-mode:screen"/></g>`;
+      if (pr === "bbb") h += `<g fill="none" stroke="#ff2fb4" stroke-linecap="round" filter="${U("aglow")}">${COND.filter((s) => s.bb).map((s) => `<path d="${s.d}" stroke-width="${s.w + 3}" class="wall-on"/>`).join("")}</g>`;
+      if (pr === "sa" || pr === "av") { const [x, y] = pr === "sa" ? NODE.sa : NODE.av; h += `<g><circle cx="${x}" cy="${y}" r="26" fill="none" stroke="#ff2d55" stroke-width="4" class="ring"/><circle cx="${x}" cy="${y}" r="22" fill="none" stroke="#ff2d55" stroke-width="3"/></g>`; }
+      return h;
+    }
+
+    // Layer 2c: lead sight lines
+    function linesInner() {
+      const c = compact(), al = activeLeads(), X = lx();
+      return LEADS.map((L) => {
+        const col = GROUPS[L.g].color, on = !!(al && al.has(L.id)), dim = !!(al && !al.has(L.id));
+        const sx = L.side === "L" ? X.lineL : X.lineR, sy = L.y + (c ? -14 : 8), kx = !c && L.knee ? L.knee : L.side === "L" ? sx + (c ? 14 : 30) : sx - (c ? 14 : 30);
+        const d = `M${sx} ${sy} L${kx} ${sy} L${L.anchor[0]} ${L.anchor[1]}`;
+        // white casing keeps red/pink lines readable where they cross the red muscle
+        return `<g class="lead-g" style="opacity:${dim ? 0.12 : 1}"><path d="${d}" fill="none" stroke="#fff" stroke-width="${on ? 7.5 : 5.5}" stroke-linejoin="round" opacity="${on ? 0.92 : 0.7}"/>`
+          + `<path d="${d}" fill="none" stroke="${col}" stroke-width="${on ? 3.4 : 2.4}" stroke-linejoin="round" filter="${U("dotShadow")}"${on ? ' class="flow"' : ""}/>`
+          + `<circle cx="${sx}" cy="${sy}" r="3.5" fill="${col}"/><circle cx="${L.anchor[0]}" cy="${L.anchor[1]}" r="${on ? 10 : 8}" fill="${col}" stroke="#fff" stroke-width="2.5" filter="${U("dotShadow")}"/></g>`;
+      }).join("") + extraOn().map((e) => {
+        const col = GROUPS[e.g].color, [bx, by] = c ? e.boxC : e.box, b = xbox(e, c), sx = e.box[0] < 500 ? bx + b.w : bx, sy = by + b.h / 2;
+        const d = `M${sx} ${sy} L${e.anchor[0]} ${e.anchor[1]}`;
+        return `<g><path d="${d}" fill="none" stroke="#fff" stroke-width="7.5" opacity=".92"/><path d="${d}" fill="none" stroke="${col}" stroke-width="3.4" class="flow"/><circle cx="${e.anchor[0]}" cy="${e.anchor[1]}" r="10" fill="${col}" stroke="#fff" stroke-width="2.5" filter="${U("dotShadow")}"/></g>`;
+      }).join("");
+    }
+    // size of an extra-lead chip
+    const xbox = (e, c) => { const fs = c ? 26 : 17; return { fs, w: e.id.length * fs * 0.62 + 22, h: fs + 14 }; };
+
+    // Layer 3: labels, callout chips and the tappable lead names
+    function labelsInner() {
+      const c = compact(), al = activeLeads(), X = lx(), pr = S.problem;
+      const cham = [["Right", "Atrium", 456, 330], ["Left", "Atrium", 700, 334], ["Right", "Ventricle", 488, 600], ["Left", "Ventricle", c ? 700 : 686, 642]];
+      let h = cham.map(([a, b, x, y]) => `<text x="${x}" y="${y}" text-anchor="middle" fill="#fff" font-weight="800" font-size="${c ? 32 : 25}" style="${HALO_RED};letter-spacing:-.01em"><tspan x="${x}" dy="0">${a}</tspan><tspan x="${x}" dy="${c ? 34 : 27}">${b}</tspan></text>`).join("");
+      h += `<text x="578" y="146" fill="#fff" font-weight="800" font-size="${c ? 30 : 22}" text-anchor="middle" transform="rotate(-58 578 146)" style="${HALO_RED}">Aorta</text>`;
+      if (!c) h += `<text x="730" y="235" fill="#e6eeff" font-weight="800" font-size="15" text-anchor="middle" transform="rotate(-3 730 235)" style="${HALO_BLUE}">Pulmonary artery</text>`
+        + `<text x="457" y="100" fill="#e6eeff" font-weight="800" font-size="15" text-anchor="middle" transform="rotate(-90 457 100)" style="${HALO_BLUE}">Vena cava</text>`;
+      const cap = activeWalls().includes("anterior") ? "front wall (cut away)" : activeWalls().includes("posterior") ? "back wall (seen inside)" : "";
+      if (cap) h += `<text x="704" y="${c ? 724 : 716}" text-anchor="middle" fill="#fff" font-size="${c ? 24 : 15}" font-weight="700" font-style="italic" style="paint-order:stroke;stroke:rgba(70,0,18,.7);stroke-width:4">${cap}</text>`;
+      h += extraOn().map((e) => {
+        const [bx, by] = c ? e.boxC : e.box, b = xbox(e, c);
+        return `<g><rect x="${bx}" y="${by}" width="${b.w}" height="${b.h}" rx="${b.h / 2}" fill="${GROUPS[e.g].color}" stroke="#fff" stroke-width="2" filter="${U("chipShadow")}"/><text x="${bx + b.w / 2}" y="${by + b.h / 2 + b.fs * 0.36}" text-anchor="middle" font-size="${b.fs}" font-weight="900" fill="#0b1120">${esc(e.id)}</text></g>`;
+      }).join("");
+      h += chips(c).map((ch) => {
+        const fs = c ? 30 : 16.5, w = Math.max(...ch.t.map((t, i) => t.length * (i ? fs * 0.45 : fs * 0.57))) + 26, hh = ch.t.length * (fs + 4) + 12;
+        const [bx, by] = ch.box;
+        const [ex, ey] = ch.from || [ch.at[0] < bx ? bx : ch.at[0] > bx + w ? bx + w : ch.at[0], ch.at[1] < by ? by : by + hh];
+        const op = pr ? (ch.k === pr || (pr === "bbb" && (ch.k === "rbb" || ch.k === "lbb")) ? 1 : 0.35) : 1;
+        return `<g opacity="${op}"><line x1="${ex}" y1="${ey}" x2="${ch.at[0]}" y2="${ch.at[1]}" stroke="#fff" stroke-width="2" opacity=".9"/><circle cx="${ch.at[0]}" cy="${ch.at[1]}" r="4" fill="#fff"/>`
+          + `<rect x="${bx}" y="${by}" width="${w}" height="${hh}" rx="11" fill="var(--chip)" stroke="rgba(20,33,61,.12)" filter="${U("chipShadow")}"/>`
+          + ch.t.map((t, i) => `<text x="${bx + 13}" y="${by + 6 + (i + 1) * (fs + 2) - 2}" font-size="${i ? fs * 0.82 : fs}" font-weight="${i ? 500 : 800}" fill="var(--chipInk)">${esc(t)}</text>`).join("") + `</g>`;
+      }).join("");
+      h += LEADS.map((L) => {
+        const col = GROUPS[L.g].color, dim = !!(al && !al.has(L.id)), sel = S.lead === L.id;
+        const x = L.side === "L" ? X.L : X.R, anchor = L.side === "L" ? "start" : "end";
+        const hw = c ? 92 : 240, hx = L.side === "L" ? x - 8 : x - hw + 8;
+        return `<g class="lead-g hit" style="opacity:${dim ? 0.18 : 1}" data-act="lead" data-k="${L.id}" role="button" tabindex="0" aria-pressed="${sel}" aria-label="${esc("Lead " + L.id + ": " + L.lines.join(" "))}">`
+          + `<rect x="${hx}" y="${L.y - X.name + 2}" width="${hw}" height="${c ? X.name + 14 : 104}" fill="transparent"/>`
+          + `<text x="${x}" y="${L.y}" text-anchor="${anchor}" font-size="${X.name}" font-weight="900" fill="${col}" style="letter-spacing:-.02em${sel ? ";filter:drop-shadow(0 0 8px " + col + ")" : ""}">${L.id}</text>`
+          + (c ? "" : L.lines.map((t, i) => `<text x="${x}" y="${L.y + 26 + i * 21}" text-anchor="${anchor}" font-size="${X.desc}" font-weight="${i ? 500 : 650}" fill="${i ? "var(--soft)" : col}">${esc(t)}</text>`).join(""))
+          + `</g>`;
+      }).join("");
+      return h;
+    }
+
+    function focusHTML() {
+      let f;
+      if (S.problem) {
+        const pr = PROBLEMS.find((x) => x.k === S.problem);
+        f = { color: "#ff4d6d", tag: "Problem area", title: pr.title, body: `<p style="margin:6px 0 0;font-size:.9rem">${esc(pr.text)}</p>` };
+      } else if (S.lead) {
+        const L = LEAD_BY_ID[S.lead], G = GROUPS[L.g];
+        f = { color: G.color, tag: G.label + " group", title: "Lead " + L.id, body: `<div class="k"><b>Looks at</b><span>${esc(L.lines.join(" "))}</span><b>Artery</b><span>${esc(L.art)}</span><b>Where</b><span>${esc(L.tip)}</span><b>Mirror</b><span>${esc(L.mirror)}</span></div>`
+          + `<ul>${L.checks.map((c) => "<li>" + esc(c) + "</li>").join("")}</ul><div class="ecgx-mini">${miniNorm(L.norm)}<span>${esc(NORMTXT[L.norm])}</span></div>` };
+      } else if (S.group !== "all") {
+        const G = GROUPS[S.group];
+        const points = G.points || ["ST elevation in 2 or more neighbouring leads of one group = STEMI in that wall (check the mm threshold).", "A mirror (reciprocal) change makes a real occlusion more likely."];
+        f = { color: G.color, tag: G.pill || G.leads.join(", "), title: G.label + (G.extra || S.group === "avr" ? "" : " leads"), body: `<p style="margin:6px 0 0;font-size:.9rem">${esc(G.text)}</p>`
+          + `<div class="k">${G.rows.map(([a, b]) => `<b>${esc(a)}</b><span>${esc(b)}</span>`).join("")}</div><ul>${points.map((t) => "<li>" + esc(t) + "</li>").join("")}</ul>` };
+      } else {
+        f = { color: "#3d8bff", tag: "Tip", title: "Tap a lead group or a lead", body: `<p style="margin:6px 0 0;font-size:.9rem">Each lead is a camera looking at one wall of the heart. Pick a group to light up the wall it watches. Posterior and Right ventricle show the extra leads (V7–V9, V3R, V4R).</p>` };
+      }
+      return `<div class="ecgx-card ecgx-focus" style="--fc:${f.color}" aria-live="polite"><span class="ecgx-tag">${esc(f.tag)}</span><h3>${esc(f.title)}</h3>${f.body}</div>`;
+    }
+
+    // The live strip follows the problem: dropped beat (AV block), pause (SA node), no P waves (AF), chaos (VT/VF)
+    const wig = (p) => 0.035 * Math.sin(p * 260) + 0.025 * Math.sin(p * 410 + 1);
+    const STRIP_FN = {
+      normal: beatY,
+      pOnly: (p) => (p < 0.12 ? beatY(p) : 0),
+      flat: () => 0,
+      af: (p) => (p < 0.22 || p >= 0.65 ? wig(p) : beatY(p)),
+      vf: (p) => 0.42 * Math.sin(p * 47) * Math.sin(p * 9 + 1) + 0.16 * Math.sin(p * 131),
+    };
+    const stripPath = (fn) => { let d = ""; for (let i = 0; i <= 200; i++) { const p = i / 200; d += (i ? "L" : "M") + (6 + p * 138).toFixed(1) + " " + (30 - fn(p) * 22).toFixed(1); } return d; };
+    const STRIP_D = Object.fromEntries(Object.entries(STRIP_FN).map(([k, fn]) => [k, stripPath(fn)]));
+    let stripKey = "normal";
+    function ctrlHTML() {
+      const d = STRIP_D.normal; stripKey = "normal";
+      return `<div class="ecgx-ctrl"><button type="button" class="ecgx-btn" data-act="play" aria-pressed="${S.playing}">${S.playing ? "❚❚ Pause impulse" : "▶ Play impulse"}</button>`
+        + `<button type="button" class="ecgx-btn ghost" data-act="slow" aria-pressed="${S.slow}">${S.slow ? "Slow motion" : "Real speed"}</button>`
+        + `<div class="ecgx-strip" aria-live="polite"><svg viewBox="0 0 150 46" aria-hidden="true"><defs><clipPath id="${ID("stripClip")}"><rect data-ref="clip" x="0" y="0" width="0" height="46"/></clipPath>`
+        + `<filter id="${ID("sglow")}" x="-10%" y="-50%" width="120%" height="200%"><feGaussianBlur stdDeviation="1.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`
+        + `<path data-ref="stripBg" d="${d}" fill="none" stroke="var(--line)" stroke-width="2"/><path data-ref="stripFg" d="${d}" fill="none" stroke="#ff3b4f" stroke-width="2.4" stroke-linejoin="round" clip-path="${U("stripClip")}" filter="${U("sglow")}"/><circle data-ref="dot" r="3.6" fill="#ff3b4f"/></svg>`
+        + `<div><b data-ref="phase">${PHASES[0][1]}</b><span data-ref="note">${PHASES[0][2]}</span></div></div></div>`;
+    }
+
+    function bodySVG() {
+      const id = (s) => ID("b-" + s), u = (s) => "url(#" + id(s) + ")", c = [160, 140], R = 92;
+      const halo = "paint-order:stroke;stroke:rgba(255,255,255,.85);stroke-width:3";
+      const limb = [["aVR", -150, GROUPS.avr.color], ["aVL", -30, GROUPS.lateral.color], ["I", 0, GROUPS.lateral.color], ["II", 60, GROUPS.inferior.color], ["aVF", 90, GROUPS.inferior.color], ["III", 120, GROUPS.inferior.color]];
+      const chest = [[142, 128, "V1", GROUPS.septal.color], [158, 128, "V2", GROUPS.septal.color], [170, 140, "V3", GROUPS.anterior.color], [182, 150, "V4", GROUPS.anterior.color], [198, 151, "V5", GROUPS.lateral.color], [213, 148, "V6", GROUPS.lateral.color]];
+      return `<svg viewBox="0 0 300 262" role="img" aria-label="Where the 12 leads look from: limb leads at their angles and chest electrodes V1 to V6"><defs>`
+        + `<linearGradient id="${id("torso")}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe3ff" stop-opacity=".85"/><stop offset=".55" stop-color="#9cc3f5" stop-opacity=".55"/><stop offset="1" stop-color="#7aa9e6" stop-opacity=".25"/></linearGradient>`
+        + `<radialGradient id="${id("heart")}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffb3be"/><stop offset=".45" stop-color="#ef3b55"/><stop offset="1" stop-color="#7a0a1d"/></radialGradient>`
+        + `<filter id="${id("glow")}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+        + `<filter id="${id("drop")}" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0b1d3a" flood-opacity=".35"/></filter></defs>`
+        + `<circle cx="150" cy="36" r="22" fill="${u("torso")}" stroke="#8fb6ee" stroke-opacity=".7"/><path d="M138 56 L162 56 L164 72 L136 72 Z" fill="${u("torso")}"/>`
+        + `<path d="M70 92 C90 76 120 70 150 70 C180 70 210 76 230 92 C250 104 262 130 266 170 L272 252 L240 252 L236 180 C234 160 228 150 222 146 L222 252 L78 252 L78 146 C72 150 66 160 64 180 L60 252 L28 252 L34 170 C38 130 50 104 70 92 Z" fill="${u("torso")}" stroke="#8fb6ee" stroke-opacity=".8" stroke-width="1.4"/>`
+        + limb.map(([n, a, col]) => {
+          const r = (a * Math.PI) / 180, x = c[0] + Math.cos(r) * R, y = c[1] + Math.sin(r) * R, tx = c[0] + Math.cos(r) * (R + 16), ty = c[1] + Math.sin(r) * (R + 16);
+          return `<g><line x1="${c[0]}" y1="${c[1]}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="2" filter="${u("glow")}"/><circle cx="${x}" cy="${y}" r="4.5" fill="${col}" filter="${u("drop")}"/><text x="${tx}" y="${ty}" fill="${col}" font-size="13" font-weight="800" text-anchor="middle" dominant-baseline="central" style="${halo}">${n}</text></g>`;
+        }).join("")
+        + `<path d="M160 126 C152 116 140 120 140 130 C140 142 160 154 160 154 C160 154 180 142 180 130 C180 120 168 116 160 126 Z" fill="${u("heart")}" filter="${u("glow")}"/>`
+        + chest.map(([x, y, n, col]) => `<circle cx="${x}" cy="${y}" r="3.8" fill="${col}" stroke="#fff" stroke-width="1.2" filter="${u("drop")}"/>`).join("")
+        + `<text x="178" y="176" text-anchor="middle" font-size="11.5" font-weight="800" fill="${GROUPS.anterior.color}" style="${halo}">V1–V6</text></svg>`;
+    }
+
+    // What a lead normally looks like: a small strip on ECG paper
+    function miniNorm(type) {
+      const W = 132, H = 58, base = 34, sc = 24;
+      const Pw = { up: 1, var: 0.5, rS: 0.5, RS: 0.7, down: -1 }[type], Rr = { up: 1, var: 0.45, rS: 0.25, RS: 0.65, down: 0.15 }[type];
+      const Ss = { up: 0.15, var: 0.35, rS: 0.85, RS: 0.6, down: 0.9 }[type], Tw = { up: 0.35, var: 0.15, rS: 0.2, RS: 0.3, down: -0.3 }[type];
+      const yv = (b) => {
+        let p = 0, r = 0, t = 0;
+        if (b >= 0.05 && b < 0.14) p = Pw * 0.14 * Math.sin((Math.PI * (b - 0.05)) / 0.09);
+        if (b >= 0.2 && b < 0.225) r = (Rr * (b - 0.2)) / 0.025; else if (b >= 0.225 && b < 0.25) r = Rr - ((Rr + Ss) * (b - 0.225)) / 0.025; else if (b >= 0.25 && b < 0.27) r = -Ss * (1 - (b - 0.25) / 0.02);
+        if (b >= 0.37 && b < 0.55) t = Tw * Math.sin((Math.PI * (b - 0.37)) / 0.18);
+        return p + r + t;
+      };
+      let d = "", grid = "";
+      for (let i = 0; i <= 120; i++) { const b = (i / 120) * 0.62; d += (i ? "L" : "M") + (4 + (i / 120) * (W - 8)).toFixed(1) + " " + (base - yv(b) * sc).toFixed(1); }
+      for (let gx = 0; gx <= W; gx += 11) grid += `M${gx} 0V${H}`;
+      for (let gy = 1; gy <= H; gy += 11) grid += `M0 ${gy}H${W}`;
+      return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${grid}" stroke="#f0cdd2" stroke-width=".8" fill="none"/><path d="${d}" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+    }
+
+    const miniTrace = (d, color, k) => `<svg viewBox="0 0 120 50" aria-hidden="true"><defs><filter id="${ID("mt-" + k)}" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="${d}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" filter="${U("mt-" + k)}"/></svg>`;
+
+    function full() {
+      const c = S.mode === "compact", wide = S.mode === "wide", mid = S.mode === "mid", vb = c ? VB_COMPACT : VB;
+      const legend = [["Electrical conduction pathway", "#ffbf2e"], ["Oxygenated blood (to the body)", "#e2304b"], ["Deoxygenated blood (to the lungs)", "#2c56d6"]]
+        .map(([t, col]) => `<div><svg viewBox="0 0 46 14" aria-hidden="true"><line x1="4" y1="7" x2="42" y2="7" stroke="${col}" stroke-width="6" stroke-linecap="round" style="filter:drop-shadow(0 0 4px ${col})"/></svg><span>${t}</span></div>`).join("");
+      const wrong = WRONG.map((w) => `<div class="ecgx-w" style="--wc:${w.color}">${miniTrace(w.d, w.color, w.k)}<div><b>${esc(w.title)}</b><span>→ ${esc(w.text)}</span></div></div>`).join("");
+      return `<div class="ecgx ${THEME}${c ? " compact" : ""}${wide ? " wide" : ""}${mid ? " mid" : ""}">`
+        + `<div class="ecgx-head"><div><h2>${esc(TITLE)}</h2><p>${esc(SUBTITLE)}</p></div></div>`
+        + `<div class="ecgx-pills" role="group" aria-label="Lead groups">${GROUP_ORDER.map((g) => `<button type="button" class="ecgx-pill" style="--pc:${GROUPS[g].color}" data-act="group" data-k="${g}" aria-pressed="false"><i></i>${esc(GROUPS[g].label)}${g !== "all" && g !== "avr" ? `<span style="opacity:.75;font-weight:600">${GROUPS[g].pill || GROUPS[g].leads.join(" ")}</span>` : ""}</button>`).join("")}</div>`
+        + `<div class="ecgx-grid"><div>`
+        + `<div class="ecgx-stagecard"><div class="ecgx-stage">${artSVG(vb)}<svg viewBox="${vb}" class="ecgx-layer" aria-hidden="true" data-ref="dyn"></svg>${animSVG(vb)}<svg viewBox="${vb}" class="ecgx-layer" aria-hidden="true" data-ref="lines"></svg><svg viewBox="${vb}" class="ecgx-layer" data-ref="labels"></svg></div>${ctrlHTML()}</div>`
+        + (wide ? "" : `<div style="margin-top:14px" data-ref="focus"></div>`)
+        + `<div class="ecgx-bottom">`
+        + `<div class="ecgx-card ecgx-body"><h3>Where the leads look from<small>Limb leads at their true angles · chest leads V1–V6</small></h3>${bodySVG()}</div>`
+        + `<div class="ecgx-card ecgx-legend">${legend}</div>`
+        + `<div class="ecgx-card"><div class="ecgx-probwrap"><svg viewBox="300 20 560 800" aria-hidden="true" style="width:100%;height:auto"><use href="#${ID("art")}"/></svg><div><h3>Common problem areas<small>Tap one to see where it is and how the impulse changes</small></h3><div class="ecgx-problist">${PROBLEMS.map((p) => `<button type="button" class="ecgx-prob" data-act="prob" data-k="${p.k}" aria-pressed="false">${esc(p.title)}</button>`).join("")}</div></div></div></div>`
+        + `</div></div>`
+        + `<div class="ecgx-side">${wide ? `<div data-ref="focus"></div>` : ""}<div class="ecgx-card"><h3>What's wrong in the heart?<small>What the ECG can suggest</small></h3><div class="ecgx-wrong" style="margin-top:10px">${wrong}</div></div>`
+        + `<div class="ecgx-card ecgx-short"><h3>In short</h3><ul><li>Each lead (I, II, III, aVR, aVL, aVF, V1–V6) looks at a different part of the heart.</li><li>The electrical system (SA node → AV node → bundle of His → bundle branches → Purkinje fibres) controls every heartbeat.</li><li>ECG changes in neighbouring leads show where the problem is, and often which artery.</li></ul></div></div>`
+        + `</div><p class="ecgx-note">Educational reference. Always follow your local protocols.</p></div>`;
+    }
+
+    /* ---------- render / update ---------- */
+    const q = (r) => host.querySelector(`[data-ref="${r}"]`);
+    function render() {
+      host.innerHTML = full(); S.mounted = true; phaseI = -1; noteTxt = null;
+      A = { atria: q("atria"), vent: q("vent"), active: q("active"), sa: q("sa"), av: q("av"), dot: q("dot"), clip: q("clip"), phase: q("phase"), note: q("note"), sBg: q("stripBg"), sFg: q("stripFg"), segs: [], purk: [], sparks: {} };
+      host.querySelectorAll("[data-seg]").forEach((g) => { const s = COND[+g.dataset.seg]; A.segs.push({ k: s.k, t: s.t, els: [...g.querySelectorAll("path")] }); });
+      host.querySelectorAll("[data-pk]").forEach((g) => { const p = purkinje[+g.dataset.pk]; A.purk.push({ lvl: p.lvl, left: p.left, els: [...g.querySelectorAll("path")] }); });
+      host.querySelectorAll("[data-spark]").forEach((el) => { A.sparks[el.dataset.spark] = el; });
+      const prep = (el) => { const L = el.getTotalLength(); el.__len = L; el.style.strokeDasharray = L + " " + L; };
+      A.segs.forEach((s) => s.els.forEach(prep)); A.purk.forEach((p) => p.els.forEach(prep));
+      update(); frame(P, !S.playing && !S.started); syncLoop();
+    }
+    function update() {
+      if (!S.mounted) return;
+      q("dyn").innerHTML = dynInner(); q("lines").innerHTML = linesInner(); q("labels").innerHTML = labelsInner();
+      const f = q("focus"); if (f) f.innerHTML = focusHTML();
+      host.querySelectorAll('[data-act="group"]').forEach((b) => b.setAttribute("aria-pressed", String(S.group === b.dataset.k && !S.lead && !S.problem)));
+      host.querySelectorAll('[data-act="prob"]').forEach((b) => b.setAttribute("aria-pressed", String(S.problem === b.dataset.k)));
+      const pb = host.querySelector('[data-act="play"]'); if (pb) { pb.textContent = S.playing ? "❚❚ Pause impulse" : "▶ Play impulse"; pb.setAttribute("aria-pressed", String(S.playing)); }
+      const sb = host.querySelector('[data-act="slow"]'); if (sb) { sb.textContent = S.slow ? "Slow motion" : "Real speed"; sb.setAttribute("aria-pressed", String(S.slow)); }
+    }
+
+    /* ---------- animation ---------- */
+    function frame(p, still) {
+      if (!A) return;
+      // Problem simulations: which parts of the beat are silenced on this beat
+      const pr = S.problem, odd = beat % 2 === 1, third = beat % 3 === 2;
+      const noAtria = pr === "af" || pr === "vtvf" || (pr === "sa" && third);
+      const noVent = pr === "vtvf" || (pr === "av" && odd) || (pr === "sa" && third);
+      const lateLeft = pr === "bbb";
+      const msg = pr === "av" ? (odd ? "Blocked at the AV node: P wave with no QRS (2:1 block)" : "Conducted beat")
+        : pr === "sa" ? (third ? "SA node pause: no P wave, no beat" : "SA node fires")
+        : pr === "af" ? "No organised atrial beat: the atria quiver (no P waves)"
+        : pr === "bbb" ? "Left bundle blocked: the left ventricle fires late (wide QRS)"
+        : pr === "vtvf" ? "Ventricles fire on their own: no normal conduction" : "";
+      const show = (el, k) => { if (el.__len != null) el.style.strokeDashoffset = String(el.__len * (1 - k)); };
+      const atrialSeg = { intA: 1, intM: 1, intP: 1, bach: 1 }, leftSeg = { lbb: 1, lant: 1, lpost: 1 };
+      A.segs.forEach((s) => {
+        const late = lateLeft && leftSeg[s.k] ? 0.09 : 0;
+        let k = still ? 1 : ramp(p, s.t[0] + late, s.t[1] + late);
+        if (!still && ((atrialSeg[s.k] && noAtria) || (!atrialSeg[s.k] && noVent))) k = 0;
+        s.els.forEach((el) => show(el, k));
+        const sp = A.sparks[s.k];
+        if (sp) {
+          if (!still && k > 0 && k < 1) { const el = s.els[1] || s.els[0], pt = el.getPointAtLength(el.__len * k); sp.setAttribute("cx", pt.x); sp.setAttribute("cy", pt.y); sp.style.opacity = 1; }
+          else sp.style.opacity = 0;
+        }
+      });
+      A.purk.forEach((pk) => { const st = 0.3 + pk.lvl * 0.018 + (lateLeft && pk.left ? 0.09 : 0), k = still ? 1 : noVent ? 0 : ramp(p, st, st + 0.05); pk.els.forEach((el) => show(el, k)); });
+      A.active.style.opacity = String(still ? 0.75 : 1 - ramp(p, 0.47, 0.66));
+      A.atria.style.opacity = still || noAtria ? "0" : String(Math.min(ramp(p, 0.01, 0.07), 1 - ramp(p, 0.1, 0.2)) * 0.85);
+      A.vent.style.opacity = still || noVent ? "0" : String(Math.min(ramp(p, 0.27 + (lateLeft ? 0.04 : 0), 0.33 + (lateLeft ? 0.06 : 0)), 1 - ramp(p, 0.47, 0.68)) * 0.72);
+      A.sa.setAttribute("r", String(11 + 9 * (still || noAtria ? 0 : Math.max(0, 1 - p / 0.07))));
+      A.av.setAttribute("r", String(10 + (!still && p >= 0.11 && p < 0.25 ? 4 + 3 * Math.sin(p * 120) : 0)));
+      const sk = still ? "normal" : pr === "vtvf" ? "vf" : pr === "af" ? "af" : pr === "sa" && third ? "flat" : pr === "av" && odd ? "pOnly" : "normal";
+      if (sk !== stripKey) { stripKey = sk; A.sBg.setAttribute("d", STRIP_D[sk]); A.sFg.setAttribute("d", STRIP_D[sk]); }
+      const x = 6 + p * 138, y = 30 - STRIP_FN[sk](p) * 22;
+      A.dot.setAttribute("cx", x); A.dot.setAttribute("cy", y); A.clip.setAttribute("width", String(x));
+      const ph = phaseAt(p);
+      const title = sk === "vf" ? "VT / VF" : sk === "flat" ? "Pause" : sk === "pOnly" && ph >= 2 ? "Dropped beat" : sk === "af" && ph < 2 ? "No P wave" : PHASES[ph][1];
+      if (title !== phaseI || msg !== noteTxt) { phaseI = title; noteTxt = msg; A.phase.textContent = title; A.note.textContent = msg || PHASES[ph][2]; }
+    }
+    function tick(now) {
+      const dt = Math.min(0.1, (now - last) / 1000); last = now;
+      const np = P + dt / (S.slow ? 3.6 : 1.1); // seconds per beat
+      if (np >= 1) beat += 1;
+      P = np % 1; frame(P, false); raf = requestAnimationFrame(tick);
+    }
+    // Run only while playing, on screen and the app is in front (saves battery).
+    function syncLoop() {
+      const run = S.mounted && S.playing && S.visible && !document.hidden;
+      if (run && !raf) { S.started = true; last = performance.now(); raf = requestAnimationFrame(tick); }
+      else if (!run && raf) { cancelAnimationFrame(raf); raf = 0; }
+    }
+
+    /* ---------- taps ---------- */
+    function act(a, k) {
+      const setProblem = (v) => { if (v !== S.problem) { S.problem = v; beat = 0; } };
+      if (a === "group") { S.group = k; S.lead = null; setProblem(null); }
+      else if (a === "lead") { S.lead = S.lead === k ? null : k; setProblem(null); }
+      else if (a === "prob") { S.lead = null; setProblem(S.problem === k ? null : k); }
+      else if (a === "play") S.playing = !S.playing;
+      else if (a === "slow") S.slow = !S.slow;
+      else return;
+      update(); if (!raf) frame(P, !S.playing && !S.started); syncLoop();
+    }
+    host.addEventListener("click", (e) => { const t = e.target.closest && e.target.closest("[data-act]"); if (t && host.contains(t)) act(t.dataset.act, t.dataset.k); });
+    host.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const t = e.target.closest && e.target.closest('[data-act="lead"]'); if (!t) return;
+      e.preventDefault(); const k = t.dataset.k; act("lead", k);
+      const n = host.querySelector(`[data-act="lead"][data-k="${k}"]`); if (n) n.focus();
+    });
+
+    /* ---------- layout, visibility ---------- */
+    const boot = () => { if (!S.mounted) { S.mode = modeFor(host.clientWidth - 36); render(); } };
+    if ("ResizeObserver" in window) new ResizeObserver((es) => { const m = modeFor(es[0].contentRect.width - 36); if (S.mounted && m !== S.mode && es[0].contentRect.width > 0) { S.mode = m; render(); } }).observe(host);
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((es) => { es.forEach((e) => { S.visible = e.isIntersecting; if (S.visible) boot(); syncLoop(); }); }, { rootMargin: "200px 0px" }).observe(host);
+    } else { S.visible = true; boot(); }
+    document.addEventListener("visibilitychange", syncLoop);
+    window.__hxStop = () => { S.visible = false; syncLoop(); };
   })();
   window.__learnShow=drawAll;
   window.__ecgDrawIn=sel=>document.querySelectorAll(sel+" [data-ecg]").forEach(n=>{if(n.firstChild)return;const k=n.dataset.ecg;try{n.innerHTML=drawings[k]();}catch(e){n.hidden=true;}});

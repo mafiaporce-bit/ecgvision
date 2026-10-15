@@ -10,6 +10,11 @@
 // DELETE ?id=&cancel=1 -> asks the job to stop (Stop / New patient). DELETE ?id= -> removes the finished result.
 // DELETE ?img= -> removes the patient's photos (New patient).
 // POST {leads:true, images} -> { leads: [...] }: the leads two models can see in the photos (or null).
+// POST {stj:true, images} -> { img, box:[x0,y0,x1,y1], rot }: where the printed "STJ Level" table is (fractions of
+//           that image), or { img:-1 } if no table is printed. The app then crops the table at full resolution.
+// POST {stj:true, crop:true, images:[close-up of the table]} -> { stj:{I:0.29,...}, a, b }: the table transcribed
+//           by two models; "stj" keeps only the values both read the same. (5.2: the LIFEPAK's slashed zero was
+//           being read as 8 from the small, shrunken photo: 0.04 became 0.84.)
 // POST {orient:true, images:[2-4 small copies of one photo, each turned a different way]} -> { pick }:
 //           which copy is the right way up (index), or -1 if it can't be told. Used to turn photos
 //           upright automatically when they are added. Two models must agree (the fast one, set with
@@ -133,6 +138,60 @@ async function listLeads(key, images, model) {
   }
 }
 
+// 5.2: the printed STJ table, read on its own from a close-up. Two models must agree on a number before it is used.
+const STJ_LOCATE =
+  "These photos show a 12-lead ECG printout (LIFEPAK, corpuls or similar), possibly sideways. Some printouts have a small table titled \"STJ Level\" " +
+  "(12 rows: I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6, each with a value in mm), usually at the right-hand end of the printout. " +
+  "If such a table is printed, reply with ONLY this JSON: {\"img\":N,\"box\":[x0,y0,x1,y1],\"rot\":R} where N is the photo number (1 = first photo), " +
+  "box is the table's bounding rectangle as fractions of that photo's width and height (0-1, include the title and all 12 rows, with a little margin), " +
+  "and R is the number of degrees (0, 90, 180 or 270) the photo must be turned CLOCKWISE so the table's text reads normally. " +
+  "If no STJ table is printed anywhere, reply {\"img\":-1}.";
+const STJ_READ =
+  "This is a close-up of part of a 12-lead ECG printout showing the table titled \"STJ Level\" (it may be slightly sideways). " +
+  "The table has 12 rows in this printed order: I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6; each row has a value in mm with two decimals, sometimes with a minus sign. " +
+  "IMPORTANT: this printer draws the digit 0 with a slash through it (like \u00d8). A slashed zero is 0, never 8 and never 6. " +
+  "Transcribe every row exactly as printed, keeping the printed order so no row slips. " +
+  'Reply with ONLY this JSON: {"I":0.29,"II":0.04,"III":-0.25,"aVR":-0.17,"aVL":0.27,"aVF":-0.10,"V1":0.06,"V2":0.40,"V3":0.37,"V4":0.36,"V5":0.16,"V6":0.15} (example values). ' +
+  "Use null for a row you cannot read. If there is no STJ table in this picture, reply {}.";
+async function askJson(key, images, text, model, maxTok) {
+  const content = images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
+  content.push({ type: "text", text });
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 25000);
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model, max_tokens: maxTok || 400, messages: [{ role: "user", content }] }),
+      signal: ctl.signal,
+    });
+    if (!r.ok) return { err: r.status };
+    const j = await r.json();
+    const txt = (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join(" ");
+    const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
+    if (a < 0 || b < a) return null;
+    try { return JSON.parse(txt.slice(a, b + 1)); } catch { return null; }
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+const stjNum = (v) => {
+  if (v === null || v === undefined || v === "") return null;
+  const n = parseFloat(String(v).replace(",", ".").replace(/[^0-9.+-]/g, ""));
+  return isFinite(n) && Math.abs(n) <= 10 ? Math.round(n * 100) / 100 : null;
+};
+function stjTable(o) {
+  if (!o || typeof o !== "object") return null;
+  const out = {};
+  for (const k of LEAD_NAMES) {
+    const key = Object.keys(o).find((x) => x.toLowerCase() === k.toLowerCase());
+    out[k] = key === undefined ? null : stjNum(o[key]);
+  }
+  return out;
+}
+
 async function streamDirect(key, payload) {
   const up = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -223,6 +282,33 @@ export default async (req) => {
     if (b && b.err) b = null;
     const ok = [a, b].filter(Array.isArray);
     return json({ leads: ok.length ? [...new Set(ok.flat())] : null, a, b });
+  }
+
+  // 5.2: the printed STJ table. Step 1 (locate) and step 2 (read a close-up, two models must agree).
+  if (body && body.stj === true) {
+    if (badImages(images)) return json({ error: "bad_request" }, 400);
+    const fast = env("CLAUDE_ORIENT_MODEL") || "claude-haiku-5-5", main = env("CLAUDE_MODEL") || "claude-sonnet-5";
+    if (body.crop === true) {
+      let [a, b] = await Promise.all([askJson(key, images, STJ_READ, fast, 500), askJson(key, images, STJ_READ, main, 500)]);
+      if (a && a.err) a = await askJson(key, images, STJ_READ, main, 500); // fast model not on this key: ask the main model twice
+      if (b && b.err) b = null;
+      const ta = stjTable(a), tb = stjTable(b);
+      const stj = {};
+      let n = 0, agree = 0;
+      for (const k of LEAD_NAMES) {
+        const x = ta ? ta[k] : null, y = tb ? tb[k] : null;
+        if (x !== null || y !== null) n++;
+        if (x !== null && y !== null && Math.abs(x - y) <= 0.015) { stj[k] = x; agree++; }
+      }
+      return json({ stj, found: n > 0, read: n, agree, a: ta, b: tb });
+    }
+    let r = await askJson(key, images, STJ_LOCATE, fast, 200);
+    if (!r || r.err) r = await askJson(key, images, STJ_LOCATE, main, 200);
+    const n = r && Number.isInteger(Number(r.img)) ? Number(r.img) : -1;
+    const box = r && Array.isArray(r.box) ? r.box.map(Number) : null;
+    const ok = n >= 1 && n <= images.length && box && box.length === 4 && box.every((v) => isFinite(v) && v >= 0 && v <= 1) && box[2] > box[0] && box[3] > box[1];
+    const rot = [0, 90, 180, 270].includes(Number(r && r.rot)) ? Number(r.rot) : 0;
+    return json(ok ? { img: n - 1, box, rot } : { img: -1 });
   }
 
   if (typeof prompt !== "string" || prompt.length > 30000) return json({ error: "bad_request" }, 400);

@@ -1366,7 +1366,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="5.2";
+  const APP_VERSION="5.3";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2296,7 +2296,11 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const v=d._stjv&&d._stjv.found&&d._stjv.stj?d._stjv:null;const table={},src={},unclear=[],fixed=[];
     LEADS.forEach(k=>{const a=num(ai[k]);
       if(v){if(typeof v.stj[k]==="number"){table[k]=v.stj[k];src[k]="verified";if(a!==null&&Math.abs(a-v.stj[k])>0.015)fixed.push(k+" "+a+" → "+v.stj[k]);}
-        else if((v.unclear||[]).includes(k)){unclear.push(k);const o=d.leads[k];if(o&&o.present!==false){o.stj_unclear=true;o.note=((o.note?S(o.note)+"; ":"")+"printed STJ unclear (the two readers disagree): photo value used").slice(0,160);}}
+        else if((v.unclear||[]).includes(k)){
+          // 5.3: the two readers disagree. The main read's own copy is the tie-breaker: a number two of the three read the same is used.
+          const ra=num(v.a&&v.a[k]),rb=num(v.b&&v.b[k]);const tie=a!==null?[ra,rb].find(x=>x!==null&&Math.abs(x-a)<=0.015):undefined;
+          if(tie!==undefined){table[k]=tie;src[k]="verified";}
+          else{unclear.push(k);const o=d.leads[k];if(o&&o.present!==false){o.stj_unclear=true;o.note=((o.note?S(o.note)+"; ":"")+"printed STJ unclear (three readers, three numbers): photo value used").slice(0,160);}}}
         else if(a!==null){table[k]=a;src[k]="ai";}}
       else if(a!==null){table[k]=a;src[k]="ai";}});
     if(!Object.keys(table).length&&!unclear.length){d._stjUsed=[];d._stjCheck=[];d._stjUnclear=[];d._stjFixed=[];d._stjVerified=[];return;}
@@ -3212,7 +3216,7 @@ ${dyn}`;}
     if(lb)wrap.appendChild(el("p","lbl lnote",(/paced/i.test(bbb)?"Paced rhythm":"LBBB")+": the standard mm thresholds don't apply. ST and T going the opposite way to the QRS is expected; the app checks modified Sgarbossa instead."));
     if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal), (RBBB) or (LBBB) is expected in that lead and is not counted as abnormal."));
     if(order.some(k=>(L[k]||{}).stj_check))wrap.appendChild(el("p","lbl lnote","⚠ check paper: the printed STJ number may have been misread from the photo. Read it on the paper."));
-    if(order.some(k=>(L[k]||{}).stj_unclear))wrap.appendChild(el("p","lbl lnote","STJ unclear: the two readers of the printed STJ table disagreed on "+order.filter(k=>(L[k]||{}).stj_unclear).join(", ")+", so the photo value is used there. Read the number on the paper."));
+    if(order.some(k=>(L[k]||{}).stj_unclear))wrap.appendChild(el("p","lbl lnote","STJ unclear: the three readers of the printed STJ table (the main read and two close-up readers) all gave different numbers for "+order.filter(k=>(L[k]||{}).stj_unclear).join(", ")+", so the photo value is used there. Read the number on the paper."));
     if((r.edge||[]).length)wrap.appendChild(el("p","lbl lnote","At the cut-off: "+r.edge.map(k=>k+" reads exactly "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")").join(", ")+" with no neighbouring lead elevated. A photo can't measure to half a box, so this is not called ST elevation. Check "+(r.edge.length>1?"these leads":"this lead")+" on the paper if the patient has symptoms."));
     {const lkp=lk&&lk.report===d?lk.leads:[];const mm=v=>(v>0?"+":v<0?"−":"")+Math.abs(v)+" mm";
       if(lkp.length)wrap.appendChild(el("p","lbl lnote","Second look in progress on "+lkp.join(", ")+": these leads are measured again on complete beats only before they are coloured."));
@@ -3269,6 +3273,10 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"5.3",d:"15 Oct 2026",t:"Printed STJ first, photo second",i:[
+      "The rule, in order: a printed STJ table that is verified is followed exactly; a printed table that could not be verified is still used, with 'check paper' flags; only with no table printed are the photo measurements used (complete beats, second look, lone-lead cut-off rule).",
+      "When the two close-up readers disagree on a number, the main read's own copy of the table is the tie-breaker: a number any two of the three read the same is used. Only when all three differ does that lead fall back to the photo value.",
+      "If the fast model finds no STJ table, the main model gets one look before the table is given up (server file updated)."]},
     {v:"5.2",d:"15 Oct 2026",t:"Printed STJ table read properly",i:[
       "Fix: with the LP15's STJ table in the photo, 5 of 12 numbers were misread (0.04 became 0.84, 0.06 became 0.86, and three chest-lead rows slipped). The LIFEPAK draws its zeros with a slash, which looks like an 8 in a photo shrunk to 1400 px.",
       "The STJ table is now found in the photo, cropped at full resolution, and transcribed by two different AI models while the photo uploads. A number is used only when both read the same thing. Needs the updated server file (netlify/edge-functions/read.js).",
@@ -3558,7 +3566,7 @@ ${dyn}`;}
     if(d._stjCheck&&d._stjCheck.length){const w="Check these printed STJ values on the paper: "+d._stjCheck.join("; ")+". Small print in a photo can be misread. For a sharper read, add a close-up photo of the STJ table.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}
     if(d._stjUsed&&d._stjUsed.length)st.warnings=(st.warnings||[]).concat(["J-points taken from the monitor's printed STJ measurement where the photo read differed: "+d._stjUsed.join(", ")+"."]);
     if(d._stjFixed&&d._stjFixed.length)st.warnings=(st.warnings||[]).concat(["The AI's copy of the printed STJ table had "+d._stjFixed.length+" misread number"+(d._stjFixed.length>1?"s":"")+" ("+d._stjFixed.join(", ")+"); the close-up read by two readers was used instead."]);
-    if(d._stjUnclear&&d._stjUnclear.length)st.warnings=(st.warnings||[]).concat(["Printed STJ unclear in "+d._stjUnclear.join(", ")+": the two readers of the table disagreed, so the photo value is used there. Read "+(d._stjUnclear.length>1?"those numbers":"that number")+" on the paper."]);
+    if(d._stjUnclear&&d._stjUnclear.length)st.warnings=(st.warnings||[]).concat(["Printed STJ unclear in "+d._stjUnclear.join(", ")+": three readers gave three different numbers, so the photo value is used there. Read "+(d._stjUnclear.length>1?"those numbers":"that number")+" on the paper."]);
     if(d._rotNote){const n=el("p","lbl");n.textContent="↻ "+d._rotNote;n.style.margin="2px 6px 8px";report.appendChild(n);}
     (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
     if((st.checks||[]).length){const u=el("ul","why");

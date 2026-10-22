@@ -1374,7 +1374,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="5.4";
+  const APP_VERSION="5.5";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -3320,6 +3320,10 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"5.5",d:"22 Oct 2026",t:"OmniHeart v3.0 triage",i:[
+      "New OmniHeart triage banner above the STEMI result: 🔴 CODE OMI, 🟡 HIGH-RISK or 🟢 no criterion found. It is worked out from the STEMI PPCI pathway (UMOC & ADCDA) and the 12 OMI patterns, never from the AI alone, and is never lower than the protocol.",
+      "The banner shows the tracing quality (OPTIMAL, SUB-OPTIMAL or RE-ACQUIRE). An unreadable tracing, missing leads or a possible lead reversal is never shown as green.",
+      "The AI now checks for shivering, movement, mains interference, baseline wander and lead reversal before measuring, and follows the service protocol first."]},
     {v:"5.4",d:"15 Oct 2026",t:"Says when the STJ table was not verified",i:[
       "When the printed STJ numbers could not be verified from a close-up, the report now says so at the top and why: the server file read.js is still old, the table was not found, or the check did not finish. Before, it quietly used the main read's copy.",
       "If the main read copied STJ numbers and the close-up check is still running, the app waits for it (up to 25 s, with a status line) instead of giving up after 8 s.",

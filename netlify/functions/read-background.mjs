@@ -59,12 +59,19 @@ export default async (req) => {
 
     const ctl = new AbortController();
     tAI = Date.now();
-    const up = await fetch("https://api.anthropic.com/v1/messages", {
+    const call = (p) => fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ ...payload, stream: true }),
+      body: JSON.stringify({ ...p, stream: true }),
       signal: ctl.signal,
     });
+    let up = await call(payload);
+    // 5.9: temperature 0 makes repeat reads consistent; if this model refuses it alongside "effort", retry without.
+    if (!up.ok && up.status === 400 && "temperature" in payload) {
+      const txt = await up.text();
+      if (/temperature/i.test(txt)) { const { temperature, ...rest } = payload; up = await call(rest); }
+      else return finish({ status: "error", error: "upstream", http: 400, detail: txt.slice(0, 300) });
+    }
     if (!up.ok) return finish({ status: "error", error: "upstream", http: up.status, detail: (await up.text()).slice(0, 300) });
     await st.setJSON("w/" + id, { phase: "thinking" });
 

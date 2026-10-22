@@ -606,6 +606,20 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .lv-tools button[aria-pressed="true"]{background:#fff;color:#0B1624}
 .lv-tools span{margin-left:auto}
 .lv-note{position:absolute;left:12px;right:12px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:.74rem;padding:6px 10px;border-radius:10px;text-align:center}
+/* 6.0 measure + strips */
+.lv-line{position:absolute;left:-2000px;right:-2000px;height:0;border-top:2px solid #4FC3F7;pointer-events:none;border-top-width:calc(2px * var(--inv,1))}
+.lv-line.jp{border-top-color:#FF6B7E}
+.lv-line span{position:absolute;left:2000px;top:0;transform:translateY(-100%) scale(var(--inv,1));transform-origin:0 100%;background:#4FC3F7;color:#0B1624;font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px 4px 0 0;white-space:nowrap}
+.lv-line.jp span{background:#FF6B7E}
+.lv-tools2{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:.76rem}
+.lv-tools2 button{border:1px solid rgba(255,255,255,.35);border-radius:999px;background:transparent;color:#fff;font:inherit;font-weight:700;font-size:.74rem;padding:5px 10px;cursor:pointer}
+.lv-tools2 button[aria-pressed="true"]{background:#FFE17A;color:#0B1624;border-color:#FFE17A}
+.lv-tools2 #lvMeas{flex:1;min-width:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;color:#FFE17A}
+.lv-seg{display:inline-flex;border:1px solid rgba(255,255,255,.35);border-radius:999px;overflow:hidden}
+.lv-seg button{border:0!important;border-radius:0!important}
+.lv-strips{flex:1;overflow:auto;background:#000;padding:8px;-webkit-overflow-scrolling:touch}
+.lv-strips canvas{display:block;border-radius:10px;cursor:pointer}
+.lv-strips p{color:#fff;font-size:.82rem;margin:40px 12px;text-align:center;opacity:.85}
 .qa .wide{grid-column:1/-1;display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;border-radius:14px;background:var(--field)}
 .qa .wide .ic{width:40px;height:40px;margin:0;background:#fff}.qa .wide .ic svg{width:22px;height:22px}
 .qa .wide small{margin:0}
@@ -1507,8 +1521,10 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 </div>
 <div class="fullov lv" id="lvOv" hidden>
   <div class="lv-top"><div><b id="lvTitle">Lead map</b><span id="lvSub">Approximate lead positions from your layout · pinch to zoom, drag to move</span></div><button type="button" class="btn ghost" id="lvClose">Close</button></div>
-  <div class="lv-stage" id="lvStage"><div class="lv-wrap" id="lvWrap"><img id="lvImg" alt="ECG photo"><div id="lvCells"></div></div><div class="lv-note" id="lvNote" hidden></div></div>
-  <div class="lv-bar"><div class="lv-chips" id="lvChips"></div><div class="lv-tools"><button type="button" id="lvGrid" aria-pressed="true">Lead boxes</button><button type="button" id="lvFit">Fit</button><button type="button" id="lvPhoto" hidden>Photo 1</button><span id="lvVal"></span></div></div>
+  <div class="lv-stage" id="lvStage"><div class="lv-wrap" id="lvWrap"><img id="lvImg" alt="ECG photo"><div id="lvCells"></div><div class="lv-line base" id="lvBase" hidden><span>baseline (TP)</span></div><div class="lv-line jp" id="lvJ" hidden><span>J-point</span></div></div><div class="lv-note" id="lvNote" hidden></div></div>
+  <div class="lv-strips" id="lvStrips" hidden><canvas id="lvStripsCv" hidden></canvas><p id="lvStripsNote" hidden></p></div>
+  <div class="lv-bar"><div class="lv-chips" id="lvChips"></div><div class="lv-tools"><span class="lv-seg"><button type="button" id="lvViewPhoto" aria-pressed="true">Photo</button><button type="button" id="lvViewStrips" aria-pressed="false">Lead strips</button></span><button type="button" id="lvGrid" aria-pressed="true">Boxes</button><button type="button" id="lvFit">Fit</button><button type="button" id="lvPhoto" hidden>Photo 1</button><span id="lvVal"></span></div>
+  <div class="lv-tools2"><button type="button" id="lvMeasure" aria-pressed="false">Measure</button><button type="button" id="lvCalib" aria-pressed="false">Calibrate</button><span id="lvMeas"></span></div></div>
 </div>
 <div class="fullov usage" id="usageOv" hidden>
   <div class="us-top"><div><b>Live usage</b><span id="usSub">Which phones are using the app</span></div><button type="button" class="btn ghost" id="usClose">Close</button></div>
@@ -1531,7 +1547,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="5.8";
+  const APP_VERSION="6.0";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2354,7 +2370,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const ty0=pa.y0+H*top,ty1=pa.y1-H*bot,rh=(ty1-ty0)*(1-share)/nrow,cw=W/cols.length;const out=[];
     cols.forEach((c,ci)=>c.forEach((k,ri)=>out.push({k:k.replace("-aVR","aVR"),neg:k==="-aVR",x0:pa.x0+ci*cw,x1:pa.x0+(ci+1)*cw,y0:ty0+ri*rh,y1:ty0+(ri+1)*rh})));return out;}
   const LV={on:false,s:1,tx:0,ty:0,fit:1,iw:0,ih:0,cells:[],fi:0,sel:null,grid:true,ptrs:new Map(),tiles:[],lay:null,rotNote:false,url:null};
-  const lvApply=()=>{$("lvWrap").style.transform="translate("+LV.tx+"px,"+LV.ty+"px) scale("+LV.s+")";$("lvCells").style.setProperty("--inv",(1/LV.s).toFixed(3));};
+  const lvApply=()=>{const w=$("lvWrap");w.style.transform="translate("+LV.tx+"px,"+LV.ty+"px) scale("+LV.s+")";w.style.setProperty("--inv",(1/LV.s).toFixed(3));};
   function lvFitView(){const st=$("lvStage");LV.s=1;LV.tx=(st.clientWidth-LV.iw*LV.fit)/2;LV.ty=(st.clientHeight-LV.ih*LV.fit)/2;lvApply();}
   function lvZoomAt(cx,cy,ns,apply){const r=$("lvStage").getBoundingClientRect();const px=cx-r.left,py=cy-r.top;ns=Math.min(8,Math.max(0.5,ns));const k=ns/LV.s;LV.tx=px-(px-LV.tx)*k;LV.ty=py-(py-LV.ty)*k;LV.s=ns;if(apply!==false)lvApply();}
   function lvDrawCells(){const h=$("lvCells");h.textContent="";h.style.cssText="position:absolute;left:0;top:0;width:"+(LV.iw*LV.fit)+"px;height:"+(LV.ih*LV.fit)+"px";h.hidden=!LV.grid;
@@ -2370,7 +2386,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       else if(!LV.lay)note.textContent="Choose your printout layout on the Analyze page to see lead boxes.";
       else if(!LV.lay.pages)note.textContent="Strip printout: lead boxes need a page layout. Pinch to zoom on the labelled sections.";
       else{note.textContent="Boxes are approximate (from the layout you chose, not from the reader). Check the printed label inside each box.";setTimeout(()=>{if(LV.on&&LV.fi===fi)note.hidden=true;},6000);}
-      lvFitView();res();};
+      lvFitView();if(LV.meas){LV.meas.base=null;LV.meas.jp=null;if(LV.meas.on)lvMeasPlace();}lvCalRun();res();};
     im.onerror=()=>{toast("Couldn't open that photo.");res();};im.src=u;});}
   function lvChips(){const h=$("lvChips");h.textContent="";
     LEADS.forEach(k=>{const t=LV.tiles.find(x=>x.k===k);const b=document.createElement("button");b.type="button";const cl=t?t.cls.find(c=>["ste","edge","std","sub","lkx","lkp","unclear","disc"].includes(c)):null;if(cl)b.classList.add(cl);b.setAttribute("aria-pressed",String(LV.sel===k));
@@ -2384,22 +2400,134 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     LV.tiles=[...report.querySelectorAll(".leadmap .lead")].map(e=>{const b=e.querySelector("b"),jv=e.querySelector(".jv"),sp=e.querySelector("span");return {k:b?b.textContent:"",cls:[...e.classList].filter(c=>c!=="lead"),val:(jv?jv.textContent:sp?sp.textContent:"").replace(/\s+/g," ").trim()};});
     LV.lay=layGet();LV.on=true;LV.sel=k||null;LV.grid=true;$("lvGrid").setAttribute("aria-pressed","true");const rot=Number(d._rot||d.rot)||0;LV.rotNote=[90,180,270].includes(rot);
     $("lvOv").hidden=false;$("lvPhoto").hidden=files.length<2;window.__track&&window.__track("leadmap",{lead:k||""});
+    stripsImgs={};if(LV.meas){LV.meas.on=false;LV.meas.calMode=0;LV.meas.drag=null;LV.meas.base=null;LV.meas.jp=null;$("lvMeasure").setAttribute("aria-pressed","false");$("lvCalib").setAttribute("aria-pressed","false");$("lvBase").hidden=true;$("lvJ").hidden=true;}lvView("photo");
     await lvLoad(k?lvPageOf(k):0);lvChips();if(k)lvGo(k);}
   window.__lvOpen=lvOpen;
-  function lvClose(){LV.on=false;$("lvOv").hidden=true;if(LV.url){try{URL.revokeObjectURL(LV.url);}catch(e){}LV.url=null;}$("lvImg").removeAttribute("src");LV.ptrs.clear();}
+  function lvClose(){LV.on=false;stripsImgs={};$("lvOv").hidden=true;if(LV.url){try{URL.revokeObjectURL(LV.url);}catch(e){}LV.url=null;}$("lvImg").removeAttribute("src");LV.ptrs.clear();}
   $("lvClose").onclick=lvClose;
   $("lvGrid").onclick=()=>{LV.grid=!LV.grid;$("lvGrid").setAttribute("aria-pressed",String(LV.grid));$("lvCells").hidden=!LV.grid;};
   $("lvFit").onclick=lvFitView;
   $("lvPhoto").onclick=()=>{LV.sel=null;lvLoad((LV.fi+1)%files.length).then(lvChips);};
   {const st=$("lvStage");let lastTap=0;
-    st.addEventListener("pointerdown",e=>{try{st.setPointerCapture(e.pointerId);}catch(x){}LV.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});if(LV.ptrs.size===1){const now=Date.now();if(now-lastTap<300)lvZoomAt(e.clientX,e.clientY,LV.s>=4?1:LV.s*2.2);lastTap=now;}});
+    st.addEventListener("pointerdown",e=>{if(LV.meas&&LV.meas.calMode){lvCalTap(e.clientY);return;}const hit=lvHitLine(e.clientY);try{st.setPointerCapture(e.pointerId);}catch(x){}LV.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(hit&&LV.ptrs.size===1){LV.meas.drag=hit;return;}
+      if(LV.ptrs.size===1){const now=Date.now();if(now-lastTap<300)lvZoomAt(e.clientX,e.clientY,LV.s>=4?1:LV.s*2.2);lastTap=now;}});
     st.addEventListener("pointermove",e=>{if(!LV.ptrs.has(e.pointerId))return;const prev=LV.ptrs.get(e.pointerId),cur={x:e.clientX,y:e.clientY};
+      if(LV.meas&&LV.meas.drag&&LV.ptrs.size===1){LV.meas[LV.meas.drag]=lvYNat(e.clientY);LV.ptrs.set(e.pointerId,cur);lvMeasDraw();return;}
       if(LV.ptrs.size===1){LV.tx+=cur.x-prev.x;LV.ty+=cur.y-prev.y;LV.ptrs.set(e.pointerId,cur);lvApply();return;}
       if(LV.ptrs.size===2){const ids=[...LV.ptrs.keys()];const a=LV.ptrs.get(ids[0]),b=LV.ptrs.get(ids[1]);const d0=Math.hypot(a.x-b.x,a.y-b.y),pm={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
         LV.ptrs.set(e.pointerId,cur);const a2=LV.ptrs.get(ids[0]),b2=LV.ptrs.get(ids[1]);const d1=Math.hypot(a2.x-b2.x,a2.y-b2.y),m2={x:(a2.x+b2.x)/2,y:(a2.y+b2.y)/2};
         if(d0>0)lvZoomAt(pm.x,pm.y,LV.s*d1/d0,false);LV.tx+=m2.x-pm.x;LV.ty+=m2.y-pm.y;lvApply();}});
-    const up=e=>{LV.ptrs.delete(e.pointerId);};st.addEventListener("pointerup",up);st.addEventListener("pointercancel",up);st.addEventListener("lostpointercapture",up);
+    const up=e=>{LV.ptrs.delete(e.pointerId);if(LV.meas)LV.meas.drag=null;};st.addEventListener("pointerup",up);st.addEventListener("pointercancel",up);st.addEventListener("lostpointercapture",up);
     st.addEventListener("wheel",e=>{e.preventDefault();lvZoomAt(e.clientX,e.clientY,LV.s*(e.deltaY<0?1.15:0.87));},{passive:false});}
+
+  // ---------- 6.0: grid calibration (px per mm from the paper's own squares), tap-to-measure calliper, lead strips ----------
+  // The paper's grid is periodic: thin lines every 1 mm, bold lines every 5 mm. The period is found with an
+  // autocorrelation of the darkness (grey/brown grids) or the red saturation (pink grids) projected along narrow
+  // bands of the paper, scored with a comb that rewards peaks at every multiple and troughs halfway between.
+  function gridCal(img){try{
+    const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;const pa=paperArea(img);
+    const sc0=Math.min(1,2600/Math.max(iw,ih));const x0=Math.round(iw*pa.x0*sc0),y0=Math.round(ih*pa.y0*sc0),w=Math.max(8,Math.round(iw*(pa.x1-pa.x0)*sc0)),h=Math.max(8,Math.round(ih*(pa.y1-pa.y0)*sc0));
+    const c=document.createElement("canvas");c.width=w;c.height=h;const x=c.getContext("2d");x.drawImage(img,pa.x0*iw,pa.y0*ih,(pa.x1-pa.x0)*iw,(pa.y1-pa.y0)*ih,0,0,w,h);const d=x.getImageData(0,0,w,h).data;
+    const dark=new Float32Array(w*h),sat=new Float32Array(w*h);
+    for(let i=0,p=0;i<d.length;i+=4,p++){const r=d[i],g=d[i+1],b=d[i+2];dark[p]=255-(r+g+b)/3;sat[p]=r-Math.min(g,b);}
+    const detrend=(s)=>{const n=s.length,W=31,half=15,out=new Float64Array(n);let acc=0;for(let i=0;i<Math.min(n,W);i++)acc+=s[i];for(let i=0;i<n;i++){const a=i-half,b=i+half;if(i>0){if(b<n)acc+=s[b];if(a-1>=0)acc-=s[a-1];}const cnt=Math.min(n-1,b)-Math.max(0,a)+1;out[i]=s[i]-acc/cnt;}return out;};
+    const acf=(s,maxL)=>{const n=s.length;let m=0;for(let i=0;i<n;i++)m+=s[i];m/=n;const z=new Float64Array(n);let v0=0;for(let i=0;i<n;i++){z[i]=s[i]-m;v0+=z[i]*z[i];}if(v0<=0)return null;const ac=new Float64Array(maxL+1);ac[0]=1;for(let L=1;L<=maxL;L++){let t=0;for(let i=0;i+L<n;i++)t+=z[i]*z[i+L];ac[L]=t/v0;}return ac;};
+    const interp=(ac,q)=>{const i=Math.floor(q);if(i>=ac.length-1)return ac[ac.length-1];const f=q-i;return ac[i]*(1-f)+ac[i+1]*f;};
+    const scoreCurve=(ac)=>{const maxL=ac.length-1,Ps=[],sc=[];for(let P=4;P<Math.min(80,maxL/2);P+=0.1){const K=Math.min(8,Math.floor(maxL/P));if(K<2)continue;let on=0,off=0;for(let k=1;k<=K;k++){on+=interp(ac,k*P);off+=interp(ac,(k-0.5)*P);}Ps.push(P);sc.push((on-off)/K);}return {Ps,sc};};
+    const pick=(ac,len)=>{const {Ps,sc}=scoreCurve(ac);if(!sc.length)return null;let i=0;for(let j=1;j<sc.length;j++)if(sc[j]>sc[i])i=j;const best=sc[i],P=Ps[i];if(best<0.08)return null;
+      const near=(t,tol)=>{let j=0;for(let q=1;q<Ps.length;q++)if(Math.abs(Ps[q]-t)<Math.abs(Ps[j]-t))j=q;if(Math.abs(Ps[j]-t)>tol)return -1;const lo=Math.max(0,j-4),hi=Math.min(sc.length-1,j+4);let jj=lo;for(let q=lo;q<=hi;q++)if(sc[q]>sc[jj])jj=q;return jj;};
+      const t=P/5;if(t>=3.5){const jj=near(t,Math.max(0.6,0.1*t));if(jj>=0&&sc[jj]>=0.3*best&&sc[jj]>0.06)return {P:Ps[jj],score:sc[jj],how:"thin"};}
+      const maxL=ac.length-1;if(5*P<maxL-2){const L=Math.round(5*P);let mx=0;for(let q=Math.max(1,L-3);q<=L+3;q++)mx=Math.max(mx,ac[q]);if(mx>0.5*ac[Math.round(P)]&&mx>0.08)return {P,score:best,how:"thin"};}
+      if(len/P<50)return {P:P/5,score:best,how:"bold"};return {P,score:best,how:"single"};};
+    const est=(sig,axis)=>{const band=160,maxL=Math.min(420,Math.floor((axis===1?h:w)/3));if(maxL<30)return null;let sum=null,n=0;
+      if(axis===1){const step=Math.max(band,Math.floor((w*0.7-band)/8)||band);for(let sx=Math.floor(w*0.15);sx+band<=Math.floor(w*0.85);sx+=step){const s=new Float64Array(h);for(let yy=0;yy<h;yy++){let t=0;for(let xx=sx;xx<sx+band;xx++)t+=sig[yy*w+xx];s[yy]=t;}const r=acf(detrend(s),maxL);if(!r)continue;if(!sum)sum=new Float64Array(maxL+1);for(let L=0;L<=maxL;L++)sum[L]+=r[L];n++;}}
+      else{const step=Math.max(band,Math.floor((h*0.7-band)/8)||band);for(let sy=Math.floor(h*0.15);sy+band<=Math.floor(h*0.85);sy+=step){const s=new Float64Array(w);for(let yy=sy;yy<sy+band;yy++){const row=yy*w;for(let xx=0;xx<w;xx++)s[xx]+=sig[row+xx];}const r=acf(detrend(s),maxL);if(!r)continue;if(!sum)sum=new Float64Array(maxL+1);for(let L=0;L<=maxL;L++)sum[L]+=r[L];n++;}}
+      if(!sum||!n)return null;for(let L=0;L<=maxL;L++)sum[L]/=n;return pick(sum,axis===1?h:w);};
+    const bestOf=(axis)=>{const a=est(dark,axis),b=est(sat,axis);if(!a)return b;if(!b)return a;return b.score>a.score?b:a;};
+    const v=bestOf(1),hz=bestOf(0);let use=v,dir="vertical";
+    if(!use||(hz&&hz.how!=="single"&&v.how==="single"&&Math.abs(hz.P-v.P)/v.P>0.25)){use=hz;dir="horizontal";}
+    if(!use)return null;const pxmm=use.P/sc0;if(!(pxmm>=2&&pxmm<=120))return null;
+    return {pxmm,score:use.score,how:use.how,dir,agree:v&&hz?Math.abs(v.P-hz.P)/Math.max(v.P,hz.P):null};}catch(e){return null;}}
+  const CAL=new WeakMap(); // file -> {pxmm, how, src:"grid"|"manual"}
+  function lvCalFor(){const f=files[LV.fi];return f?CAL.get(f)||null:null;}
+  function lvCalMm(){const d=lastReport||{};const c=Number(d.calibration&&d.calibration.mm_per_mv);return (c>=3&&c<=25)?c:(paperGet().gain||10);}
+  function lvCalRun(){const f=files[LV.fi],im=$("lvImg");if(!f||!im.naturalWidth)return;if(CAL.get(f)&&CAL.get(f).src==="manual"){lvMeasDraw();return;}
+    setTimeout(()=>{if(files[LV.fi]!==f||!LV.on)return;const g=gridCal(im);if(g)CAL.set(f,{pxmm:g.pxmm,how:g.how,src:"grid",score:g.score,agree:g.agree});else if(!CAL.get(f))CAL.set(f,{pxmm:null,src:"none"});lvMeasDraw();},30);}
+  // ---- measure (two draggable lines on the image) ----
+  LV.meas={on:false,base:null,jp:null,drag:null,calMode:0,calY:null};
+  function lvMeasOn(on){LV.meas.on=!!on;$("lvMeasure").setAttribute("aria-pressed",String(LV.meas.on));if(LV.meas.on&&(LV.meas.base===null||LV.meas.jp===null))lvMeasPlace();lvMeasDraw();}
+  function lvMeasPlace(){const c=LV.sel?LV.cells.find(x=>x.k===LV.sel):null;const cal=lvCalFor();const mm=cal&&cal.pxmm?cal.pxmm:Math.max(6,LV.ih/120);
+    if(c){const cy=(c.y0+c.y1)/2*LV.ih;LV.meas.base=cy+mm*2;LV.meas.jp=cy+mm*1;}else{const st=$("lvStage"),cy=(st.clientHeight/2-LV.ty)/(LV.s*LV.fit);LV.meas.base=cy+mm;LV.meas.jp=cy;}}
+  function lvMeasDraw(){const on=LV.meas.on,b=$("lvBase"),j=$("lvJ");b.hidden=!on;j.hidden=!on;
+    if(on){b.style.top=(LV.meas.base*LV.fit)+"px";j.style.top=(LV.meas.jp*LV.fit)+"px";}
+    const cal=lvCalFor(),out=$("lvMeas");
+    if(LV.meas.calMode){out.textContent=LV.meas.calMode===1?"Calibrate: tap the TOP of the 1 mV pulse":"Now tap the BOTTOM of the pulse";return;}
+    if(!on){out.textContent=cal&&cal.pxmm?("Grid: "+cal.pxmm.toFixed(1)+" px/mm"+(cal.src==="manual"?" (1 mV pulse)":"")):(cal&&cal.src==="none"?"Grid not found: tap Calibrate":"");return;}
+    if(!(cal&&cal.pxmm)){out.textContent="No scale yet: tap Calibrate and mark the 1 mV pulse";return;}
+    const mm=(LV.meas.base-LV.meas.jp)/cal.pxmm;const t=LV.sel?LV.tiles.find(x=>x.k===LV.sel):null;
+    out.textContent="ST at J: "+(mm>=0?"+":"−")+Math.abs(mm).toFixed(1)+" mm"+(t&&t.val?" · app "+LV.sel+" "+t.val:"")+" · "+cal.pxmm.toFixed(1)+" px/mm"+(cal.src==="manual"?" (pulse)":" (grid)");}
+  function lvHitLine(clientY){if(!LV.meas.on)return null;const r=$("lvStage").getBoundingClientRect();const py=clientY-r.top;const sy=y=>LV.ty+y*LV.fit*LV.s;
+    const db=Math.abs(sy(LV.meas.base)-py),dj=Math.abs(sy(LV.meas.jp)-py);if(Math.min(db,dj)>20)return null;return dj<=db?"jp":"base";}
+  function lvYNat(clientY){const r=$("lvStage").getBoundingClientRect();return (clientY-r.top-LV.ty)/(LV.s*LV.fit);}
+  $("lvMeasure").onclick=()=>lvMeasOn(!LV.meas.on);
+  $("lvCalib").onclick=()=>{LV.meas.calMode=1;LV.meas.calY=null;$("lvCalib").setAttribute("aria-pressed","true");lvMeasDraw();toast("Zoom in on the 1 mV calibration pulse, then tap its top and its bottom.");};
+  function lvCalTap(clientY){const y=lvYNat(clientY);if(LV.meas.calMode===1){LV.meas.calY=y;LV.meas.calMode=2;lvMeasDraw();return;}
+    const px=Math.abs(y-LV.meas.calY),mm=lvCalMm();LV.meas.calMode=0;$("lvCalib").setAttribute("aria-pressed","false");
+    if(px<4){toast("Taps too close together. Try again.");lvMeasDraw();return;}
+    const f=files[LV.fi];if(f)CAL.set(f,{pxmm:px/mm,how:"manual",src:"manual"});toast("Calibrated: "+(px/mm).toFixed(1)+" px/mm from a "+mm+" mm pulse");if(!LV.meas.on)lvMeasOn(true);else lvMeasDraw();}
+  // ---- lead strips: the real photo cut into the 12 leads, laid out as one page ----
+  const ORDER34=[["I","aVR","V1","V4"],["II","aVL","V2","V5"],["III","aVF","V3","V6"]],ORDER2=[["I","aVR"],["II","aVL"],["III","aVF"],["V1","V4"],["V2","V5"],["V3","V6"]];
+  let stripsImgs={};
+  function lvLoadImg(fi){return new Promise(res=>{const f=files[fi];if(!f){res(null);return;}if(stripsImgs[fi]&&stripsImgs[fi].file===f){res(stripsImgs[fi]);return;}
+    const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{URL.revokeObjectURL(u);const pa=paperArea(im);stripsImgs[fi]={file:f,img:im,pa};res(stripsImgs[fi]);};im.onerror=()=>{URL.revokeObjectURL(u);res(null);};im.src=u;});}
+  async function lvStripsDraw(){const lay=LV.lay,cv=$("lvStripsCv"),note=$("lvStripsNote"),wrap=$("lvStrips");
+    if(!lay||!lay.pages){cv.hidden=true;note.hidden=false;note.textContent=lay?"Lead strips need a page layout (1, 2 or 4 pages). For a strip printout, photograph one page per photo with the 4-page layout, or use Measure on the photo.":"Choose your printout layout on the Analyze page to cut the photo into leads.";return;}
+    const pages=Math.min(lay.pg.length,files.length);const cells=[];
+    for(let p=0;p<pages;p++){const it=await lvLoadImg(p);if(!it)continue;lvCells(lay,p,it.pa).forEach(c=>cells.push(Object.assign({p,img:it.img},c)));}
+    if(!cells.length){cv.hidden=true;note.hidden=false;note.textContent="No lead boxes could be placed on this photo.";return;}
+    note.hidden=true;cv.hidden=false;const dpr=Math.min(2,window.devicePixelRatio||1),Wc=wrap.clientWidth-16,gap=6,cols=Wc>=700?4:2,GRID=cols===4?ORDER34:ORDER2,colW=(Wc-gap*(cols-1))/cols;
+    // uniform scale: every strip drawn at the same px/mm so heights can be compared by eye
+    let sc=Infinity;cells.forEach(c=>{const cw=(c.x1-c.x0)*c.img.naturalWidth;sc=Math.min(sc,colW/cw);});
+    let rowH=0;cells.forEach(c=>{rowH=Math.max(rowH,(c.y1-c.y0)*c.img.naturalHeight*sc);});rowH=Math.min(rowH,colW*0.9);
+    const Hc=rowH*GRID.length+gap*(GRID.length-1)+30;cv.width=Math.round(Wc*dpr);cv.height=Math.round(Hc*dpr);cv.style.width=Wc+"px";cv.style.height=Hc+"px";
+    const x=cv.getContext("2d");x.scale(dpr,dpr);x.fillStyle="#0B1624";x.fillRect(0,0,Wc,Hc);LV.stripRects=[];
+    GRID.forEach((row,ri)=>row.forEach((k,ci)=>{const c=cells.find(z=>z.k===k);const X=ci*(colW+gap),Y=ri*(rowH+gap);const t=LV.tiles.find(z=>z.k===k);
+      x.fillStyle="#13213A";x.fillRect(X,Y,colW,rowH);
+      if(c){const iw=c.img.naturalWidth,ih=c.img.naturalHeight,sx=c.x0*iw,sw=(c.x1-c.x0)*iw,sh0=(c.y1-c.y0)*ih,dh=Math.min(rowH,sh0*sc),sh=dh/sc,sy=c.y0*ih+(sh0-sh)/2;
+        x.drawImage(c.img,sx,sy,sw,sh,X,Y+(rowH-dh)/2,sw*sc,dh);}
+      const cl=t?t.cls.find(z=>["ste","edge","std","sub","lkx","unclear"].includes(z)):null;const col=cl==="ste"?"#C8243E":cl==="edge"||cl==="lkx"?"#B86A00":cl==="std"?"#8A5A00":cl==="sub"?"#5B2A99":"rgba(0,0,0,.6)";
+      x.fillStyle=col;x.fillRect(X,Y,Math.min(colW,96),20);x.fillStyle="#fff";x.font="700 12px Inter,system-ui,sans-serif";x.fillText(k+(t&&t.val?" "+t.val:""),X+5,Y+14);
+      if(!c){x.fillStyle="rgba(255,255,255,.6)";x.font="11px Inter,system-ui,sans-serif";x.fillText("not in photos",X+6,Y+rowH/2);}
+      LV.stripRects.push({k,X,Y,W:colW,H:rowH});}));
+    x.fillStyle="rgba(255,255,255,.7)";x.font="11px Inter,system-ui,sans-serif";x.fillText("Real photo pixels, cut by the layout you chose, same scale in every box. Tap a lead to measure it.",4,Hc-8);}
+  function lvView(mode){LV.view=mode;const strips=mode==="strips";$("lvStrips").hidden=!strips;$("lvStage").hidden=strips;$("lvViewPhoto").setAttribute("aria-pressed",String(!strips));$("lvViewStrips").setAttribute("aria-pressed",String(strips));if(strips)lvStripsDraw();}
+  $("lvViewPhoto").onclick=()=>lvView("photo");$("lvViewStrips").onclick=()=>lvView("strips");
+  $("lvStripsCv").addEventListener("click",e=>{const r=$("lvStripsCv").getBoundingClientRect();const px=e.clientX-r.left,py=e.clientY-r.top;const hit=(LV.stripRects||[]).find(c=>px>=c.X&&px<=c.X+c.W&&py>=c.Y&&py<=c.Y+c.H);if(!hit)return;
+    lvView("photo");const fi=lvPageOf(hit.k);const go=()=>{lvChips();lvGo(hit.k);LV.meas.base=null;LV.meas.jp=null;lvMeasOn(true);};if(fi!==LV.fi){LV.sel=hit.k;lvLoad(fi).then(go);}else go();});
+  window.__lvOpenStrips=()=>{lvOpen(null).then(()=>lvView("strips"));};
+
+  // ---------- 5.9: at the cut-off on a doubtful tracing = consult, not YES ----------
+  // A YES that rests only on photo reads sitting exactly on the threshold (no printed STJ numbers), on a
+  // sub-optimal tracing or next to a mimic (LVH, early repolarisation, pericarditis), or where the two reads
+  // differ by a millimetre nearby, is shown as "possible STEMI, consult UMOC" instead of an activation.
+  // A clear STEMI (values above the cut-off, or printed STJ numbers) is not touched.
+  const mmTxt=v=>v===null||v===undefined?"n/a":(v>0?"+":v<0?"−":"")+Math.abs(v)+" mm";
+  function applyCutoffRule(d){const st=d&&d.stemi;if(!st||st.decision!=="met"||typeof st.J!=="function"||typeof st.thr!=="function")return false;
+    const L=d.leads||{},met=st.metLeads||[];if(!met.length)return false;const J=st.J,thr=st.thr;
+    const atCut=met.every(k=>{const o=L[k]||{};const j=J(k);return !o.stj_exact&&j!==null&&j<thr(k)+0.5;});if(!atCut)return false;
+    const why=[],q=d.quality||{},summ=S(q.summary),lim=Array.isArray(q.limitations)?q.limitations:[];
+    if(q.adequate===false||st.incomplete||Q_BAD.test(summ)||lim.some(x=>Q_BAD.test(S(x))))why.push("the tracing quality is sub-optimal"+(summ?" ("+summ+")":""));
+    const c=d.conduction||{},f=d.flags||{};if(c.lvh)why.push("LVH voltage is present (tall R waves often carry a benign ST elevation)");if(f.early_repol)why.push("an early repolarisation pattern was also seen");if(f.pericarditis)why.push("a pericarditis pattern was also seen");
+    const look=d._look&&d._look.done?d._look:null;
+    if(look&&look.disagree&&look.disagree.length){const terr=new Set(met.map(k=>TERR[k]).filter(Boolean));
+      const near=look.disagree.filter(k=>{const x=look.leads[k];return x&&typeof x.a==="number"&&typeof x.b==="number"&&Math.abs(x.a-x.b)>=1&&(met.includes(k)||terr.has(TERR[k])||CONTIG.some(([p,r])=>(p===k&&met.includes(r))||(r===k&&met.includes(p))));});
+      if(near.length)why.push("the two reads differ by 1 mm or more nearby ("+near.map(k=>k+" "+mmTxt(look.leads[k].a)+" / "+mmTxt(look.leads[k].b)).join(", ")+")");}
+    if(!why.length)return false;
+    st.cutoff={leads:met.slice(),why:why.slice(),criterion:S(st.criterion)};
+    st.decision="consult";st.criterion="At the cut-off on a doubtful tracing: "+S(st.criterion);
+    st.reasoning="Possible STEMI, not activated by the app: "+met.map(k=>k+" "+mmTxt(J(k))+" (needs ≥"+thr(k)+")").join(", ")+" measured from the photo sit exactly at the cut-off, and "+why.join("; ")+". Call UMOC for a conference call, read these leads on the paper yourself, and repeat the 12-lead in 10–15 minutes.";
+    st.edge=[...new Set([...(st.edge||[]),...met])];return true;}
 
   // ---------- 5.8: OmniHeart v3.0 triage directive ----------
   // A summary label on top of the protocol result. It is worked out here in code FROM the protocol's own decision
@@ -2628,7 +2756,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 
   refreshHook=refresh;gate();
   reEvalHook=()=>{if(!lastReport||busy||!patientOK())return;
-    applyDevice(lastReport);lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});lastReport._lowv=lowVoltageNote(lastReport);lastReport._conf=computeConfidence(lastReport);lastReport._rhythm=rhythmAssess(lastReport,{age:parseInt($("age").value,10)});if(lastReport._fast)lastReport.evidence=buildEvidence(lastReport);
+    applyDevice(lastReport);lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});applyCutoffRule(lastReport);lastReport._lowv=lowVoltageNote(lastReport);lastReport._conf=computeConfidence(lastReport);lastReport._rhythm=rhythmAssess(lastReport,{age:parseInt($("age").value,10)});if(lastReport._fast)lastReport.evidence=buildEvidence(lastReport);
     const y=window.scrollY;render(lastReport);window.scrollTo({top:y});
     setStatus("Decision updated using the same measurements. No new read needed.");};
   $("samePtChk").onchange=()=>{refresh();if($("samePtChk").checked&&patientOK())setStatus("Ready. Tap Analyze ECG.");};
@@ -3224,7 +3352,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       data._viaStj.forEach(k=>{L[k].note=S(L[k].note).replace(/^not in photo;\s*/,"lead check missed it; ");});}
     if(data._invented.length&&data.primary&&S(data.primary.rhythm))data.primary.rhythm=S(data.primary.rhythm)+" (⚠ "+data._invented.join(", ")+" not in photo: ignored)";
     applyMonitorAxis(data);settleDisagreements(data);applyDevice(data);data._lowv=null;
-    data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._lowv=lowVoltageNote(data);data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
+    data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});applyCutoffRule(data);data._lowv=lowVoltageNote(data);data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
     if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);return data;
   }
   function logRead(data){if(!isNetlify)return;const st=data.stemi||{};api("POST",{verdict:"log",entry:{rid:data._rid||"",decision:st.decision,criterion:(data._mode==="thorough"?"[thorough] ":"")+S(st.criterion),conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:data._secs||0,missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
@@ -3235,7 +3363,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const ls=st.metLeads&&st.metLeads.length?st.metLeads:LEADS;return !ls.every(k=>isFinite(parseFloat(String(stj[k]??"").replace(",","."))));}
   // Automatic thorough read: (1) NO STEMI but an OMI pattern seen; (2) YES STEMI based only on the photo.
   function needsThorough(d){const st=d.stemi||{};const sgbOpen=!!st.sgbCandidate&&!(st.omi||[]).some(x=>x.confirmed&&/Sgarbossa/.test(x.n));
-    return (st.decision==="not_met"&&!!(st.omi&&st.omi.length))||yesFromPhoto(d)||sgbOpen||!!st.smallOpen;}
+    return (st.decision==="not_met"&&!!(st.omi&&st.omi.length))||yesFromPhoto(d)||sgbOpen||!!st.smallOpen||!!st.cutoff;}
   // ST elevation claimed only in leads with small complexes is easy to misread from a photo.
   function lowVoltageNote(d){const st=d.stemi||{};if(st.decision!=="met"||!st.metLeads||!st.metLeads.length)return null;const L=d.leads||{};
     const small=st.metLeads.filter(k=>{const q=Number(L[k]&&L[k].qrs_mm)||0;return q>0&&q<=5;});
@@ -3320,7 +3448,7 @@ ${dyn}`;}
       const raw=await sample.json(lookPrompt(leads,d,zz.zoom),{images:zz.imgs,effort:"",signal:me.ctl.signal});
       if(lk!==me||lastReport!==d)return;
       clearInterval(me.timer);lk=null;
-      applyLook(d,leads,raw);lookDecide(d);d._conf=computeConfidence(d);sessReport(d);
+      applyLook(d,leads,raw);lookDecide(d);applyCutoffRule(d);d._conf=computeConfidence(d);sessReport(d);
       const y=window.scrollY;render(d);window.scrollTo({top:y});
       const look=d._look;
       setStatus(look.disagree.length?"Second look finished: it disagrees on "+look.disagree.join(", ")+". Check "+(look.disagree.length>1?"those leads":"that lead")+" on the paper.":"Second look finished: "+(look.agree.length?look.agree.join(", ")+" confirmed on complete beats.":"no lead could be re-measured."));
@@ -3344,12 +3472,13 @@ ${dyn}`;}
       const ex=expandCompact(raw);ex._votesOther=(fast.stemi&&fast.stemi.cands)||[];ex._inv=await invFor(ex);ex._stjv=(fast._stjv&&fast._stjv.found)?fast._stjv:await stjFor(ex);if(bg!==me||lastReport!==fast)return;
       const data=finishRead(ex,"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
       data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};if(fast._rid){data._rid=fast._rid;data._at=fast._at;}
-      if(data._from.decision==="met"&&data.stemi.decision!=="met"){const fl=(fast.stemi.metLeads||[]).join(", ");
+      if(data._from.decision==="met"&&data.stemi.decision!=="met"&&!(data.stemi.decision==="consult"&&(data.stemi.cutoff||/LVH|cut-off|mimic|repolari/i.test(S(data.stemi.criterion)+" "+S(data.stemi.reasoning))))){const fl=(fast.stemi.metLeads||[]).join(", ");
         data.stemi.decision="consult";data.stemi.criterion="Reads disagree on ST elevation";
         data.stemi.reasoning="The fast read found ST elevation meeting criteria"+(fl?" in "+fl:"")+", but a second, deeper read of the same photo did not. Check these leads on the paper yourself and call UMOC to discuss.";
         data.stemi.warnings=["Two reads of this photo disagree about ST elevation"+(fl?" in "+fl:"")+". Look at the paper: if you see ST elevation, treat it as STEMI and call UMOC."].concat(data.stemi.warnings||[]);}
       else if(data._from.decision==="met"&&data.stemi.decision==="met")data._confirmedYes=true;
       lookCancel();try{if(lookFromReads(data,fast,data,"thorough"))data._conf=computeConfidence(data);}catch(e){}
+      if(applyCutoffRule(data))data._conf=computeConfidence(data);
       clearInterval(me.timer);bg=null;
       const y=window.scrollY;lastReport=data;render(data);window.scrollTo({top:y});
       setStatus("Thorough read finished ("+timeTxt(data)+")."+tx+" "+(data._from.decision===data.stemi.decision?"Decision unchanged.":"Decision CHANGED: see the top of the report."));
@@ -3470,7 +3599,8 @@ ${dyn}`;}
       data._invented=[...new Set([...(a._invented||[]),...(b._invented||[])])];}else data=expandCompact(raws[0]);
     data._inv=await invFor(data);data._stjv=await stjFor(data);
     const out=finishRead(data,mode,t0);
-    if(raws.length>1){try{const a=expandCompact(raws[0]),b=expandCompact(raws[1]);if(lookFromReads(out,a,b,"double"))out._conf=computeConfidence(out);}catch(e){}}
+    if(raws.length>1){try{const a=expandCompact(raws[0]),b=expandCompact(raws[1]);if(lookFromReads(out,a,b,"double"))out._conf=computeConfidence(out);}catch(e){}
+    if(applyCutoffRule(out))out._conf=computeConfidence(out);}
     return out;}
 
   // ---------- Keep the patient when the phone closes the app (3.8) ----------
@@ -3694,12 +3824,13 @@ ${dyn}`;}
     items.forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
     {const s=el("span");s.append(el("em","tkey","T"),"Blue T label = abnormal T wave");lg.appendChild(s);}
     wrap.appendChild(lg);
-    {const b=el("button","linkbtn","Open the photo with lead boxes →");b.type="button";b.onclick=()=>window.__lvOpen&&window.__lvOpen(null);b.style.marginTop="6px";wrap.appendChild(b);}
+    {const row=el("div");row.style.cssText="display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:6px";const b=el("button","linkbtn","Open the photo with lead boxes →");b.type="button";b.onclick=()=>window.__lvOpen&&window.__lvOpen(null);const b2=el("button","linkbtn","Lead strips & measure →");b2.type="button";b2.onclick=()=>window.__lvOpenStrips&&window.__lvOpenStrips();row.append(b,b2);wrap.appendChild(row);}
     if(lb)wrap.appendChild(el("p","lbl lnote",(/paced/i.test(bbb)?"Paced rhythm":"LBBB")+": the standard mm thresholds don't apply. ST and T going the opposite way to the QRS is expected; the app checks modified Sgarbossa instead."));
     if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal), (RBBB) or (LBBB) is expected in that lead and is not counted as abnormal."));
     if(order.some(k=>(L[k]||{}).stj_check))wrap.appendChild(el("p","lbl lnote","⚠ check paper: the printed STJ number may have been misread from the photo. Read it on the paper."));
     if(order.some(k=>(L[k]||{}).stj_unclear))wrap.appendChild(el("p","lbl lnote","STJ unclear: the three readers of the printed STJ table (the main read and two close-up readers) all gave different numbers for "+order.filter(k=>(L[k]||{}).stj_unclear).join(", ")+", so the photo value is used there. Read the number on the paper."));
-    if((r.edge||[]).length)wrap.appendChild(el("p","lbl lnote","At the cut-off: "+r.edge.map(k=>k+" reads exactly "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")").join(", ")+" with no neighbouring lead elevated. A photo can't measure to half a box, so this is not called ST elevation. Check "+(r.edge.length>1?"these leads":"this lead")+" on the paper if the patient has symptoms."));
+    if(r.cutoff)wrap.appendChild(el("p","lbl lnote","At the cut-off on a doubtful tracing: "+r.cutoff.leads.map(k=>k+" reads exactly "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")").join(", ")+". These are photo measurements with no printed STJ number behind them, and "+r.cutoff.why.join("; ")+". Not activated by the app: consult UMOC and check the paper."));
+    {const lone=(r.edge||[]).filter(k=>!(r.cutoff&&r.cutoff.leads.includes(k)));if(lone.length)wrap.appendChild(el("p","lbl lnote","At the cut-off: "+lone.map(k=>k+" reads exactly "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")").join(", ")+" with no neighbouring lead elevated. A photo can't measure to half a box, so this is not called ST elevation. Check "+(lone.length>1?"these leads":"this lead")+" on the paper if the patient has symptoms."));}
     {const lkp=lk&&lk.report===d?lk.leads:[];const mm=v=>(v>0?"+":v<0?"−":"")+Math.abs(v)+" mm";
       if(lkp.length)wrap.appendChild(el("p","lbl lnote","Second look in progress on "+lkp.join(", ")+": these leads are measured again on complete beats only before they are coloured."));
       else if(look){const parts=[];
@@ -3755,6 +3886,14 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"6.0",d:"23 Oct 2026",t:"Lead strips and a tap-to-measure calliper",i:[
+      "New: 'Lead strips' in the photo viewer: the real photo cut into the 12 leads and laid out as one page at the same scale, each with the app's number. Nothing is redrawn or invented; it is your photo, rearranged. Needs a page layout (1, 2 or 4 pages).",
+      "New: 'Measure': two lines you drag onto the baseline and the J-point of any lead; the app reads the paper's grid from the photo (px per mm) and shows the ST level in millimetres, next to the app's own value. If the grid can't be read, 'Calibrate' takes two taps on the 1 mV pulse instead.",
+      "Tap a lead box in the report, or a strip, to jump straight to it with the calliper ready."]},
+    {v:"5.9",d:"23 Oct 2026",t:"Repeatable reads; the cut-off on a doubtful tracing",i:[
+      "Fix: every read now runs the model with temperature 0, so the same photos read the same way twice (before, the default sampling could give different numbers on repeat runs). Server files read.js and read-background.mjs.",
+      "New rule: a YES that rests only on photo reads sitting exactly on the threshold (no printed STJ numbers), on a sub-optimal tracing, next to LVH / early repolarisation / pericarditis, or where the two reads differ by a millimetre nearby, is shown as 'Not fully met — consult UMOC: at the cut-off on a doubtful tracing'. The leads are marked amber 'at cut-off'. A clear STEMI, or a YES backed by the monitor's printed STJ numbers, is unchanged.",
+      "The 'Updated by thorough read' note now says when the deeper read put the result at the cut-off or next to a mimic, instead of 'did not see ST elevation'."]},
     {v:"5.8",d:"23 Oct 2026",t:"OmniHeart v3.0 triage",i:[
       "New OmniHeart triage banner above the STEMI result: 🔴 CODE OMI, 🟡 HIGH-RISK or 🟢 no criterion found. It is worked out from the STEMI PPCI pathway (UMOC & ADCDA) and the 12 OMI patterns, never from the AI alone, and is never lower than the protocol.",
       "The banner shows the tracing quality (OPTIMAL, SUB-OPTIMAL or RE-ACQUIRE). An unreadable tracing, missing leads or a possible lead reversal is never shown as green. The triage label is included in the handover line.",
@@ -4101,7 +4240,7 @@ ${dyn}`;}
     report.insertBefore(h,report.firstChild);
     if(d._from){const ch=d._from.decision!==(d.stemi&&d.stemi.decision);const n=el("div","upd"+(ch?" changed":""));
       n.appendChild(el("b",null,ch?"Updated by thorough read: decision CHANGED":"Confirmed by thorough read"));
-      n.appendChild(el("span",null,ch?(d._from.decision==="met"&&d.stemi.decision==="consult"?"Fast read said YES; the deeper read did not see ST elevation. Now: consult UMOC and check the paper yourself.":"Fast read said "+(DEC_TXT[d._from.decision]||"?")+"; thorough read says "+(DEC_TXT[d.stemi.decision]||"?")+". Follow the thorough result."):"Same decision as the fast read ("+(DEC_TXT[d.stemi.decision]||"?")+")."));
+      n.appendChild(el("span",null,ch?(d._from.decision==="met"&&d.stemi.decision==="consult"?(d.stemi.cutoff||/LVH|cut-off|mimic|repolari/i.test(S(d.stemi.criterion))?"Fast read said YES; the deeper read puts it at the cut-off or next to a mimic ("+S(d.stemi.criterion)+"). Now: consult UMOC and check the paper yourself.":"Fast read said YES; the deeper read did not see ST elevation. Now: consult UMOC and check the paper yourself."):"Fast read said "+(DEC_TXT[d._from.decision]||"?")+"; thorough read says "+(DEC_TXT[d.stemi.decision]||"?")+". Follow the thorough result."):"Same decision as the fast read ("+(DEC_TXT[d.stemi.decision]||"?")+")."));
       report.insertBefore(n,report.firstChild);}
 
     const a=d.alert||{};const lv=["critical","caution"].includes(a.level)?a.level:"none";

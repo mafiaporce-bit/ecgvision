@@ -80,7 +80,7 @@ async function pickUpright(key, images, order, models) {
       const r = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-        body: JSON.stringify({ model, max_tokens: 400, messages: [{ role: "user", content }] }),
+        body: JSON.stringify({ model, max_tokens: 400, temperature: 0, messages: [{ role: "user", content }] }),
         signal: ctl.signal,
       });
       if (r.status === 400 || r.status === 404) continue; // model not available on this key: try the main model
@@ -121,7 +121,7 @@ async function listLeads(key, images, model, hint) {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model, max_tokens: 600, messages: [{ role: "user", content }] }),
+      body: JSON.stringify({ model, max_tokens: 600, temperature: 0, messages: [{ role: "user", content }] }),
       signal: ctl.signal,
     });
     if (!r.ok) return { err: r.status };
@@ -164,7 +164,7 @@ async function askJson(key, images, text, model, maxTok) {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model, max_tokens: maxTok || 400, messages: [{ role: "user", content }] }),
+      body: JSON.stringify({ model, max_tokens: maxTok || 400, temperature: 0, messages: [{ role: "user", content }] }),
       signal: ctl.signal,
     });
     if (!r.ok) return { err: r.status };
@@ -338,6 +338,9 @@ export default async (req) => {
   const payload = {
     model: env("CLAUDE_MODEL") || "claude-sonnet-5",
     max_tokens: 24000,
+    // 5.9: deterministic sampling, so the same photos read the same way twice. If the model refuses the
+    // setting next to "effort", read-background retries once without it.
+    temperature: 0,
     // The app asks for "low" on a fast read; the thorough read uses the Netlify setting (default medium).
     // "fast" = the first read. Thinking level is set in Netlify with CLAUDE_FAST_EFFORT (low / medium / high);
     // default low (about 20-25 s of reading; medium took 30+ s on hard ECGs). Risky results (YES from the photo,

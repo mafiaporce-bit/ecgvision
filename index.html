@@ -388,6 +388,14 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .rep .pat .fig{max-width:160px}
 
 .omibox{border-radius:20px;padding:16px;background:#FFE17A;color:#3A2A00;border:2px solid #E0A800}
+.omni{border-radius:20px;padding:14px 16px;border:2px solid;margin-bottom:10px}
+.omni.red{background:#FDE7EA;color:#5C0E19;border-color:#C3283A}
+.omni.amber{background:#FFF4D1;color:#3A2A00;border-color:#E0A800}
+.omni.green{background:#E3F5EA;color:#0F3D22;border-color:#2E8B57}
+.omni .q{font-size:.8rem;margin:0;opacity:.8;font-weight:700;letter-spacing:.02em}
+.omni .a{font-size:1.25rem;font-weight:900;margin:2px 0 4px;line-height:1.2}
+.omni p{margin:4px 0 0}
+.omni .sig{font-size:.82rem;opacity:.85}
 .omibox .q{font-size:.85rem;margin:0;opacity:.85}
 .omibox .a{font-size:1.5rem;font-weight:900;margin:2px 0 6px;line-height:1.15}
 .omibox p{margin:4px 0}
@@ -2193,7 +2201,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const age=$("age").value.trim(),sex=$("sex").value,notes=$("notes").value.trim().slice(0,1500),thr=threshold();
     const pacer=window.__cx?window.__cx().pacer:"";
     const dyn=[(pacer==="Pacemaker"||pacer==="ICD")?"DEVICE: the crew reports the patient has a "+pacer+". Look carefully for pacing spikes and a paced rhythm.":"",zoom?"IMAGES: "+zoom+". Use the zoomed images to read small waveforms (T waves, J-points, pacing spikes) and image 1 to confirm which lead is which. They are NOT other patients or other tracings.":"IMAGES: each image is a separate photo of this one patient's tracing(s)."].filter(Boolean).join("\n");
-    return `You are the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) (up to 5) are photos of printed ECG paper from a corpuls, LIFEPAK or similar monitor, and MUST all belong to ONE patient: either several pages of the same 12-lead, or serial 12-leads of the same patient.
+    return `You are OmniHeart v${OMNI.v}, the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) (up to 5) are photos of printed ECG paper from a corpuls, LIFEPAK or similar monitor, and MUST all belong to ONE patient: either several pages of the same 12-lead, or serial 12-leads of the same patient.
 
 SAME-PATIENT CHECK (do this first): compare everything printed on each image: name, patient ID, incident/record ID, age, sex, date and time, device. If any identifier conflicts between images (different name, ID, age or sex, or dates that can't be the same care episode), or the tracings are clearly from different people, set same_patient to false, explain which images conflict, and do NOT measure or combine them. If identifiers are simply not printed, set same_patient to "unconfirmed" and continue.
 MULTIPLE IMAGES: if they are pages of one 12-lead, combine them so every lead is measured once. If they are serial 12-leads, measure the MOST RECENT one (latest printed time, or the last image if no time) for "leads", and describe changes from earlier ones in "serial_changes".
@@ -2201,6 +2209,12 @@ MULTIPLE IMAGES: if they are pages of one 12-lead, combine them so every lead is
 YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
 
 MEASURE BLIND: you are deliberately NOT told the patient's age, sex, symptoms or STEMI thresholds, so that your measurements are not influenced by them. Do not mention thresholds or whether anything "meets" criteria; just measure. The app applies the thresholds itself.
+
+OMNIHEART RULES (these sit UNDER the service protocol and never change it):
+- PROTOCOL FIRST: this service follows the ${PROTOCOL.name}, and its own 12 OMI patterns (listed under OMI PATTERNS below). Those are the rules. No other guideline, textbook cut-off or general ECG knowledge replaces them. STEMI activation, UMOC calls and treatment come only from the protocol, which the app applies in code to your measurements. Where anything you know differs from the protocol, the protocol wins.
+- SIGNAL QUALITY BEFORE MEASURING: look for muscle tremor/shivering, movement artifact, mains (50/60 Hz) interference, baseline wander and lead reversal (LA/RA swap: negative P, QRS and T in lead I with upright aVR; precordial misplacement: R-wave progression that fits no pattern). Do not read ST deviation from a lead whose baseline is too noisy or wandering to find the TP line: treat it as unreadable and name it in the quality line. If you suspect a lead reversal, start the quality line with "LEAD REVERSAL:" and name it. If the tracing cannot be measured safely, mark quality as not adequate.
+- MIMICS DO NOT CANCEL OMI: report pericarditis, early repolarisation, Brugada, hyperkalaemia, LVH and bundle branch block in their fields as usual. If the measurements fit an OMI pattern AND a mimic, report both; the app sends it to UMOC.
+- NO MISSED OCCLUSION: measure exactly as the rules below say. Do not round toward normal, and do not round toward abnormal.
 
 HOW TO MEASURE (follow exactly, lead by lead):
 0. Identify every lead by its GRID POSITION before measuring. Most printouts are 4 columns x 3 rows: column 1 = I, II, III (top to bottom); column 2 = aVR, aVL, aVF; column 3 = V1, V2, V3; column 4 = V4, V5, V6; a long rhythm strip may run underneath. LIFEPAK and several other monitors print a vertical lead-change marker bar immediately before each label, so "| I" is lead I (NOT II), "| II" is lead II and "| III" is lead III. Never count vertical strokes to name a lead; use the grid position. Photos may show only some pages (e.g. corpuls pages 5-7) or be cut off at the edges.
@@ -2770,6 +2784,30 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const small=st.metLeads.filter(k=>{const q=Number(L[k]&&L[k].qrs_mm)||0;return q>0&&q<=5;});
     return small.length===st.metLeads.length?"Small complexes (QRS 5 mm or less) in "+small.join(", ")+": ST elevation in small leads is easy to misread from a photo. Check these leads on the paper before you act.":null;}
   const DEC_TXT={met:"YES — activate",consult:"consult UMOC",not_met:"NO"};
+  // ---------- OmniHeart v3.0 triage directive ----------
+  // A summary label on top of the protocol result. It is worked out here in code FROM the protocol's own decision
+  // (STEMI PPCI pathway + the 12 OMI patterns); the AI never sets it, and it can never be lower than the protocol.
+  const OMNI={v:"3.0"};
+  function omniTriage(d){
+    const st=d.stemi||{},dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult",q=d.quality||{};
+    const omi=st.omi||[],conf=omi.filter(x=>x.confirmed),summ=S(q.summary);
+    const sig=q.adequate===false?"RE-ACQUIRE":(st.incomplete||summ||(st.warnings||[]).length)?"SUB-OPTIMAL":"OPTIMAL";
+    const why=[],rev=/lead reversal/i.test(summ);
+    if(rev)why.push("Possible lead reversal: check electrode placement and record a new 12-lead.");
+    let lv,label,action;
+    if(dec==="met"){lv="red";label="🔴 CODE OMI — STEMI PPCI criteria met";action="Activate per protocol: call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d.";}
+    else if(conf.length){lv="red";label="🔴 CODE OMI — OMI pattern confirmed";action="Per protocol this is not an automatic activation: call UMOC 02 504 8555 to discuss STEMI PPCI activation ("+conf.map(x=>x.n).join(", ")+").";}
+    else if(dec==="consult"||omi.length){lv="amber";label="🟡 HIGH-RISK — borderline / possible OMI";action="Call UMOC 02 504 8555 to discuss. Repeat the 12-lead every 10–15 minutes, or at once if symptoms change.";}
+    else if(sig==="RE-ACQUIRE"||st.incomplete||rev){lv="amber";label="🟡 HIGH-RISK — tracing not good enough to rule out";action="Record a new, complete 12-lead and analyze again. Until then do not treat this as a NO.";}
+    else{lv="green";label="🟢 No protocol criterion or OMI pattern found";action="Manage per working diagnosis and the Clinical Guidelines. A normal reading does not rule out ACS: repeat the 12-lead if symptoms continue or change.";}
+    if(sig==="RE-ACQUIRE")why.push("Tracing quality: the AI could not measure it safely"+(summ?" ("+summ+")":"")+".");
+    return {lv,label,action,sig,why};
+  }
+  function omniBox(d){const t=omniTriage(d);const b=el("div","omni "+t.lv);b.setAttribute("role",t.lv==="red"?"alert":"note");
+    b.appendChild(el("p","q","OmniHeart v"+OMNI.v+" triage"));b.appendChild(el("div","a",t.label));b.appendChild(el("p",null,t.action));
+    b.appendChild(el("p","sig","Signal: "+t.sig));t.why.forEach(x=>b.appendChild(el("p","sig","⚠ "+x)));
+    b.appendChild(el("p","sig","Follows "+PROTOCOL.name+" and the service's 12 OMI patterns. Decision support only: the crew, UMOC and the physician decide."));
+    return b;}
   // ---------- Second look (5.0) ----------
   // Any lead read from the photo that is at, or within 0.5 mm below, its threshold gets a second, focused
   // measurement on complete beats only, before it is trusted. Leads with a printed STJ number are exact and skip it.
@@ -3540,6 +3578,7 @@ ${dyn}`;}
     const st=d.stemi||{};const dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult";
     // A YES read only from the photo is shown as "Possible STEMI — confirming" until the second read agrees.
     const pending=dec==="met"&&d._mode==="fast"&&!!bg&&bg.fast===d&&yesFromPhoto(d);
+    if(!pending)report.appendChild(omniBox(d));
     const box=el("div","stemi "+dec+(pending?" pending":""));box.setAttribute("role",dec==="met"?"alert":"note");
     box.appendChild(el("p","q","STEMI PPCI criteria met?"));
     box.appendChild(el("div","a",pending?"Possible STEMI — confirming…":dec==="met"?(d._confirmedYes?"YES — Activate STEMI pathway (confirmed by 2 reads)":"YES — Activate STEMI pathway"):dec==="consult"?"Not fully met — consult UMOC":st.incomplete?"NO in the "+(12-(st.missing||[]).length)+" leads shown — incomplete":"NO"));

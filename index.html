@@ -396,6 +396,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .omni .a{font-size:1.25rem;font-weight:900;margin:2px 0 4px;line-height:1.2}
 .omni p{margin:4px 0 0}
 .omni .sig{font-size:.82rem;opacity:.85}
+.omni .safe{margin:6px 0 0;padding-left:18px;font-size:.88rem;font-weight:600}
+.omni-copy{margin-top:8px;border:1px solid currentColor;background:transparent;color:inherit;border-radius:10px;padding:6px 10px;font:inherit;font-size:.8rem;font-weight:700}
 .omibox .q{font-size:.85rem;margin:0;opacity:.85}
 .omibox .a{font-size:1.5rem;font-weight:900;margin:2px 0 6px;line-height:1.15}
 .omibox p{margin:4px 0}
@@ -1374,7 +1376,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="5.5";
+  const APP_VERSION="5.6";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2212,7 +2214,7 @@ MEASURE BLIND: you are deliberately NOT told the patient's age, sex, symptoms or
 
 OMNIHEART RULES (these sit UNDER the service protocol and never change it):
 - PROTOCOL FIRST: this service follows the ${PROTOCOL.name}, and its own 12 OMI patterns (listed under OMI PATTERNS below). Those are the rules. No other guideline, textbook cut-off or general ECG knowledge replaces them. STEMI activation, UMOC calls and treatment come only from the protocol, which the app applies in code to your measurements. Where anything you know differs from the protocol, the protocol wins.
-- SIGNAL QUALITY BEFORE MEASURING: look for muscle tremor/shivering, movement artifact, mains (50/60 Hz) interference, baseline wander and lead reversal (LA/RA swap: negative P, QRS and T in lead I with upright aVR; precordial misplacement: R-wave progression that fits no pattern). Do not read ST deviation from a lead whose baseline is too noisy or wandering to find the TP line: treat it as unreadable and name it in the quality line. If you suspect a lead reversal, start the quality line with "LEAD REVERSAL:" and name it. If the tracing cannot be measured safely, mark quality as not adequate.
+- SIGNAL QUALITY BEFORE MEASURING: look for muscle tremor/shivering, movement artifact, ambulance vibration, mains (50/60 Hz) interference, baseline wander and lead reversal (LA/RA swap: negative P, QRS and T in lead I with upright aVR; precordial misplacement: R-wave progression that fits no pattern). Do not read ST deviation from a lead whose baseline is too noisy or wandering to find the TP line: treat it as unreadable and name it in the quality line. If you suspect a lead reversal, start the quality line with "LEAD REVERSAL:" and name it. Never swap, re-label or "correct" leads yourself: measure each lead as printed. If the tracing cannot be measured safely, mark quality as not adequate.
 - MIMICS DO NOT CANCEL OMI: report pericarditis, early repolarisation, Brugada, hyperkalaemia, LVH and bundle branch block in their fields as usual. If the measurements fit an OMI pattern AND a mimic, report both; the app sends it to UMOC.
 - NO MISSED OCCLUSION: measure exactly as the rules below say. Do not round toward normal, and do not round toward abnormal.
 
@@ -2784,29 +2786,95 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const small=st.metLeads.filter(k=>{const q=Number(L[k]&&L[k].qrs_mm)||0;return q>0&&q<=5;});
     return small.length===st.metLeads.length?"Small complexes (QRS 5 mm or less) in "+small.join(", ")+": ST elevation in small leads is easy to misread from a photo. Check these leads on the paper before you act.":null;}
   const DEC_TXT={met:"YES — activate",consult:"consult UMOC",not_met:"NO"};
-  // ---------- OmniHeart v3.0 triage directive ----------
+  // ---------- OmniHeart v5.0 triage directive ----------
   // A summary label on top of the protocol result. It is worked out here in code FROM the protocol's own decision
   // (STEMI PPCI pathway + the 12 OMI patterns); the AI never sets it, and it can never be lower than the protocol.
-  const OMNI={v:"3.0"};
+  // v5.0 adds: trending against the previous ECG of this patient session, paramedic safeguards,
+  // a likely culprit artery (pattern-based) and an audit record per reading (kept on this phone only).
+  const OMNI={v:"5.0"};
+  const OMNI_TREND_MAX=3*3600000;                          // only compare with an ECG from the last 3 hours
+  function omniSnap(d){const st=d.stemi||{},J=typeof st.J==="function"?st.J:(()=>null),L=d.leads||{};const j={},t={};
+    LEADS.forEach(k=>{const v=J(k);if(v!==null)j[k]=v;const tt=S(L[k]&&L[k].t).toLowerCase();if(tt&&v!==null)t[k]=tt;});return {j,t};}
+  // Compares this reading with the previous one of the same patient session (cleared by New patient).
+  // A change of 1 mm or more in a lead, a T wave turning inverted, or a new hyperacute T is a dynamic change.
+  function omniTrend(prev,now){if(!prev||!now)return null;const ch=[];
+    LEADS.forEach(k=>{const a=prev.j[k],b=now.j[k];if(typeof a==="number"&&typeof b==="number"&&Math.abs(b-a)>=1)ch.push(k+" ST "+(a>0?"+":"")+a+" → "+(b>0?"+":"")+b+" mm");
+      const ta=prev.t[k],tb=now.t[k];if(ta&&tb&&ta!==tb&&(tb==="hyperacute"||((tb==="inverted"||tb==="biphasic")&&ta==="upright")))ch.push(k+" T "+ta+" → "+tb);});
+    return {mins:Math.max(0,Math.round((now.at-prev.at)/60000)),changes:ch.slice(0,8),dynamic:ch.length>0,prevDec:prev.dec};}
+  function omniCulprit(d){const st=d.stemi||{},J=typeof st.J==="function"?st.J:(()=>null),c=S(st.criterion),terr=S(st.territory),omi=(st.omi||[]).map(x=>x.n).join(" ");
+    const g=k=>J(k)??0;
+    if(/\(iv\)/.test(c))return "Left main or multivessel disease";
+    if(/Right ventricular/i.test(c))return "Proximal RCA (right ventricular involvement)";
+    if(/LCx/i.test(c))return "Left circumflex (LCx)";
+    if(/Posterior/i.test(c+omi))return "LCx or RCA (posterior wall)";
+    if(/Wellens|Winter|swirl/i.test(omi))return "LAD (proximal)";
+    if(/African flag/i.test(omi))return "First diagonal (D1) / high lateral";
+    if(/Aslanger/i.test(omi))return "Inferior OMI with multivessel disease";
+    const ant=/anterior|septal/i.test(terr),inf=/inferior/i.test(terr),lat=/lateral/i.test(terr);
+    if(ant&&lat&&(g("aVL")>=1||g("I")>=1))return "Proximal LAD (anterior + high lateral)";
+    if(ant)return "LAD";
+    if(inf)return g("III")>g("II")?"RCA (ST elevation III > II)":"RCA or LCx (inferior)";
+    if(lat)return "LCx or diagonal branch (lateral)";
+    return "";}
   function omniTriage(d){
     const st=d.stemi||{},dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult",q=d.quality||{};
-    const omi=st.omi||[],conf=omi.filter(x=>x.confirmed),summ=S(q.summary);
+    const omi=st.omi||[],conf=omi.filter(x=>x.confirmed),summ=S(q.summary),tr=d._trend;
     const sig=q.adequate===false?"RE-ACQUIRE":(st.incomplete||summ||(st.warnings||[]).length)?"SUB-OPTIMAL":"OPTIMAL";
-    const why=[],rev=/lead reversal/i.test(summ);
-    if(rev)why.push("Possible lead reversal: check electrode placement and record a new 12-lead.");
+    const why=[],rev=/lead reversal/i.test(summ),dyn=!!(tr&&tr.dynamic);
+    if(rev)why.push("Possible lead reversal: check electrode placement and record a new 12-lead. Leads are never re-labelled by the app.");
     let lv,label,action;
-    if(dec==="met"){lv="red";label="🔴 CODE OMI — STEMI PPCI criteria met";action="Activate per protocol: call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d.";}
+    if(dec==="met"){lv="red";label="🔴 CODE OMI — STEMI PPCI criteria met";action="Activate per protocol: call UMOC 02 504 8555 · “STEMI Pathway Activation”. Transport as UMOC directs.";}
     else if(conf.length){lv="red";label="🔴 CODE OMI — OMI pattern confirmed";action="Per protocol this is not an automatic activation: call UMOC 02 504 8555 to discuss STEMI PPCI activation ("+conf.map(x=>x.n).join(", ")+").";}
     else if(dec==="consult"||omi.length){lv="amber";label="🟡 HIGH-RISK — borderline / possible OMI";action="Call UMOC 02 504 8555 to discuss. Repeat the 12-lead every 10–15 minutes, or at once if symptoms change.";}
+    else if(dyn){lv="amber";label="🟡 HIGH-RISK — ECG changing since the last one";action="Evolving changes can meet criteria later: call UMOC 02 504 8555 to discuss, and repeat the 12-lead every 10–15 minutes.";}
     else if(sig==="RE-ACQUIRE"||st.incomplete||rev){lv="amber";label="🟡 HIGH-RISK — tracing not good enough to rule out";action="Record a new, complete 12-lead and analyze again. Until then do not treat this as a NO.";}
     else{lv="green";label="🟢 No protocol criterion or OMI pattern found";action="Manage per working diagnosis and the Clinical Guidelines. A normal reading does not rule out ACS: repeat the 12-lead if symptoms continue or change.";}
     if(sig==="RE-ACQUIRE")why.push("Tracing quality: the AI could not measure it safely"+(summ?" ("+summ+")":"")+".");
-    return {lv,label,action,sig,why};
+    const safe=[];
+    if(lv==="red")safe.push("Defib pads on and monitor continuously: acute occlusion carries a risk of VF/VT.");
+    if(lv!=="green"&&/inferior|Right ventricular/i.test(S(st.territory)+S(st.criterion)))safe.push("Record V3R–V4R to check for right ventricular involvement before giving nitrates.");
+    if(lv!=="green")safe.push("Repeat the 12-lead at once if pain, rhythm or blood pressure changes.");
+    const culprit=lv==="green"?"":omniCulprit(d);
+    return {lv,label,action,sig,why,safe,culprit,trend:tr||null};
   }
+  // ---------- Audit record (one per reading, on this phone only, no photos, no names) ----------
+  // Each record carries the SHA-256 of the record before it, so a changed or deleted record shows up when the
+  // chain is checked. It is tamper-evident on this phone, not a legal record; the service's ePCR stays the record.
+  const AUDIT="omni-audit",AUDIT_MAX=200;
+  const auditGet=()=>{try{const a=JSON.parse(localStorage.getItem(AUDIT)||"[]");return Array.isArray(a)?a:[];}catch(e){return [];}};
+  async function sha256(s){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}catch(e){return "";}}
+  let auditQ=Promise.resolve();
+  function omniAudit(d,t){const p=auditQ.then(()=>auditWrite(d,t));auditQ=p.catch(()=>{});return p;}   // one write at a time
+  async function auditWrite(d,t){
+    const st=d.stemi||{},a=auditGet(),prev=a.length?a[a.length-1].hash:"";
+    const rec={n:(a.length?a[a.length-1].n:0)+1,at:new Date().toISOString(),app:APP_VERSION,engine:"OmniHeart "+OMNI.v,protocol:PROTOCOL.name,reviewedBy:PROTOCOL.reviewedBy,
+      mode:d._mode||"",age:$("age").value||"",sex:$("sex").value||"",signal:t.sig,decision:st.decision||"",criterion:S(st.criterion),
+      omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),triage:t.label,culprit:t.culprit,trend:t.trend?t.trend.changes:[],
+      j:omniSnap(d).j,warnings:(st.warnings||[]).slice(0,6),prev};
+    rec.hash=await sha256(JSON.stringify(rec));
+    a.push(rec);while(a.length>AUDIT_MAX)a.shift();try{localStorage.setItem(AUDIT,JSON.stringify(a));}catch(e){}
+    d._audit={n:rec.n,hash:rec.hash};return rec;}
+  // Called once per finished reading, before it is shown: works out the trend against the previous reading
+  // of this patient session and writes the audit record.
+  function omniRecord(d){
+    if(!d||d._omniAt)return;d._omniAt=Date.now();
+    const o=sessGet(),snap=Object.assign(omniSnap(d),{at:d._omniAt,dec:(d.stemi||{}).decision||""});
+    const prev=o.omniPrev&&d._omniAt-o.omniPrev.at<OMNI_TREND_MAX?o.omniPrev:null;
+    d._trend=omniTrend(prev,snap);o.omniPrev=snap;sessPut(o);
+    omniAudit(d,omniTriage(d)).then(r=>{const e=document.getElementById("omniAud");if(e)e.textContent="Audit record #"+r.n+(r.hash?" · "+r.hash.slice(0,12):"");}).catch(()=>{});}
   function omniBox(d){const t=omniTriage(d);const b=el("div","omni "+t.lv);b.setAttribute("role",t.lv==="red"?"alert":"note");
     b.appendChild(el("p","q","OmniHeart v"+OMNI.v+" triage"));b.appendChild(el("div","a",t.label));b.appendChild(el("p",null,t.action));
+    if(t.culprit)b.appendChild(el("p",null,"Likely culprit (from the pattern, not confirmed): "+t.culprit));
+    if(t.safe.length){const u=el("ul","safe");t.safe.forEach(x=>u.appendChild(el("li",null,x)));b.appendChild(u);}
+    const tr=t.trend;
+    if(tr)b.appendChild(el("p","sig",tr.dynamic?"⚠ Changed since the ECG "+tr.mins+" min ago: "+tr.changes.join("; ")+".":"No change of 1 mm or more since the ECG "+tr.mins+" min ago."));
     b.appendChild(el("p","sig","Signal: "+t.sig));t.why.forEach(x=>b.appendChild(el("p","sig","⚠ "+x)));
-    b.appendChild(el("p","sig","Follows "+PROTOCOL.name+" and the service's 12 OMI patterns. Decision support only: the crew, UMOC and the physician decide."));
+    const au=el("p","sig",d._audit?"Audit record #"+d._audit.n+(d._audit.hash?" · "+d._audit.hash.slice(0,12):""):"Audit record: saving…");au.id="omniAud";b.appendChild(au);
+    const cp=el("button","omni-copy","Copy audit record");cp.type="button";
+    cp.onclick=()=>{const a=auditGet(),r=d._audit&&a.find(x=>x.n===d._audit.n&&x.hash===d._audit.hash);if(!r){toast("No audit record for this reading.");return;}
+      try{navigator.clipboard.writeText(JSON.stringify(r,null,1)).then(()=>toast("Audit record copied."),()=>toast("Copy failed."));}catch(e){toast("Copy failed.");}};
+    b.appendChild(cp);
+    b.appendChild(el("p","sig","Trend compares with the previous ECG in this patient session: tap New patient between patients. Follows "+PROTOCOL.name+" and the service's 12 OMI patterns. Decision support only: the crew, UMOC and the physician decide."));
     return b;}
   // ---------- Second look (5.0) ----------
   // Any lead read from the photo that is at, or within 0.5 mm below, its threshold gets a second, focused
@@ -3017,7 +3085,7 @@ ${dyn}`;}
       const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"fast":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onJob:id=>sessJob(id),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       const raws=dbl?await Promise.all([one(),one()]):[await one()];
       const data=await settleReads(raws,mode,t0);
-      const tx=applyTiming(data,takeTiming(tim));bgCancel();lookCancel();lastReport=data;sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);else if(isNetlify&&!data._double)lookStart(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
+      const tx=applyTiming(data,takeTiming(tim));bgCancel();lookCancel();lastReport=data;omniRecord(data);sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);else if(isNetlify&&!data._double)lookStart(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
       logRead(data);track("result",{decision:data.stemi&&data.stemi.decision,secs:data._secs||0,mode,double:!!data._double});
     }catch(e){
       clearInterval(timer);if(!(e&&e.code==="cancelled"))track("error",{msg:String((e&&e.code)||"error")});
@@ -3077,7 +3145,7 @@ ${dyn}`;}
       const tick=()=>{const secs=Math.round((Date.now()-t0)/1000);setStatus("Picking up your reading… "+secs+" s",{pulse:true});monUpdate("Picking up your reading…",secs,"the app was closed; the server kept reading");};
       monStart();tick();const timer=setInterval(tick,1000);
       try{const raws=await Promise.all(pd.ids.slice(0,pd.dbl?2:1).map(id=>pollJob(id,code,ctl.signal)));
-        const data=await settleReads(raws,pd.mode||"fast",t0);lastReport=data;sessReport(data);
+        const data=await settleReads(raws,pd.mode||"fast",t0);lastReport=data;omniRecord(data);sessReport(data);
         if(data._mode==="fast"&&needsThorough(data)&&files.length)bgThorough(data);else if(isNetlify&&!data._double)lookStart(data);render(data);
         setStatus("Reading picked up after the app was closed ("+timeTxt(data)+"). Confirm against your own reading before acting.");logRead(data);}
       catch(e){setStatus(e&&e.code==="cancelled"?"Stopped.":"The app was closed during the reading and it couldn't be picked up. Your photos are still here: tap Analyze ECG.",{err:!(e&&e.code==="cancelled")});}
@@ -3320,6 +3388,12 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"5.6",d:"22 Oct 2026",t:"OmniHeart v5.0: trend, safeguards, culprit, audit",i:[
+      "Trend: each reading is compared with the previous ECG of the same patient (last 3 hours). A change of 1 mm or more in a lead, a T wave turning inverted or a new hyperacute T raises the banner to 🟡 HIGH-RISK. Tap New patient between patients.",
+      "Paramedic safeguards on 🔴 and 🟡: pads on and monitor for VF/VT, V3R–V4R before nitrates with inferior changes, repeat the 12-lead at once if anything changes.",
+      "Likely culprit artery (LAD, RCA, LCx, left main…) from the protocol territory and OMI pattern, marked as not confirmed.",
+      "Audit record for every reading, kept on this phone only (no photos, no names), each linked to the one before by a SHA-256 hash so an edit shows up. 'Copy audit record' copies it for QA.",
+      "The AI also checks for ambulance vibration and never re-labels leads itself when it suspects a lead reversal."]},
     {v:"5.5",d:"22 Oct 2026",t:"OmniHeart v3.0 triage",i:[
       "New OmniHeart triage banner above the STEMI result: 🔴 CODE OMI, 🟡 HIGH-RISK or 🟢 no criterion found. It is worked out from the STEMI PPCI pathway (UMOC & ADCDA) and the 12 OMI patterns, never from the AI alone, and is never lower than the protocol.",
       "The banner shows the tracing quality (OPTIMAL, SUB-OPTIMAL or RE-ACQUIRE). An unreadable tracing, missing leads or a possible lead reversal is never shown as green.",

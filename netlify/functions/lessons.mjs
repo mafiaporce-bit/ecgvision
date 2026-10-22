@@ -26,7 +26,7 @@ export default async (req) => {
     if (b.verdict === "log") {
       const e = b.entry || {};
       const entry = {
-        id: newId(), date: new Date().toISOString(),
+        id: newId(), date: new Date().toISOString(), rid: clip(e.rid, 8),
         decision: ["met", "consult", "not_met"].includes(e.decision) ? e.decision : "consult",
         criterion: clip(e.criterion, 80), conf: Math.max(0, Math.min(100, Number(e.conf) || 0)),
         omi: Array.isArray(e.omi) ? e.omi.slice(0, 12).map((x) => clip(x, 40)) : [],

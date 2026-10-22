@@ -110,9 +110,11 @@ const LEADS_TEXT =
   "Do not list a lead just because the usual layout would have it, and do not list a label at the cut-off edge with no tracing. " +
   'Reply with only a JSON array of the lead names, for example ["I","II","III"].';
 
-async function listLeads(key, images, model) {
+async function listLeads(key, images, model, hint) {
   const content = images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
-  content.push({ type: "text", text: LEADS_TEXT });
+  // 5.6: the crew's chosen printout layout, as a hint only (the models still list what they actually see).
+  const h = typeof hint === "string" && hint.trim() ? "\nHint (use it only to help find the labels; still list only the leads you actually see; a lead printed as -aVR counts as aVR): " + hint.trim().slice(0, 400) : "";
+  content.push({ type: "text", text: LEADS_TEXT + h });
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 20000);
   try {
@@ -277,7 +279,8 @@ export default async (req) => {
   if (body && body.leads === true) {
     if (badImages(images)) return json({ error: "bad_request" }, 400);
     const fast = env("CLAUDE_ORIENT_MODEL") || "claude-haiku-5-5", main = env("CLAUDE_MODEL") || "claude-sonnet-5";
-    let [a, b] = await Promise.all([listLeads(key, images, fast), listLeads(key, images, main)]);
+    const hint = typeof body.hint === "string" ? body.hint : "";
+    let [a, b] = await Promise.all([listLeads(key, images, fast, hint), listLeads(key, images, main, hint)]);
     if (a && a.err) a = null; // e.g. fast model not on this key: rely on the main model
     if (b && b.err) b = null;
     const ok = [a, b].filter(Array.isArray);

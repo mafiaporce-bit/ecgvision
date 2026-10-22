@@ -520,6 +520,110 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .camtip button{flex:none;border:0;border-radius:10px;background:#0B1624;color:#fff;font-weight:700;font-size:.78rem;padding:8px 10px;cursor:pointer}
 .cambtns{position:absolute;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));grid-template-columns:1fr 1fr 1fr;align-items:center}
 .camshot{width:70px;height:70px;border-radius:50%!important;background:#fff!important;border:5px solid rgba(255,255,255,.4)!important;justify-self:center;padding:0!important}
+/* ---- 5.6 guided capture: layout chip, layout sheet, step-by-step camera ---- */
+.laychip{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 10px;padding:9px 12px;border:1.5px solid var(--line);border-radius:14px;background:var(--field);color:var(--ink);text-align:left;cursor:pointer;font:inherit}
+.laychip .li{flex:none;width:36px;height:36px;border-radius:11px;background:#fff;color:var(--accent);display:flex;align-items:center;justify-content:center;border:1px solid var(--line)}
+.laychip .li svg{width:22px;height:22px}
+.laychip .lt{flex:1;min-width:0}.laychip .lt b{display:block;font-size:.9rem;line-height:1.2}.laychip .lt small{display:block;color:var(--soft);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.laychip .lc{flex:none;color:var(--accent);font-weight:700;font-size:.8rem}
+.laychip.unset{border-color:#C9A227;background:#FFF6D6}.laychip.unset .li{color:#8A6A00}
+.laysheet{max-height:92vh;display:flex;flex-direction:column}
+.laybody{overflow:auto;flex:1;min-height:0;margin:0 -4px;padding:0 4px 6px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:14px;background:var(--field);margin:6px 0 12px}
+.seg button{border:0;border-radius:11px;padding:8px 4px;background:transparent;font:inherit;font-weight:700;font-size:.84rem;color:var(--soft);cursor:pointer;line-height:1.15}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.14)}
+.seg button small{display:block;font-weight:500;font-size:.68rem;margin-top:2px}
+.layh{margin:8px 0 6px;font-size:.74rem;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.05em}
+.layopt{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;margin:0 0 8px;border:1.5px solid var(--line);border-radius:16px;background:#fff;font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+.layopt[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px rgba(45,73,99,.18)}
+.layopt .lo{flex:1;min-width:0}.layopt .lo b{display:block;font-size:.95rem}.layopt .lo small{display:block;color:var(--soft);font-size:.76rem;line-height:1.3;margin-top:2px}
+.layopt .ld{flex:none;display:flex;gap:4px;align-items:center}
+.layopt .ld svg{height:50px;width:auto;display:block}
+.paperrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.paperrow .seg{margin:4px 0 0}
+.paperhint{margin:8px 0 0;font-size:.76rem;color:var(--soft)}
+.camhead{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:10px;background:rgba(11,22,36,.82);border-radius:14px;padding:10px 12px;backdrop-filter:blur(6px)}
+.camhead .ch-l{flex:1;min-width:0}.camhead span{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;opacity:.8}.camhead b{display:block;font-size:1rem;line-height:1.2}.camhead small{display:block;font-size:.78rem;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.camhead button{flex:none;border:1px solid rgba(255,255,255,.4);border-radius:10px;background:transparent;color:#fff;font:inherit;font-weight:700;font-size:.76rem;padding:7px 9px;cursor:pointer}
+.camframe{top:max(21%,calc(116px + env(safe-area-inset-top,0px)));bottom:27%}
+.camframe span{top:auto;bottom:-62px;font-size:.78rem}
+.camsteps{position:absolute;left:0;right:0;bottom:calc(112px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:6px}
+.camsteps i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35)}.camsteps i.on{background:#FFE17A}.camsteps i.done{background:#7ED99A}
+.camlevel{position:absolute;left:50%;transform:translateX(-50%);top:calc(84px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.55);border-radius:999px;padding:6px 12px;font-size:.76rem;font-weight:700}
+.camlevel i{width:12px;height:12px;border-radius:50%;background:#FFB84D;box-shadow:0 0 8px #FFB84D}.camlevel.ok i{background:#7ED99A;box-shadow:0 0 8px #7ED99A}
+.camupl{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));border:0;background:transparent;color:#fff;opacity:.85;text-decoration:underline;font:inherit;font-size:.78rem;cursor:pointer}
+.campv,.camask,.camrev{position:absolute;inset:0;display:flex;flex-direction:column;background:#0B1624;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(14px + env(safe-area-inset-bottom,0px))}
+.campv img{flex:1;min-height:0;width:100%;object-fit:contain;border-radius:12px;background:#000}
+.campv h3,.camrev h3{margin:0 0 4px;font-size:1.05rem}
+.campv .pv-sub,.camrev .pv-sub{margin:0 0 10px;font-size:.82rem;opacity:.85}
+.campv-q{margin:10px 0;min-height:1.2em;font-size:.84rem;font-weight:700;color:#FFE17A}
+.campv-q.ok{color:#7ED99A}
+.camask{justify-content:center;align-items:center;text-align:center}
+.camask .ca-card{width:100%;max-width:420px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:22px 18px}
+.camask .ca-card span{display:block;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;opacity:.8}.camask .ca-card b{display:block;font-size:1.3rem;margin:4px 0 2px}.camask .ca-card small{display:block;font-size:.86rem;opacity:.9;margin-bottom:16px}
+.camask .ca-card .btn{width:100%;margin-top:8px}
+.camrev-list{flex:1;min-height:0;overflow:auto;margin:0 0 10px}
+.camrev-it{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:8px;margin-bottom:8px}
+.camrev-it img{width:84px;height:64px;object-fit:cover;border-radius:8px;background:#000;flex:none}
+.camrev-it .ri{flex:1;min-width:0}.camrev-it .ri b{display:block;font-size:.9rem}.camrev-it .ri small{display:block;font-size:.76rem;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.camrev-it button{flex:none;border:1px solid rgba(255,255,255,.4);border-radius:10px;background:transparent;color:#fff;font:inherit;font-weight:700;font-size:.78rem;padding:8px 10px;cursor:pointer}
+.camrev .paperrow .lbl{color:rgba(255,255,255,.75);font-size:.78rem}
+.camrev .seg{background:rgba(255,255,255,.1)}.camrev .seg button{color:rgba(255,255,255,.7)}.camrev .seg button[aria-pressed="true"]{background:#fff;color:#0B1624}
+.camrev .paperhint{color:rgba(255,255,255,.7);margin-bottom:12px}
+.camrev .ov-btns,.campv .ov-btns{flex:none}
+.camrev .ov-btns .btn:not(.ghost),.campv .ov-btns .btn:not(.ghost),.camask .btn:not(.ghost){background:#fff!important;color:#0B1624!important;border-color:#fff!important}
+.camask .btn.ghost{color:#fff!important;border-color:rgba(255,255,255,.5)!important;background:rgba(255,255,255,.08)!important}
+/* ---- 5.7 results: lead map viewer, at-a-glance rows, handover, calculators ---- */
+.glance{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:8px 0 2px;font-size:.86rem}
+.glance span.k{color:var(--soft);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+.glance span.v{color:var(--ink)}
+.head .glance span.k{color:rgba(255,255,255,.7)!important}.head .glance span.v{color:#fff}
+.rid{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:10px 0 0;font-size:.78rem;color:var(--soft)}
+.head .rid{color:rgba(255,255,255,.75)}
+.rid b{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;color:var(--ink)}.head .rid b{color:#fff}
+.rid button{border:1px solid var(--line);border-radius:999px;background:var(--field);color:var(--accent);font:inherit;font-weight:700;font-size:.76rem;padding:5px 11px;cursor:pointer}
+.head .rid button{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff}
+.lead{cursor:pointer}.lead:active{transform:scale(.97)}
+.lv{padding:0;background:#000}
+.lv-top{display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 8px;background:#0B1624}
+.lv-top div{flex:1;min-width:0}.lv-top b{display:block;font-size:1rem}.lv-top span{display:block;font-size:.76rem;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lv-top .btn{min-height:40px;padding:0 14px}
+.lv-stage{flex:1;position:relative;overflow:hidden;touch-action:none;background:#000;user-select:none;-webkit-user-select:none}
+.lv-wrap{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.lv-wrap img{display:block;pointer-events:none;-webkit-user-drag:none}
+.lv-cell{position:absolute;border:2px solid rgba(255,225,122,.8);border-radius:4px;box-sizing:border-box;pointer-events:none}
+.lv-cell.sel{border-color:#7ED99A;box-shadow:0 0 0 3px rgba(126,217,154,.45)}
+.lv-cell.ste{border-color:#FF6B7E}.lv-cell.std{border-color:#FFB84D}
+.lv-cell span{position:absolute;left:-2px;top:-2px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:700;padding:1px 5px;border-radius:4px 0 4px 0;transform:scale(var(--inv,1));transform-origin:0 0;white-space:nowrap}
+.lv-bar{background:#0B1624;padding:8px 12px calc(10px + env(safe-area-inset-bottom,0px))}
+.lv-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}.lv-chips::-webkit-scrollbar{display:none}
+.lv-chips button{flex:none;border:1.5px solid rgba(255,255,255,.25);border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font:inherit;padding:6px 9px;text-align:center;cursor:pointer;min-width:58px}
+.lv-chips button b{display:block;font-size:.84rem}.lv-chips button small{display:block;font-size:.7rem;opacity:.85}
+.lv-chips button.ste{background:#C8243E;border-color:#C8243E}.lv-chips button.edge{background:#B86A00;border-color:#B86A00}.lv-chips button.std{background:#8A5A00;border-color:#8A5A00}.lv-chips button.sub{background:#5B2A99;border-color:#5B2A99}.lv-chips button.lkx{background:#9A7A00;border-color:#9A7A00}.lv-chips button.unclear{opacity:.5}
+.lv-chips button[aria-pressed="true"]{outline:2px solid #7ED99A;outline-offset:1px}
+.lv-tools{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:.76rem;opacity:.9}
+.lv-tools button{border:1px solid rgba(255,255,255,.35);border-radius:999px;background:transparent;color:#fff;font:inherit;font-weight:700;font-size:.74rem;padding:5px 10px;cursor:pointer}
+.lv-tools button[aria-pressed="true"]{background:#fff;color:#0B1624}
+.lv-tools span{margin-left:auto}
+.lv-note{position:absolute;left:12px;right:12px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:.74rem;padding:6px 10px;border-radius:10px;text-align:center}
+.qa .wide{grid-column:1/-1;display:flex;align-items:center;gap:10px;text-align:left;padding:8px 10px;border-radius:14px;background:var(--field)}
+.qa .wide .ic{width:40px;height:40px;margin:0;background:#fff}.qa .wide .ic svg{width:22px;height:22px}
+.qa .wide small{margin:0}
+.calc .card h3{margin-bottom:2px}
+.calc .cp{margin:0 0 10px;color:var(--soft);font-size:.84rem}
+.cq{margin:10px 0 0}.cq .lbl{margin-bottom:5px;font-weight:700;color:var(--ink);font-size:.86rem}.cq .lbl small{display:block;font-weight:400;color:var(--soft);font-size:.76rem}
+.cseg{display:flex;flex-wrap:wrap;gap:6px}
+.cseg button{border:1.5px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);font:inherit;font-size:.82rem;padding:7px 11px;cursor:pointer;line-height:1.2}
+.cseg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.cseg button small{font-size:.72rem;opacity:.8;margin-left:3px}
+.cnum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cnum label{display:block;font-size:.76rem;color:var(--soft);font-weight:700}
+.cnum .in{margin-top:3px;font-size:1.05rem;font-weight:700;color:var(--accent)}
+.cres{margin:12px 0 0;border-radius:14px;padding:11px 13px;background:var(--field);border:1.5px solid var(--line)}
+.cres b{display:block;font-size:1.05rem}.cres p{margin:4px 0 0;font-size:.84rem}
+.cres.low{background:#E7F6EC;border-color:#7ED99A}.cres.mod{background:var(--warn-bg);border-color:var(--warn)}.cres.high{background:#FBE4E7;border-color:var(--crit)}
+.csrc{margin:8px 0 0;font-size:.72rem;color:var(--soft)}
+.cpre{display:inline-block;margin-left:6px;font-size:.7rem;font-weight:700;color:#1F6E43;background:#E7F6EC;border-radius:999px;padding:2px 8px;vertical-align:middle}
 .thumb .chk-badge{position:absolute;left:4px;bottom:4px;font-size:.68rem;font-weight:700;border-radius:6px;padding:2px 6px;border:0;cursor:pointer}
 .thumb .chk-badge.need{background:#C3283A;color:#fff}
 .thumb .chk-badge.okb{background:rgba(0,0,0,.6);color:#fff}
@@ -882,6 +986,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       <button data-go="omi"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></div>OMI patterns<small>12 patterns</small></button>
       <button data-go="bbb"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16l3-8 3 6 3-6 3 6 3-6 3 8"/></svg></div>LBBB vs RBBB<small>WiLLiaM MaRRoW</small></button>
       <button data-go="rhythms"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="16" rx="3"/><path d="M5 13h3l1.5-4 2 8 1.5-4H19"/></svg></div>9 ECGs to know<small>Rhythms</small></button>
+      <button data-go="calc" class="wide"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M8.5 6.5h7M8.5 11h2M13.5 11h2M8.5 14.5h2M13.5 14.5h2M8.5 18h2M13.5 18h2"/></svg></div><span>Calculators<small>HEART · Wells · QTc · Sgarbossa · Smith · shock index</small></span></button>
     </div>
   </div>
 
@@ -890,6 +995,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   <div class="card">
     <div class="drop" id="drop">
       <p>Lay the tracing flat, fill the frame, avoid glare. Keep lead labels and the calibration pulse in view.</p>
+      <button type="button" class="laychip" id="layBtn" aria-haspopup="dialog"><span class="li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 12h18M12 4v16M6 8.5h2.5M6 15.5h2.5M15 8.5h2.5M15 15.5h2.5"/></svg></span><span class="lt"><b id="layTitle">Choose your printout layout</b><small id="laySub">Pages, lead order, paper speed and gain</small></span><span class="lc" id="layChange">Choose</span></button>
       <div class="btn-row">
         <button type="button" class="stamp" id="stamp"><span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg></span><span class="st-tx"><b>Age and sex required</b><small>Tap to enter patient details</small></span><svg class="st-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
         <button type="button" class="btn" id="camBtn">Take photo</button><input type="file" id="camInput" accept="image/*" capture="environment" hidden>
@@ -1031,6 +1137,13 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     <button type="button" class="rh-card" data-rh="paced"><div class="rh-top"><span class="rh-n">9</span><h4>Paced rhythm</h4><span class="rh-tag">Pacemaker</span></div><div class="lx-fig" data-ecg="paced"></div><p>A thin straight <b>pacemaker spike</b> before each <b>wide</b> QRS.</p><p class="rh-do">Standard STEMI mm criteria don't apply: modified Sgarbossa.</p></button>
   </div>
   <p class="lbl" style="margin:0 4px">Treat every rhythm per your Clinical Guidelines. Always check the pulse and the patient, not just the screen. More in <button type="button" class="linkbtn" data-go="learnecg">Learn ECG</button>.</p>
+</section>
+<section id="page-calc" class="ref stack float calc" hidden>
+  <div class="card">
+    <h3>Risk scores and ECG calculators</h3>
+    <p class="cp">Offline. Values marked <span class="cpre">from this reading</span> were filled in from the last analysis and the patient card; change anything that doesn't match the patient in front of you. Scores support a decision, they don't make it.</p>
+    <p class="cp" id="calcNote"></p>
+  </div>
 </section>
 <section id="page-pathway" class="ref stack float" hidden>
   <div class="protostamp" data-stamp></div>
@@ -1290,6 +1403,19 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   </div>
   <button type="button" class="btn ghost sh-full" data-close>Cancel</button>
 </div>
+<div class="sheet laysheet" id="laySheet" role="dialog" aria-modal="true" aria-labelledby="layT" hidden>
+  <div class="grab"></div>
+  <h2 id="layT">What does your ECG printout look like?</h2>
+  <p class="sh-sub">Tells the reader where every lead is. Remembered on this phone for next time.</p>
+  <div class="laybody">
+    <div class="seg" id="layPages"></div>
+    <div id="layOpts"></div>
+    <div class="layh">Paper</div>
+    <div class="paperrow"><div><div class="lbl">Paper speed</div><div class="seg" id="laySpeed"></div></div><div><div class="lbl">Gain</div><div class="seg" id="layGain"></div></div></div>
+    <p class="paperhint">Printed in a corner of the printout, usually 25 mm/s and 10 mm/mV. The app also checks the calibration pulse itself.</p>
+  </div>
+  <div class="actions"><button type="button" class="btn ghost" data-close>Cancel</button><button type="button" class="btn" id="layDone">Done</button></div>
+</div>
 <div class="sheet setsheet" id="setSheet" role="dialog" aria-modal="true" aria-labelledby="setT" hidden>
   <div class="grab"></div>
   <h2 id="setT">Settings</h2>
@@ -1337,13 +1463,43 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 </div>
 <div class="fullov cam" id="camOv" hidden>
   <video id="camVid" playsinline muted></video>
-  <div class="camtip"><p><b>Tip: uploading is better</b>Use your phone's camera app, then <u>Choose file</u>: sharper photo, more reliable reading.</p><button type="button" id="camUpload">Upload instead</button></div>
-  <div class="camframe"><span>Fit the whole printout inside the frame. Include the header (axes) and the STJ table. Hold the phone flat above the paper.</span></div>
-  <div class="ov-btns cambtns">
+  <div class="camhead" id="camHead"><div class="ch-l"><span id="camPg">Page 1 of 1</span><b id="camName">12-lead</b><small id="camLeadList">I, II, III, aVR, aVL, aVF, V1–V6</small></div><button type="button" id="camLay">Change layout</button></div>
+  <div class="camlevel" id="camLevel" hidden><i></i><span>Hold the phone flat over the paper</span></div>
+  <div class="camframe" id="camFrame"><span id="camHint">Turn the printout so its TOP edge is on the LEFT. Fill the frame; keep the calibration pulse and the STJ table in view.</span></div>
+  <div class="camsteps" id="camSteps"></div>
+  <button type="button" class="camupl" id="camUpload">Choose from gallery instead</button>
+  <div class="ov-btns cambtns" id="camBtns">
     <button type="button" class="btn ghost" id="camCancel">Cancel</button>
     <button type="button" class="btn ghost" id="camNative">Phone camera</button>
     <button type="button" class="btn camshot" id="camShot" aria-label="Capture photo"></button>
   </div>
+  <div class="camask" id="camAsk" hidden>
+    <div class="ca-card"><span id="caPg">Page 1 of 2</span><b id="caName">Limb leads</b><small id="caLeads">I, II, III, aVR, aVL, aVF</small>
+      <button type="button" class="btn" id="caOpen">Open the camera</button>
+      <button type="button" class="btn ghost" id="caGallery">Choose from gallery</button>
+      <button type="button" class="btn ghost" id="caCancel">Cancel</button>
+    </div>
+  </div>
+  <div class="campv" id="camPv" hidden>
+    <h3 id="pvTitle">Page 1 of 2 · Limb leads</h3><p class="pv-sub" id="pvSub">Check that the lead labels are readable and the tracing is sharp.</p>
+    <img id="camPvImg" alt="Captured page">
+    <p class="campv-q" id="camPvQ"></p>
+    <div class="ov-btns"><button type="button" class="btn ghost" id="camRetake">Retake</button><button type="button" class="btn" id="camNext">Next</button></div>
+    <div class="ov-btns" id="camStripBtns" hidden style="margin-top:8px"><button type="button" class="btn ghost" id="camMore">Add another section</button><button type="button" class="btn" id="camStripDone">Done</button></div>
+  </div>
+  <div class="camrev" id="camRev" hidden>
+    <h3>Check the pages</h3><p class="pv-sub" id="revSub">Every page should show its lead labels clearly.</p>
+    <div class="camrev-list" id="camRevList"></div>
+    <div class="paperrow" id="camPaper"><div><div class="lbl">Paper speed</div><div class="seg" id="revSpeed"></div></div><div><div class="lbl">Gain</div><div class="seg" id="revGain"></div></div></div>
+    <p class="paperhint">Printed in a corner of the printout, usually 25 mm/s and 10 mm/mV.</p>
+    <div class="ov-btns"><button type="button" class="btn ghost" id="camRevCancel">Start over</button><button type="button" class="btn" id="camUse">Use these photos</button></div>
+  </div>
+  <input type="file" id="camPick" accept="image/*" hidden>
+</div>
+<div class="fullov lv" id="lvOv" hidden>
+  <div class="lv-top"><div><b id="lvTitle">Lead map</b><span id="lvSub">Approximate lead positions from your layout · pinch to zoom, drag to move</span></div><button type="button" class="btn ghost" id="lvClose">Close</button></div>
+  <div class="lv-stage" id="lvStage"><div class="lv-wrap" id="lvWrap"><img id="lvImg" alt="ECG photo"><div id="lvCells"></div></div><div class="lv-note" id="lvNote" hidden></div></div>
+  <div class="lv-bar"><div class="lv-chips" id="lvChips"></div><div class="lv-tools"><button type="button" id="lvGrid" aria-pressed="true">Lead boxes</button><button type="button" id="lvFit">Fit</button><button type="button" id="lvPhoto" hidden>Photo 1</button><span id="lvVal"></span></div></div>
 </div>
 <div class="fullov usage" id="usageOv" hidden>
   <div class="us-top"><div><b>Live usage</b><span id="usSub">Which phones are using the app</span></div><button type="button" class="btn ghost" id="usClose">Close</button></div>
@@ -1366,7 +1522,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="5.4";
+  const APP_VERSION="5.7";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -1414,8 +1570,8 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   syncPick();
 
   // Navigation with back stack
-  const pages={analyze:"",learning:"Learning",criteria:"STEMI criteria",enhanced:"Enhanced criteria",omi:"OMI patterns",bbb:"LBBB vs RBBB",pathway:"STEMI PPCI pathway",learnecg:"Learn ECG",rhythms:"9 ECGs to know"};
-  const navMap={omi:"criteria",enhanced:"criteria",bbb:"criteria",rhythms:"learnecg"};
+  const pages={analyze:"",learning:"Learning",criteria:"STEMI criteria",enhanced:"Enhanced criteria",omi:"OMI patterns",bbb:"LBBB vs RBBB",pathway:"STEMI PPCI pathway",learnecg:"Learn ECG",rhythms:"9 ECGs to know",calc:"Calculators"};
+  const navMap={omi:"criteria",enhanced:"criteria",bbb:"criteria",rhythms:"learnecg",calc:"analyze"};
   let current="analyze";const hist=[];
   function show(p){
     Object.keys(pages).forEach(x=>$("page-"+x).hidden=x!==p);
@@ -1424,7 +1580,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     $("subTitle").textContent=pages[p];
     const tab=navMap[p]||p;
     document.querySelectorAll("nav.bottom button").forEach(b=>b.dataset.go===tab?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
-    if(p!=="learnecg"&&window.__hxStop)window.__hxStop();current=p;window.scrollTo({top:0});window.__glowKick&&window.__glowKick();if(p==="learning")loadLearning();if(p==="learnecg"&&window.__learnShow)window.__learnShow();if(p==="rhythms"&&window.__rhShow)window.__rhShow();
+    if(p!=="learnecg"&&window.__hxStop)window.__hxStop();current=p;window.scrollTo({top:0});window.__glowKick&&window.__glowKick();if(p==="learning")loadLearning();if(p==="calc"&&window.__calcShow)window.__calcShow();if(p==="learnecg"&&window.__learnShow)window.__learnShow();if(p==="rhythms"&&window.__rhShow)window.__rhShow();
   }
   function go(p){if(p===current)return;hist.push(current);show(p);}
   window.goPage=p=>go(p);
@@ -1454,6 +1610,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const keep=()=>{try{history.pushState({eqg:1},"");}catch(e){}};
     if(openSheet){sheetClose();keep();return;}
     if(ov&&ov.id==="camOv"){$("camCancel").click();keep();return;}
+    if(ov&&ov.id==="lvOv"){$("lvClose").click();keep();return;}
     if(ov&&ov.id==="usageOv"){usClose();keep();return;}
     if(ov){keep();return;}
     if(current!=="analyze"){back();keep();return;}
@@ -2035,25 +2192,291 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   window.__rdQueue=list=>{checkPhotos(list);};
   window.__cleared=f=>cleared.has(f);
 
-  // ---------- Guided camera ----------
-  let camStream=null;
-  function camClose(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}$("camOv").hidden=true;}
-  $("camBtn").onclick=async()=>{window.__track&&window.__track("camera");
+  // ---------- 5.6: printout layout (pages, lead order) and paper settings, remembered on this phone ----------
+  // Tells the reader where every lead is on the paper (fewer lead mix-ups) and drives the step-by-step camera.
+  const LIMB6=["I","II","III","aVR","aVL","aVF"],CHEST6=["V1","V2","V3","V4","V5","V6"],CAB6=["aVL","I","-aVR","II","aVF","III"];
+  const LAYOUTS=[
+    {id:"s34",pages:1,title:"Standard 3×4",sub:"4 columns of 3: I, II, III · aVR, aVL, aVF · V1–V3 · V4–V6, often with a rhythm strip underneath (LIFEPAK, ZOLL, corpuls default).",pg:[{n:"12-lead",cols:[["I","II","III"],["aVR","aVL","aVF"],["V1","V2","V3"],["V4","V5","V6"]],strip:true}]},
+    {id:"s62",pages:1,title:"Standard 6×2",sub:"Limb leads in the left column, chest leads in the right column.",pg:[{n:"12-lead",cols:[LIMB6,CHEST6]}]},
+    {id:"c34",pages:1,title:"Cabrera 3×4",sub:"4 columns of 3 in Cabrera order: aVL, I, −aVR · II, aVF, III · V1–V3 · V4–V6.",pg:[{n:"12-lead",cols:[["aVL","I","-aVR"],["II","aVF","III"],["V1","V2","V3"],["V4","V5","V6"]],strip:true}]},
+    {id:"s61",pages:2,title:"Standard 6×1",sub:"Page 1: limb leads in one column. Page 2: chest leads in one column.",pg:[{n:"Limb leads",cols:[LIMB6]},{n:"Chest leads",cols:[CHEST6]}]},
+    {id:"s32",pages:2,title:"Standard 3×2",sub:"Page 1: I, II, III and aVR, aVL, aVF in two columns. Page 2: V1–V3 and V4–V6.",pg:[{n:"Limb leads",cols:[["I","II","III"],["aVR","aVL","aVF"]]},{n:"Chest leads",cols:[["V1","V2","V3"],["V4","V5","V6"]]}]},
+    {id:"c61",pages:2,title:"Cabrera 6×1",sub:"Page 1: aVL, I, −aVR, II, aVF, III in one column. Page 2: V1–V6.",pg:[{n:"Limb leads",cols:[CAB6]},{n:"Chest leads",cols:[CHEST6]}]},
+    {id:"c32",pages:2,title:"Cabrera 3×2",sub:"Page 1: aVL, I, −aVR and II, aVF, III in two columns. Page 2: V1–V3 and V4–V6.",pg:[{n:"Limb leads",cols:[["aVL","I","-aVR"],["II","aVF","III"]]},{n:"Chest leads",cols:[["V1","V2","V3"],["V4","V5","V6"]]}]},
+    {id:"s31",pages:4,title:"Standard 3×1",sub:"Four pages of three: I, II, III · aVR, aVL, aVF · V1, V2, V3 · V4, V5, V6.",pg:[{n:"Limb leads 1",cols:[["I","II","III"]]},{n:"Limb leads 2",cols:[["aVR","aVL","aVF"]]},{n:"Chest leads 1",cols:[["V1","V2","V3"]]},{n:"Chest leads 2",cols:[["V4","V5","V6"]]}]},
+    {id:"c31",pages:4,title:"Cabrera 3×1",sub:"Four pages of three in Cabrera order: aVL, I, −aVR · II, aVF, III · V1–V3 · V4–V6.",pg:[{n:"Limb leads 1",cols:[["aVL","I","-aVR"]]},{n:"Limb leads 2",cols:[["II","aVF","III"]]},{n:"Chest leads 1",cols:[["V1","V2","V3"]]},{n:"Chest leads 2",cols:[["V4","V5","V6"]]}]},
+    {id:"strip",pages:0,title:"Strip printout",sub:"A long strip with 3 labelled leads per section (for example corpuls strip pages). Photograph each section you need, one at a time.",pg:[]}
+  ];
+  const PAGE_OPTS=[[1,"1 page","All 12 leads"],[2,"2 pages","Limb, then chest"],[4,"4 pages","3 leads per page"],[0,"Strip","3-lead sections"]];
+  const SPEEDS=[[25,"25 mm/s"],[50,"50 mm/s"]],GAINS=[[5,"5 mm/mV"],[10,"10 mm/mV"],[20,"20 mm/mV"]];
+  function layGet(){try{const o=JSON.parse(store.get("eqg-layout")||"null");return (o&&LAYOUTS.find(x=>x.id===o.id))||null;}catch(e){return null;}}
+  function laySet(id){store.set("eqg-layout",JSON.stringify({id}));layChip();}
+  function paperGet(){try{const o=JSON.parse(store.get("eqg-paper")||"null")||{};return {speed:[25,50].includes(o.speed)?o.speed:25,gain:[5,10,20].includes(o.gain)?o.gain:10};}catch(e){return {speed:25,gain:10};}}
+  function paperSet(p){store.set("eqg-paper",JSON.stringify({speed:p.speed,gain:p.gain}));layChip();}
+  window.__paper=paperGet;
+  const leadTxt=a=>a.join(", ").replace("V1, V2, V3, V4, V5, V6","V1–V6").replace("V1, V2, V3","V1–V3").replace("V4, V5, V6","V4–V6").replace(/-aVR/g,"−aVR");
+  const pageLeads=g=>g.cols.flat();
+  function layChip(){const l=layGet(),p=paperGet(),b=$("layBtn");if(!b)return;b.classList.toggle("unset",!l);
+    $("layTitle").textContent=l?(l.pages?l.pages+(l.pages>1?" pages":" page")+" · ":"")+l.title:"Choose your printout layout";
+    $("laySub").textContent=l?(l.pages?l.pg.map(g=>g.cols.map(c=>leadTxt(c)).join(" · ")).join(" / "):"3 labelled leads per section")+" · "+p.speed+" mm/s · "+p.gain+" mm/mV":"Pages, lead order, paper speed and gain";
+    $("layChange").textContent=l?"Change":"Choose";}
+  // Small page icons with the lead names, like the printout itself.
+  function layDiagram(l){const pages=l.pages?l.pg:[{cols:[["…","…","…"]]}];const cw=25,rh=9.5,pad=4;let x=0;const parts=[];
+    const H=pad*2+Math.max(...pages.map(g=>Math.max(...g.cols.map(c=>c.length))))*rh+(pages.some(g=>g.strip)?7:0);
+    pages.forEach(g=>{const w=pad*2+g.cols.length*cw;parts.push('<rect x="'+(x+0.5)+'" y="0.5" width="'+(w-1)+'" height="'+(H-1)+'" rx="4" fill="#fff" stroke="#B9C4D1"/>');
+      g.cols.forEach((c,ci)=>c.forEach((ld,ri)=>{const cx=x+pad+ci*cw,cy=pad+ri*rh+7;const chest=/^V/.test(ld);
+        parts.push('<text x="'+cx+'" y="'+cy+'" font-size="6.2" font-family="Inter,Arial,sans-serif" font-weight="700" fill="'+(chest?"#7B3FA0":"#2D4963")+'">'+ld.replace("-","−")+'</text><path d="M'+(cx+13)+' '+(cy-2.2)+' h2 l1-3 l1.5 5 l1-2 h3" fill="none" stroke="'+(chest?"#C9A6E0":"#9DB4CC")+'" stroke-width="1"/>');}));
+      if(g.strip)parts.push('<path d="M'+(x+pad)+' '+(H-5)+' h'+(w-pad*2)+'" stroke="#9DB4CC" stroke-width="1"/>');x+=w+4;});
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(x-4)+' '+H+'" width="'+(x-4)+'" height="'+H+'" aria-hidden="true">'+parts.join("")+'</svg>';}
+  function segRender(host,opts,cur,on){host.textContent="";opts.forEach(([v,t])=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-pressed",String(v===cur));b.textContent=t;b.onclick=()=>on(v);host.appendChild(b);});}
+  let layAfter=null,layDraft="s34",paperDraft={speed:25,gain:10};
+  function layRender(){
+    const cur=LAYOUTS.find(x=>x.id===layDraft)||LAYOUTS[0],np=cur.pages,pg=$("layPages");pg.textContent="";
+    PAGE_OPTS.forEach(([n,t,s])=>{const b=document.createElement("button");b.type="button";b.setAttribute("aria-pressed",String(n===np));b.textContent=t;const sm=document.createElement("small");sm.textContent=s;b.appendChild(sm);b.onclick=()=>{layDraft=LAYOUTS.find(x=>x.pages===n).id;layRender();};pg.appendChild(b);});
+    const ol=$("layOpts");ol.textContent="";
+    LAYOUTS.filter(x=>x.pages===np).forEach(l=>{const b=document.createElement("button");b.type="button";b.className="layopt";b.setAttribute("aria-pressed",String(l.id===layDraft));
+      const lo=document.createElement("span");lo.className="lo";const bb=document.createElement("b");bb.textContent=l.title;const sm=document.createElement("small");sm.textContent=l.sub;lo.append(bb,sm);
+      const ld=document.createElement("span");ld.className="ld";ld.innerHTML=layDiagram(l);b.append(lo,ld);b.onclick=()=>{layDraft=l.id;layRender();};ol.appendChild(b);});
+    segRender($("laySpeed"),SPEEDS,paperDraft.speed,v=>{paperDraft.speed=v;layRender();});
+    segRender($("layGain"),GAINS,paperDraft.gain,v=>{paperDraft.gain=v;layRender();});}
+  function laySheetOpen(after){layAfter=after||null;const l=layGet();layDraft=l?l.id:"s34";paperDraft=paperGet();layRender();sheetOpen("laySheet");}
+  $("layBtn").onclick=()=>laySheetOpen(null);
+  $("layDone").onclick=()=>{laySet(layDraft);paperSet(paperDraft);sheetClose();window.__track&&window.__track("layout",{id:layDraft,speed:paperDraft.speed,gain:paperDraft.gain});const f=layAfter;layAfter=null;if(f)f();};
+  layChip();
+  // What the reader is told about the layout (goes at the end of the reading prompt).
+  function layPrompt(){const l=layGet();if(!l)return "";
+    if(!l.pages)return "LAYOUT (chosen by the crew): a strip printout, 3 labelled leads per section. Name every lead from its own printed label; the photos may show only some sections.";
+    const cab=/^c/.test(l.id);
+    const pages=l.pg.map((g,i)=>(l.pages>1?"photo "+(i+1)+" = page "+(i+1)+" ("+g.n+"): ":"")+g.cols.map((c,ci)=>(g.cols.length>1?"column "+(ci+1)+" = ":"one column, top to bottom: ")+c.join(", ")).join("; ")+(g.strip?"; a rhythm strip may run underneath":"")).join(". ");
+    return "LAYOUT (chosen by the crew): "+(l.pages>1?l.pages+" pages, ":"one page, ")+l.title+". "+pages+". "+(l.pages>1?"The photos were taken in this page order, but confirm each page by its printed labels: a photo may show a different page, an extra photo may be a serial 12-lead, and a page may be missing. ":"Confirm the positions by the printed labels. ")+(cab?"CABRERA ORDER: the limb leads are printed as aVL, I, -aVR, II, aVF, III. The lead printed '-aVR' is aVR inverted: report it under the key 'aVR' as the mirror image of what is printed (flip the sign of the J-point value and the T-wave polarity; an R wave on -aVR is a QS on aVR).":"");}
+  function layHint(){const l=layGet();if(!l)return "";if(!l.pages)return "The crew says: strip printout, 3 labelled leads per section.";
+    return "The crew says: "+(l.pages>1?l.pages+" pages, ":"one page, ")+l.title+" ("+l.pg.map((g,i)=>(l.pages>1?"photo "+(i+1)+": ":"")+g.cols.map(c=>c.join(", ")).join(" | ")).join("; ")+").";}
+  // Crew-confirmed gain and speed: used when the reader could not see the calibration pulse, and checked against what it did see.
+  function applyPaper(d){const pp=paperGet();const c=d.calibration||(d.calibration={});const v=Number(c.mm_per_mv);const seen=c.visible!==false&&v>=3&&v<=25;
+    if(!seen&&pp.gain!==10){c.mm_per_mv=pp.gain;c.visible=false;c.crew=true;}
+    const ps=parseFloat(c.paper_speed);d._paper={speed:pp.speed,gain:pp.gain,printedGain:seen?v:null,printedSpeed:isFinite(ps)?ps:null};}
+
+  // ---------- 5.6: step-by-step camera (one page at a time, following the chosen layout) ----------
+  let camStream=null,lvlH=null;
+  const gc={on:false,lay:null,pages:[],idx:0,native:false,cur:null,retaking:false,paper:null};
+  function camStop(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}levelStop();}
+  function camClose(){camStop();gc.on=false;gc.pages.forEach(c=>{try{URL.revokeObjectURL(c.url);}catch(e){}});gc.pages=[];gc.cur=null;gc.retaking=false;["camOv","camPv","camRev","camAsk"].forEach(id=>{$(id).hidden=true;});}
+  function levelStart(){const e=$("camLevel");if(!window.DeviceOrientationEvent||lvlH)return;
+    const on=ev=>{if(ev.beta==null||ev.gamma==null)return;const flat=Math.abs(ev.beta)<14&&Math.abs(ev.gamma)<14;if($("camVid").hidden)return;e.hidden=false;e.classList.toggle("ok",flat);e.querySelector("span").textContent=flat?"Flat over the paper":"Hold the phone flat over the paper";};
+    const go=()=>{lvlH=on;window.addEventListener("deviceorientation",on);};
+    try{if(typeof DeviceOrientationEvent.requestPermission==="function")DeviceOrientationEvent.requestPermission().then(s=>{if(s==="granted")go();}).catch(()=>{});else go();}catch(e){}}
+  function levelStop(){if(lvlH)window.removeEventListener("deviceorientation",lvlH);lvlH=null;const e=$("camLevel");if(e)e.hidden=true;}
+  function gcPage(i){const l=gc.lay;if(!l||!l.pages)return {n:"Section "+(i+1),leads:[],total:0};const g=l.pg[Math.min(i,l.pg.length-1)];return {n:g.n,leads:pageLeads(g),total:l.pages};}
+  const gcPgTxt=i=>{const p=gcPage(i);return p.total?"Page "+(i+1)+" of "+p.total:"Section "+(i+1);};
+  function gcSteps(){const h=$("camSteps");h.textContent="";const n=gc.lay&&gc.lay.pages?gc.lay.pages:0;for(let i=0;i<n;i++){const d=document.createElement("i");if(gc.pages[i])d.className="done";if(i===gc.idx)d.className="on";h.appendChild(d);}}
+  function gcHead(){const p=gcPage(gc.idx),t=gcPgTxt(gc.idx),ll=p.leads.length?leadTxt(p.leads):"Any 3 labelled leads";
+    $("camPg").textContent=t;$("camName").textContent=p.n;$("camLeadList").textContent=ll;$("caPg").textContent=t;$("caName").textContent=p.n;$("caLeads").textContent=ll;
+    $("camHint").textContent=(p.total>1?"Only this page. ":"")+"Turn the printout so its TOP edge is on the LEFT. Fill the frame; keep the lead labels, the calibration pulse and the STJ table in view.";gcSteps();}
+  function gcRoom(){return Math.max(0,maxCount-files.length);}
+  async function gcSource(native){gc.native=!!native||!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);const live=!gc.native;
+    ["camVid","camHead","camFrame","camBtns","camUpload","camSteps"].forEach(id=>{$(id).hidden=!live;});$("camAsk").hidden=live;$("camPv").hidden=true;$("camRev").hidden=true;$("camLevel").hidden=true;gcHead();
+    if(!live){camStop();return;}
+    if(camStream)return;
+    try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:3840},height:{ideal:2160}},audio:false});const v=$("camVid");v.srcObject=camStream;await v.play();levelStart();}
+    catch(e){camStop();if(gc.on)gcSource(true);}}
+  function gcOpen(native){
     if(!patientOK()){toast("Enter age and sex first.");return;}
-    if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){$("camInput").click();return;}
-    try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:3840},height:{ideal:2160}},audio:false});
-      const v=$("camVid");v.srcObject=camStream;$("camOv").hidden=false;await v.play();}
-    catch(e){camClose();$("camInput").click();}
-  };
-  $("camCancel").onclick=camClose;
-  $("camNative").onclick=()=>{camClose();$("camInput").click();};
-  $("camUpload").onclick=()=>{camClose();$("fileInput").click();};
-  // The camera guide asks for the paper's TOP edge on the LEFT (phone upright), so a guided photo
-  // needs a quarter turn clockwise. The automatic check decides first; the guide is only used to pre-turn
-  // the check screen when the automatic check can't tell.
+    const lay=layGet();if(!lay){laySheetOpen(()=>gcOpen(native));return;}
+    const need=lay.pages||1;if(gcRoom()<need){toast(lay.pages>1?"This layout needs "+need+" photos and only "+gcRoom()+" more can be added. Remove a photo first.":"No room for another photo. Remove one first.");return;}
+    gc.on=true;gc.lay=lay;gc.pages=[];gc.idx=0;gc.cur=null;gc.retaking=false;$("camOv").hidden=false;gcSource(native);}
+  $("camBtn").onclick=()=>{window.__track&&window.__track("camera");if(patientOK()&&layGet())levelStart();gcOpen(false);};
+  $("camCancel").onclick=camClose;$("caCancel").onclick=camClose;
+  $("camRevCancel").onclick=()=>{const n=gc.native;camClose();gcOpen(n);};
+  $("camNative").onclick=()=>gcSource(true);
+  $("caOpen").onclick=()=>$("camInput").click();
+  $("caGallery").onclick=()=>$("camPick").click();
+  $("camUpload").onclick=()=>$("camPick").click();
+  $("camLay").onclick=()=>{const n=gc.native;camClose();laySheetOpen(()=>gcOpen(n));};
+  // The camera guide asks for the paper's TOP edge on the LEFT (phone upright), so a guided photo needs a quarter
+  // turn clockwise. The automatic check decides first; the guide is only used to pre-turn the check screen.
   $("camShot").onclick=()=>{const v=$("camVid");if(!v.videoWidth)return;const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
     const land=window.matchMedia&&window.matchMedia("(orientation: landscape)").matches;
-    c.toBlob(b=>{camClose();if(!b)return;const f=new File([b],"ecg-photo.jpg",{type:"image/jpeg"});camPrior.set(f,land?0:90);addFiles([f]);},"image/jpeg",0.93);};
+    c.toBlob(b=>{if(!b)return;gcGot(new File([b],"ecg-page"+(gc.idx+1)+".jpg",{type:"image/jpeg"}),land?0:90);},"image/jpeg",0.93);};
+  window.__gcGot=fl=>{if(!gc.on||!fl||!fl.length)return false;gcGot(fl[0],null);return true;};
+  $("camPick").onchange=e=>{const fl=[...e.target.files];e.target.value="";if(fl.length&&gc.on)gcGot(fl[0],null);};
+  function gcGot(f,prior){if(!/^image\//.test(f.type)){toast("That file isn't an image. Use a JPEG, PNG or WebP photo.");return;}
+    const u=URL.createObjectURL(f),img=new Image();
+    img.onload=()=>{let q=null;try{q=quality(img);}catch(e){}if(gc.cur){try{URL.revokeObjectURL(gc.cur.url);}catch(e2){}}gc.cur={file:f,prior,url:u,q};gcPreview();};
+    img.onerror=()=>{URL.revokeObjectURL(u);toast("Couldn't open that photo.");};img.src=u;}
+  function gcPreview(){const p=gcPage(gc.idx),c=gc.cur,strip=!gc.lay.pages;
+    $("pvTitle").textContent=gcPgTxt(gc.idx)+" · "+p.n;
+    $("pvSub").textContent=(p.leads.length?"Should show "+leadTxt(p.leads)+". ":"")+"Check the lead labels are readable and the trace is sharp.";
+    $("camPvImg").src=c.url;
+    const w=[];if(c.q){if(c.q.sharp<60)w.push("looks blurry");if(c.q.glare>0.06)w.push("glare on the paper");}
+    const qe=$("camPvQ");qe.textContent=w.length?"⚠ Photo "+w.join(" and ")+". Retake it for a reliable read, or keep it.":"✓ Looks sharp.";qe.classList.toggle("ok",!w.length);
+    const last=gc.retaking||(!strip&&gc.idx>=p.total-1);
+    $("camNext").textContent=last?"Done":"Next: "+gcPage(gc.idx+1).n;$("camNext").hidden=strip&&!gc.retaking;$("camStripBtns").hidden=!strip||gc.retaking;
+    ["camVid","camHead","camFrame","camBtns","camUpload","camSteps","camAsk","camLevel"].forEach(id=>{$(id).hidden=true;});$("camPv").hidden=false;}
+  function gcAccept(){const c=gc.cur;if(!c)return;const old=gc.pages[gc.idx];if(old&&old!==c){try{URL.revokeObjectURL(old.url);}catch(e){}}gc.pages[gc.idx]=c;gc.cur=null;}
+  $("camRetake").onclick=()=>{if(gc.cur){try{URL.revokeObjectURL(gc.cur.url);}catch(e){}gc.cur=null;}gcSource(gc.native);};
+  $("camNext").onclick=()=>{gcAccept();if(gc.retaking){gc.retaking=false;gcReview();return;}const total=gc.lay.pages||1;if(gc.idx+1<total){gc.idx++;gcSource(gc.native);}else gcReview();};
+  $("camMore").onclick=()=>{gcAccept();if(gc.pages.filter(Boolean).length>=gcRoom()){toast("No room for another photo (maximum "+maxCount+" per patient).");gcReview();return;}gc.idx=gc.pages.length;gcSource(gc.native);};
+  $("camStripDone").onclick=()=>{gcAccept();gcReview();};
+  function gcReview(){const host=$("camRevList");host.textContent="";if(!gc.paper)gc.paper=paperGet();const strip=!gc.lay.pages;
+    $("revSub").textContent=strip?"Each section should show its lead labels clearly.":"Every page should show its lead labels clearly.";
+    gc.pages.forEach((c,i)=>{if(!c)return;const p=gcPage(i);const d=document.createElement("div");d.className="camrev-it";const im=document.createElement("img");im.src=c.url;im.alt="Page "+(i+1);
+      const ri=document.createElement("div");ri.className="ri";const b=document.createElement("b");b.textContent=(p.total?"Page "+(i+1):"Section "+(i+1))+" · "+p.n;const s=document.createElement("small");s.textContent=(p.leads.length?leadTxt(p.leads):"3 labelled leads")+(c.q&&(c.q.sharp<60||c.q.glare>0.06)?" · ⚠ blur or glare":"");ri.append(b,s);
+      const rb=document.createElement("button");rb.type="button";rb.textContent="Retake";rb.onclick=()=>{gc.idx=i;gc.retaking=true;gcSource(gc.native);};d.append(im,ri,rb);host.appendChild(d);});
+    const rs=()=>{segRender($("revSpeed"),SPEEDS,gc.paper.speed,v=>{gc.paper.speed=v;rs();});segRender($("revGain"),GAINS,gc.paper.gain,v=>{gc.paper.gain=v;rs();});};rs();
+    ["camVid","camHead","camFrame","camBtns","camUpload","camSteps","camAsk","camPv","camLevel"].forEach(id=>{$(id).hidden=true;});$("camRev").hidden=false;}
+  $("camUse").onclick=()=>{const pages=gc.pages.filter(Boolean);if(!pages.length){camClose();return;}
+    if(gc.paper)paperSet(gc.paper);const fl=pages.map(c=>{if(c.prior!=null)camPrior.set(c.file,c.prior);return c.file;});const lid=gc.lay&&gc.lay.id;
+    camClose();addFiles(fl);window.__track&&window.__track("guided",{pages:fl.length,layout:lid});
+    if(files.length>1){$("samePtChk").checked=true;refresh();if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");}};
+  function paperPrompt(){const p=paperGet();return "PAPER (confirmed by the crew): "+p.speed+" mm/s, "+p.gain+" mm/mV. Verify against the printed values and the calibration pulse; if the printout disagrees, use what is printed and report it in cal/speed.";}
+
+  // ---------- 5.7: lead map viewer (the photo, with approximate lead boxes from the chosen layout) ----------
+  // The boxes come from the layout the crew chose, not from the reader: they show roughly where each lead
+  // sits so the crew can look at the paper next to the app's number. Pinch to zoom, drag to move.
+  function paperArea(img){try{const sc=Math.min(1,400/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height)),iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height,w=Math.max(4,Math.round(iw*sc)),h=Math.max(4,Math.round(ih*sc));
+      const c=document.createElement("canvas");c.width=w;c.height=h;const x=c.getContext("2d");x.drawImage(img,0,0,w,h);const d=x.getImageData(0,0,w,h).data;
+      const rows=new Float32Array(h),cols=new Float32Array(w);
+      for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){const i=(yy*w+xx)*4,mx=Math.max(d[i],d[i+1],d[i+2]),mn=Math.min(d[i],d[i+1],d[i+2]),L=(d[i]+d[i+1]+d[i+2])/3;if(L>95&&(mx-mn)/(mx+1)<0.2){rows[yy]++;cols[xx]++;}}
+      let y0=0,y1=h-1,x0=0,x1=w-1;while(y0<h&&rows[y0]/w<0.12)y0++;while(y1>0&&rows[y1]/w<0.12)y1--;while(x0<w&&cols[x0]/h<0.12)x0++;while(x1>0&&cols[x1]/h<0.12)x1--;
+      if(y1-y0<h*0.2||x1-x0<w*0.2)return {x0:0,y0:0,x1:1,y1:1};
+      return {x0:Math.max(0,x0/w-0.02),y0:Math.max(0,y0/h-0.02),x1:Math.min(1,(x1+1)/w+0.02),y1:Math.min(1,(y1+1)/h+0.02)};}catch(e){return {x0:0,y0:0,x1:1,y1:1};}}
+  function lvCells(lay,fi,pa){if(!lay||!lay.pages)return [];const g=lay.pg[Math.min(fi,lay.pg.length-1)],cols=g.cols,nrow=Math.max(...cols.map(c=>c.length));
+    const W=pa.x1-pa.x0,H=pa.y1-pa.y0,top=lay.pages===1?0.13:0.07,bot=g.strip?0.05:lay.pages===1?0.1:0.06,share=g.strip?0.26:0;
+    const ty0=pa.y0+H*top,ty1=pa.y1-H*bot,rh=(ty1-ty0)*(1-share)/nrow,cw=W/cols.length;const out=[];
+    cols.forEach((c,ci)=>c.forEach((k,ri)=>out.push({k:k.replace("-aVR","aVR"),neg:k==="-aVR",x0:pa.x0+ci*cw,x1:pa.x0+(ci+1)*cw,y0:ty0+ri*rh,y1:ty0+(ri+1)*rh})));return out;}
+  const LV={on:false,s:1,tx:0,ty:0,fit:1,iw:0,ih:0,cells:[],fi:0,sel:null,grid:true,ptrs:new Map(),tiles:[],lay:null,rotNote:false,url:null};
+  const lvApply=()=>{$("lvWrap").style.transform="translate("+LV.tx+"px,"+LV.ty+"px) scale("+LV.s+")";$("lvCells").style.setProperty("--inv",(1/LV.s).toFixed(3));};
+  function lvFitView(){const st=$("lvStage");LV.s=1;LV.tx=(st.clientWidth-LV.iw*LV.fit)/2;LV.ty=(st.clientHeight-LV.ih*LV.fit)/2;lvApply();}
+  function lvZoomAt(cx,cy,ns,apply){const r=$("lvStage").getBoundingClientRect();const px=cx-r.left,py=cy-r.top;ns=Math.min(8,Math.max(0.5,ns));const k=ns/LV.s;LV.tx=px-(px-LV.tx)*k;LV.ty=py-(py-LV.ty)*k;LV.s=ns;if(apply!==false)lvApply();}
+  function lvDrawCells(){const h=$("lvCells");h.textContent="";h.style.cssText="position:absolute;left:0;top:0;width:"+(LV.iw*LV.fit)+"px;height:"+(LV.ih*LV.fit)+"px";h.hidden=!LV.grid;
+    LV.cells.forEach(c=>{const t=LV.tiles.find(x=>x.k===c.k);const e=document.createElement("div");e.className="lv-cell"+(t&&t.cls.includes("ste")?" ste":t&&t.cls.includes("std")?" std":"")+(LV.sel===c.k?" sel":"");
+      e.style.left=(c.x0*100)+"%";e.style.top=(c.y0*100)+"%";e.style.width=((c.x1-c.x0)*100)+"%";e.style.height=((c.y1-c.y0)*100)+"%";
+      const s=document.createElement("span");s.textContent=(c.neg?"−aVR = ":"")+c.k+(t&&t.val?" · "+t.val:"");e.appendChild(s);h.appendChild(e);});}
+  function lvPageOf(k){const lay=LV.lay;if(!lay||lay.pages<2)return LV.fi;const pi=lay.pg.findIndex(g=>g.cols.flat().some(x=>x.replace("-aVR","aVR")===k));return pi>=0?Math.min(pi,files.length-1):LV.fi;}
+  function lvLoad(fi){return new Promise(res=>{LV.fi=fi;const f=files[fi];if(!f){res();return;}if(LV.url){try{URL.revokeObjectURL(LV.url);}catch(e){}}const u=URL.createObjectURL(f);LV.url=u;const im=$("lvImg");
+    im.onload=()=>{LV.iw=im.naturalWidth;LV.ih=im.naturalHeight;const st=$("lvStage"),W=st.clientWidth||300,H=st.clientHeight||300;LV.fit=Math.min(W/LV.iw,H/LV.ih);im.style.width=(LV.iw*LV.fit)+"px";im.style.height=(LV.ih*LV.fit)+"px";
+      const canBox=!LV.rotNote&&LV.lay&&LV.lay.pages;LV.cells=canBox?lvCells(LV.lay,fi,paperArea(im)):[];lvDrawCells();$("lvPhoto").textContent="Photo "+(fi+1)+" of "+files.length;
+      const note=$("lvNote");note.hidden=false;
+      if(LV.rotNote)note.textContent="The reader turned this photo to read it, so lead boxes are not shown. Pinch to zoom on the trace.";
+      else if(!LV.lay)note.textContent="Choose your printout layout on the Analyze page to see lead boxes.";
+      else if(!LV.lay.pages)note.textContent="Strip printout: lead boxes need a page layout. Pinch to zoom on the labelled sections.";
+      else{note.textContent="Boxes are approximate (from the layout you chose, not from the reader). Check the printed label inside each box.";setTimeout(()=>{if(LV.on&&LV.fi===fi)note.hidden=true;},6000);}
+      lvFitView();res();};
+    im.onerror=()=>{toast("Couldn't open that photo.");res();};im.src=u;});}
+  function lvChips(){const h=$("lvChips");h.textContent="";
+    LEADS.forEach(k=>{const t=LV.tiles.find(x=>x.k===k);const b=document.createElement("button");b.type="button";const cl=t?t.cls.find(c=>["ste","edge","std","sub","lkx","lkp","unclear","disc"].includes(c)):null;if(cl)b.classList.add(cl);b.setAttribute("aria-pressed",String(LV.sel===k));
+      const bb=document.createElement("b");bb.textContent=k;const sm=document.createElement("small");sm.textContent=t&&t.val?t.val:"—";b.append(bb,sm);
+      b.onclick=()=>{const fi=lvPageOf(k);if(fi!==LV.fi){LV.sel=k;lvLoad(fi).then(()=>{lvChips();lvGo(k);});}else lvGo(k);};h.appendChild(b);});
+    const t=LV.sel?LV.tiles.find(x=>x.k===LV.sel):null;$("lvVal").textContent=t?LV.sel+": "+(t.val||"")+(t.cls.includes("unclear")?"":" at the J-point"):"";}
+  function lvGo(k){LV.sel=k;lvChips();lvDrawCells();const c=LV.cells.find(x=>x.k===k);if(!c){lvFitView();return;}
+    const st=$("lvStage"),W=st.clientWidth,H=st.clientHeight,cw=(c.x1-c.x0)*LV.iw*LV.fit,ch=(c.y1-c.y0)*LV.ih*LV.fit;
+    LV.s=Math.min(6,Math.max(1,Math.min(W/cw,H/ch)*0.85));const cx=(c.x0+c.x1)/2*LV.iw*LV.fit,cy=(c.y0+c.y1)/2*LV.ih*LV.fit;LV.tx=W/2-cx*LV.s;LV.ty=H/2-cy*LV.s;lvApply();}
+  async function lvOpen(k){const d=lastReport;if(!d||!files.length){toast("No photo to show for this reading.");return;}
+    LV.tiles=[...report.querySelectorAll(".leadmap .lead")].map(e=>{const b=e.querySelector("b"),jv=e.querySelector(".jv"),sp=e.querySelector("span");return {k:b?b.textContent:"",cls:[...e.classList].filter(c=>c!=="lead"),val:(jv?jv.textContent:sp?sp.textContent:"").replace(/\s+/g," ").trim()};});
+    LV.lay=layGet();LV.on=true;LV.sel=k||null;LV.grid=true;$("lvGrid").setAttribute("aria-pressed","true");const rot=Number(d._rot||d.rot)||0;LV.rotNote=[90,180,270].includes(rot);
+    $("lvOv").hidden=false;$("lvPhoto").hidden=files.length<2;window.__track&&window.__track("leadmap",{lead:k||""});
+    await lvLoad(k?lvPageOf(k):0);lvChips();if(k)lvGo(k);}
+  window.__lvOpen=lvOpen;
+  function lvClose(){LV.on=false;$("lvOv").hidden=true;if(LV.url){try{URL.revokeObjectURL(LV.url);}catch(e){}LV.url=null;}$("lvImg").removeAttribute("src");LV.ptrs.clear();}
+  $("lvClose").onclick=lvClose;
+  $("lvGrid").onclick=()=>{LV.grid=!LV.grid;$("lvGrid").setAttribute("aria-pressed",String(LV.grid));$("lvCells").hidden=!LV.grid;};
+  $("lvFit").onclick=lvFitView;
+  $("lvPhoto").onclick=()=>{LV.sel=null;lvLoad((LV.fi+1)%files.length).then(lvChips);};
+  {const st=$("lvStage");let lastTap=0;
+    st.addEventListener("pointerdown",e=>{try{st.setPointerCapture(e.pointerId);}catch(x){}LV.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});if(LV.ptrs.size===1){const now=Date.now();if(now-lastTap<300)lvZoomAt(e.clientX,e.clientY,LV.s>=4?1:LV.s*2.2);lastTap=now;}});
+    st.addEventListener("pointermove",e=>{if(!LV.ptrs.has(e.pointerId))return;const prev=LV.ptrs.get(e.pointerId),cur={x:e.clientX,y:e.clientY};
+      if(LV.ptrs.size===1){LV.tx+=cur.x-prev.x;LV.ty+=cur.y-prev.y;LV.ptrs.set(e.pointerId,cur);lvApply();return;}
+      if(LV.ptrs.size===2){const ids=[...LV.ptrs.keys()];const a=LV.ptrs.get(ids[0]),b=LV.ptrs.get(ids[1]);const d0=Math.hypot(a.x-b.x,a.y-b.y),pm={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+        LV.ptrs.set(e.pointerId,cur);const a2=LV.ptrs.get(ids[0]),b2=LV.ptrs.get(ids[1]);const d1=Math.hypot(a2.x-b2.x,a2.y-b2.y),m2={x:(a2.x+b2.x)/2,y:(a2.y+b2.y)/2};
+        if(d0>0)lvZoomAt(pm.x,pm.y,LV.s*d1/d0,false);LV.tx+=m2.x-pm.x;LV.ty+=m2.y-pm.y;lvApply();}});
+    const up=e=>{LV.ptrs.delete(e.pointerId);};st.addEventListener("pointerup",up);st.addEventListener("pointercancel",up);st.addEventListener("lostpointercapture",up);
+    st.addEventListener("wheel",e=>{e.preventDefault();lvZoomAt(e.clientX,e.clientY,LV.s*(e.deltaY<0?1.15:0.87));},{passive:false});}
+
+  // ---------- 5.7: at a glance (rhythm / conduction / other), read ID and handover line ----------
+  const RC_TXT={sinus:"Sinus rhythm",sinus_brady:"Sinus bradycardia",sinus_tach:"Sinus tachycardia",sinus_arrhythmia:"Sinus arrhythmia",afib:"Atrial fibrillation",aflutter:"Atrial flutter",svt:"SVT",junctional:"Junctional rhythm",first_degree_block:"Sinus with 1st-degree AV block",mobitz1:"2nd-degree AV block, Mobitz I",mobitz2:"2nd-degree AV block, Mobitz II",complete_block:"Complete AV block",vt_mono:"Monomorphic VT",vt_poly_torsades:"Polymorphic VT / torsades",vf:"Ventricular fibrillation",idioventricular:"Idioventricular rhythm",paced:"Paced rhythm",asystole:"Asystole",undetermined:"Rhythm undetermined"};
+  function glanceRows(d){const g=el("div","glance");const row=(k,v)=>{g.appendChild(el("span","k",k));g.appendChild(el("span","v",v));};
+    const rc=S(d.rhythm_class).toLowerCase(),rate=Number(d.rate_bpm)||null;row("Rhythm",(RC_TXT[rc]||S(d.rhythm_class)||"—")+(rate?" · "+rate+"/min":""));
+    const c=d.conduction||{},q=Number(c.qrs_ms)||null,bbb=S(c.bbb),bb=bbb&&!/^none$/i.test(bbb)?bbb:"";
+    row("Conduction",bb?bb+(q?" · QRS "+q+" ms":""):q?(q>=120?"Wide QRS · "+q+" ms":"Narrow QRS · "+q+" ms"):"—");
+    const f=d.flags||{},o=[];if(c.lvh)o.push("LVH voltage");if(f.delta_wave)o.push("delta wave (pre-excitation)");if(f.brugada)o.push("Brugada pattern");if(f.hyperk)o.push("hyperkalaemia signs");if(f.pericarditis)o.push("pericarditis pattern");if(f.early_repol)o.push("early repolarisation");if(f.pacer_spikes)o.push("pacing spikes");if(f.capture_failure)o.push("failure to capture");if(f.diffuse_std_avr)o.push("diffuse ST depression with STE in aVR");if(Number(f.qtc_ms)>=500)o.push("QTc "+f.qtc_ms+" ms (long)");if(d._lowv)o.push("low voltage");
+    row("Other",o.length?o.join(", ").replace(/^./,x=>x.toUpperCase()):"Nothing else flagged");return g;}
+  const RID_CH="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  function ensureRid(d){if(!d._rid){const a=new Uint8Array(4);try{crypto.getRandomValues(a);}catch(e){for(let i=0;i<4;i++)a[i]=Math.floor(Math.random()*256);}let s="";a.forEach(b=>{s+=RID_CH[b%RID_CH.length];});d._rid=s;}if(!d._at)d._at=Date.now();}
+  function fmtAt(t){const x=new Date(t);return x.toLocaleDateString("en-GB",{day:"numeric",month:"short"})+" "+x.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}
+  function handoverText(d){ensureRid(d);const st=d.stemi||{},J=st.J||(()=>null);const dec=st.decision==="met"?"STEMI PPCI criteria MET (YES, activate)":st.decision==="consult"?"not fully met, consult UMOC":"NOT met (NO)";
+    const js=LEADS.map(k=>{const j=J(k);return k+" "+(j===null?"n/a":(j>0?"+":"")+j);}).join(", ");
+    const c=d.conduction||{},rate=Number(d.rate_bpm)||null,rc=RC_TXT[S(d.rhythm_class).toLowerCase()]||S(d.rhythm_class)||"";const nv=(d._stjVerified||[]).length;
+    const stj=nv?"printed STJ verified "+nv+"/12":(d.printed&&d.printed.stj&&Object.keys(d.printed.stj).length?"printed STJ copied, not verified":"photo measurement");
+    return "EMS Quick ECG Guide read #"+d._rid+" · "+fmtAt(d._at)+" · Patient "+($("age").value||"?")+" "+($("sex").value||"").slice(0,1)+" · Decision: "+dec+(st.criterion?" ("+S(st.criterion)+")":"")+" · Rhythm: "+(rc||"—")+(rate?" "+rate+"/min":"")+(c.qrs_ms?", QRS "+c.qrs_ms+" ms":"")+(S(c.bbb)&&!/^none$/i.test(S(c.bbb))?", "+S(c.bbb):"")+" · J-points (mm at 10 mm/mV): "+js+" · "+stj+(d._conf?" · Confidence "+d._conf.score+"% ("+d._conf.level+")":"")+" · Decision support only; UMOC decides · App v"+APP_VERSION;}
+  function ridRow(d){ensureRid(d);const r=el("div","rid");r.appendChild(el("span",null,"Read"));r.appendChild(el("b",null,"#"+d._rid));r.appendChild(el("span",null,fmtAt(d._at)));
+    const cp=el("button",null,"Copy handover");cp.type="button";cp.onclick=()=>{const t=handoverText(d);const done=()=>toast("Handover line copied (no patient identifiers)");
+      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(()=>{window.prompt("Copy this handover line:",t);});else window.prompt("Copy this handover line:",t);window.__track&&window.__track("handover");};r.appendChild(cp);
+    if(navigator.share){const sh=el("button",null,"Share");sh.type="button";sh.onclick=()=>{navigator.share({text:handoverText(d)}).catch(()=>{});};r.appendChild(sh);}
+    return r;}
+
+  // ---------- 5.7: calculators (offline) ----------
+  function cCard(title,purpose){const c=el("div","card cc");c.appendChild(el("h3",null,title));if(purpose)c.appendChild(el("p","cp",purpose));return c;}
+  function cQ(card,label,sub,opts,cur,on,pre){const q=el("div","cq");const l=el("div","lbl",label);if(pre)l.appendChild(el("span","cpre","from this reading"));if(sub)l.appendChild(el("small",null,sub));q.appendChild(l);const s=el("div","cseg");
+    const draw=()=>{s.textContent="";opts.forEach(([v,t,pts])=>{const b=el("button",null,t);b.type="button";if(pts!=null)b.appendChild(el("small",null,"+"+pts));b.setAttribute("aria-pressed",String(v===cur));b.onclick=()=>{cur=v;draw();on(v);};s.appendChild(b);});};draw();q.appendChild(s);card.appendChild(q);}
+  function cNum(card,fields){const g=el("div","cnum");fields.forEach(f=>{const l=el("label",null,f.label+(f.unit?" ("+f.unit+")":""));if(f.pre)l.appendChild(el("span","cpre","from this reading"));const i=document.createElement("input");i.className="in";i.type="number";i.inputMode="decimal";i.step="any";if(f.val!=null&&isFinite(f.val))i.value=f.val;i.placeholder=f.ph||"";i.oninput=()=>f.on(parseFloat(i.value));l.appendChild(i);g.appendChild(l);});card.appendChild(g);}
+  function cRes(card){const r=el("div","cres");card.appendChild(r);return (cls,title,txt)=>{r.className="cres"+(cls?" "+cls:"");r.textContent="";r.appendChild(el("b",null,title));if(txt)r.appendChild(el("p",null,txt));};}
+  function calcPrefill(){const d=lastReport,age=parseInt($("age").value,10),sex=$("sex").value;const p={age:isFinite(age)?age:null,sex,read:false,sg:[false,false,false],exc:null};
+    if(!d||!d.leads)return p;const st=d.stemi||{},J=st.J||(()=>null),L=d.leads||{},c=d.conduction||{},f=d.flags||{};
+    p.read=true;p.rate=Number(d.rate_bpm)||null;p.qtc=Number(f.qtc_ms)||null;p.bbb=S(c.bbb);p.lvh=!!c.lvh;
+    const anyDev=LEADS.some(k=>{const j=J(k);return j!==null&&(j>=1||j<=-1);}),anyT=LEADS.some(k=>["inverted","biphasic","hyperacute"].includes(S((L[k]||{}).t).toLowerCase())&&!tExpected(d,k)),anyUp=LEADS.some(k=>{const j=J(k);return j!==null&&j>0;});
+    p.ecg=st.decision==="met"||anyDev?2:(anyT||p.lvh||/LBBB|paced|IVCD/i.test(p.bbb)||anyUp)?1:0;
+    const pq=S(d.printed&&d.printed.qtc);const m=/(\d{2,3})\s*\/\s*(\d{2,3})/.exec(pq);if(m){p.qt=+m[1];p.qtcPrinted=+m[2];}else{const m2=/(\d{3})/.exec(pq);if(m2)p.qtcPrinted=+m2[1];}
+    const ph=parseInt(S(d.printed&&d.printed.hr),10);if(ph>0&&!p.rate)p.rate=ph;
+    const conc1=LEADS.some(k=>{const o=L[k]||{};return S(o.qrs).toLowerCase()==="positive"&&J(k)>=1;}),conc2=["V1","V2","V3"].some(k=>{const o=L[k]||{};return S(o.qrs).toLowerCase()==="negative"&&J(k)<=-1;});
+    let exc=null;LEADS.forEach(k=>{const o=L[k]||{},j=J(k),qm=Number(o.qrs_mm)||0;if(S(o.qrs).toLowerCase()==="negative"&&j>=1&&qm>0){const r=j/qm;if(!exc||r>exc.r)exc={k,j,s:qm,r};}});
+    p.sg=[conc1,conc2,!!(exc&&exc.r>=0.25)];p.exc=exc;p.v4=S((L.V4||{}).qrs).toLowerCase()==="positive"?Number((L.V4||{}).qrs_mm)||null:null;return p;}
+  function calcHeart(p){const c=cCard("HEART score (chest pain)","6-week risk of a major adverse cardiac event in undifferentiated chest pain. Without a troponin it becomes the HEAR score.");
+    const v={h:null,e:p.read?p.ecg:null,a:p.age==null?null:p.age>=65?2:p.age>=45?1:0,r:null,t:-1};let show=null;
+    const upd=()=>{if(!show)return;if(["h","e","a","r"].some(k=>v[k]==null)){show("","Answer every question","");return;}const hear=v.h+v.e+v.a+v.r;
+      if(v.t<0){const lv=hear<=1?"low":hear<=3?"mod":"high";show(lv,"HEAR "+hear+" / 8 (no troponin)",hear<=1?"Low risk in HEAR validation cohorts. Still follow the chest pain protocol: the ECG and the patient decide.":hear<=3?"Not low risk without a troponin: a HEART score needs the hospital troponin.":"Higher risk: treat as significant chest pain with early hospital evaluation.");return;}
+      const s=hear+v.t,lv=s<=3?"low":s<=6?"mod":"high";show(lv,"HEART "+s+" / 10 · "+(lv==="low"?"low":lv==="mod"?"moderate":"high")+" risk",lv==="low"?"About 1–2% MACE at 6 weeks in validation cohorts.":lv==="mod"?"About 12–17% MACE at 6 weeks: observation and serial testing.":"About 50–65% MACE at 6 weeks: early invasive strategy per the receiving team.");};
+    cQ(c,"History","How suspicious is the story for ACS?",[[0,"Slightly",0],[1,"Moderately",1],[2,"Highly",2]],v.h,x=>{v.h=x;upd();});
+    cQ(c,"ECG","",[[0,"Normal",0],[1,"Non-specific repolarisation (LBBB, LVH, digoxin)",1],[2,"Significant ST deviation",2]],v.e,x=>{v.e=x;upd();},p.read);
+    cQ(c,"Age","",[[0,"< 45",0],[1,"45–64",1],[2,"≥ 65",2]],v.a,x=>{v.a=x;upd();},p.age!=null);
+    cQ(c,"Risk factors","Diabetes, smoking, hypertension, high cholesterol, obesity, family history; or known coronary, cerebral or peripheral artery disease",[[0,"None",0],[1,"1–2",1],[2,"≥ 3, or known atherosclerotic disease",2]],v.r,x=>{v.r=x;upd();});
+    cQ(c,"Troponin","Usually not available pre-hospital",[[-1,"Not available",null],[0,"≤ normal limit",0],[1,"1–3× limit",1],[2,"> 3× limit",2]],v.t,x=>{v.t=x;upd();});
+    show=cRes(c);c.appendChild(el("p","csrc","Six AJ et al. 2008; Backus BE et al. 2013 (HEART). HEAR = HEART without troponin."));upd();return c;}
+  function calcWells(p){const c=cCard("Wells score (pulmonary embolism)","Pre-test probability of PE. Guides how urgently PE needs excluding; it is not a rule-out on its own.");
+    const items=[["dvt","Clinical signs of DVT (leg swelling, pain on deep-vein palpation)",3],["alt","PE is the most likely diagnosis",3],["hr","Heart rate > 100/min",1.5],["imm","Immobilisation ≥ 3 days, or surgery in the previous 4 weeks",1.5],["prev","Previous DVT or PE",1.5],["hem","Haemoptysis",1],["ca","Active cancer (treated within 6 months, or palliative)",1]];
+    const v={};items.forEach(([k])=>{v[k]=null;});if(p.rate!=null)v.hr=p.rate>100?1:0;let show=null;
+    const upd=()=>{if(!show)return;if(items.some(([k])=>v[k]==null)){show("","Answer every item","");return;}const s=items.reduce((a,[k,,pt])=>a+(v[k]?pt:0),0),three=s<2?"low":s<=6?"moderate":"high";
+      show(three==="low"?"low":three==="moderate"?"mod":"high","Wells "+s+" · "+(s>4?"PE likely":"PE unlikely"),"Three-tier: "+three+" probability. "+(s>4?"Treat as likely PE: oxygen, IV access, monitoring; the hospital decides on imaging.":"Unlikely by score: a D-dimer or the PERC rule in hospital can exclude PE. Reconsider if the picture changes."));};
+    items.forEach(([k,t,pt])=>cQ(c,t,"",[[0,"No",0],[1,"Yes",pt]],v[k],x=>{v[k]=x;upd();},k==="hr"&&p.rate!=null));
+    show=cRes(c);c.appendChild(el("p","csrc","Wells PS et al. 2000–2001; two-tier cut-off (> 4) from the Christopher study, van Belle 2006."));upd();return c;}
+  function calcSgarbossa(p){const lb=/LBBB|paced/i.test(p.bbb||"");const c=cCard("Modified Sgarbossa (Smith)","LBBB or ventricular paced rhythm only. Any ONE positive criterion suggests acute occlusion: discuss activation with UMOC."+(p.read&&!lb?" This reading did not show LBBB or pacing.":""));
+    const v={a:p.read?(p.sg[0]?1:0):null,b:p.read?(p.sg[1]?1:0):null,c:p.read?(p.sg[2]?1:0):null,ste:p.exc?p.exc.j:null,s:p.exc?p.exc.s:null};let show=null;
+    const upd=()=>{if(!show)return;let c3=v.c;if(v.ste>0&&v.s>0)c3=v.ste/v.s>=0.25?1:0;if(v.a==null||v.b==null||c3==null){show("","Answer the three criteria","");return;}const pos=!!(v.a||v.b||c3);
+      show(pos?"high":"low",pos?"POSITIVE · modified Sgarbossa":"Negative · modified Sgarbossa",(pos?"Suggests acute coronary occlusion despite the "+(/paced/i.test(p.bbb||"")?"paced rhythm":"LBBB")+". Call UMOC 02 504 8555 to discuss STEMI PPCI activation.":"No concordant ST change and no excessively discordant ST elevation. Occlusion is not excluded: repeat the ECG and go by the patient.")+(v.ste>0&&v.s>0?" ST/S ratio "+(v.ste/v.s).toFixed(2)+(p.exc?" (lead "+p.exc.k+")":"")+".":""));};
+    cQ(c,"1. Concordant ST elevation ≥ 1 mm in any lead","ST going the same way as a mainly positive QRS",[[0,"No",null],[1,"Yes",null]],v.a,x=>{v.a=x;upd();},p.read);
+    cQ(c,"2. Concordant ST depression ≥ 1 mm in V1, V2 or V3","",[[0,"No",null],[1,"Yes",null]],v.b,x=>{v.b=x;upd();},p.read);
+    cQ(c,"3. Excessively discordant ST elevation","ST elevation ≥ 1 mm that is ≥ 25% of the preceding S-wave depth (ST/S ≥ 0.25). Enter the lead's numbers below, or answer directly.",[[0,"No",null],[1,"Yes",null]],v.c,x=>{v.c=x;upd();},p.read);
+    cNum(c,[{label:"ST elevation at the J-point",unit:"mm",val:v.ste,ph:"e.g. 3",on:x=>{v.ste=x;upd();},pre:!!p.exc},{label:"S-wave depth, same lead",unit:"mm",val:v.s,ph:"e.g. 10",on:x=>{v.s=x;upd();},pre:!!p.exc}]);
+    show=cRes(c);c.appendChild(el("p","csrc","Smith SW et al. 2012; validation Meyers HP et al. 2015."));upd();return c;}
+  function calcSmith(p){const c=cCard("Subtle anterior OMI vs early repolarisation (Smith 4-variable)","Only when it is unclear: ST elevation in V2–V4 below criteria, no obvious STEMI, no LVH, no anterior Q waves, no terminal QRS distortion, no T inversion, and the patient has symptoms.");
+    const v={qtc:p.qtcPrinted||p.qtc||null,v2:null,v4:p.v4||null,st:null};let show=null;
+    const upd=()=>{if(!show)return;if(!(v.qtc>0&&v.v2>0&&v.v4>=0&&v.st!=null&&isFinite(v.st))){show("","Enter all four values","");return;}const f=0.052*v.qtc-0.151*v.v2-0.268*v.v4+1.062*v.st,pos=f>=18.2;
+      show(pos?"high":"low","Formula "+f.toFixed(1)+" · "+(pos?"≥ 18.2: LAD occlusion likely":"< 18.2: favours early repolarisation"),(pos?"Treat as a possible anterior occlusion: call UMOC 02 504 8555 and discuss activation; repeat the ECG.":"Early repolarisation more likely, but the formula is not a rule-out: repeat the ECG in 10–15 minutes and with any change in symptoms.")+" Derivation: sensitivity 86%, specificity 91%.");};
+    cNum(c,[{label:"QTc (Bazett)",unit:"ms",val:v.qtc,ph:"e.g. 410",on:x=>{v.qtc=x;upd();},pre:!!(p.qtcPrinted||p.qtc)},{label:"QRS amplitude in V2 (R + S)",unit:"mm",val:null,ph:"e.g. 15",on:x=>{v.v2=x;upd();}},{label:"R-wave amplitude in V4",unit:"mm",val:v.v4,ph:"e.g. 8",on:x=>{v.v4=x;upd();},pre:!!p.v4},{label:"ST elevation in V3, 60 ms after the J-point",unit:"mm",val:null,ph:"1.5 small boxes after J",on:x=>{v.st=x;upd();}}]);
+    show=cRes(c);c.appendChild(el("p","csrc","Driver BE, Khalil A, Henry T, Kazmi F, Adil A, Smith SW. J Electrocardiol 2017 (4-variable formula, cut-off 18.2)."));upd();return c;}
+  function calcQtc(p){const c=cCard("QTc (corrected QT)","Bazett over-corrects at fast rates and under-corrects at slow rates; Fridericia is steadier. The monitor's printed QTc is shown when it was read.");
+    const v={qt:p.qt||null,hr:p.rate||null},sex=p.sex;let show=null;
+    const upd=()=>{if(!show)return;if(!(v.qt>0&&v.hr>0)){show("","Enter QT and heart rate","");return;}const rr=60/v.hr,bz=Math.round(v.qt/Math.sqrt(rr)),fr=Math.round(v.qt/Math.cbrt(rr)),lim=sex==="Female"?460:450,worst=Math.max(bz,fr),lv=worst>=500?"high":worst>lim?"mod":"low";
+      show(lv,"QTc "+fr+" ms (Fridericia) · "+bz+" ms (Bazett)",(worst>=500?"≥ 500 ms: high risk of torsades. Avoid QT-prolonging drugs; magnesium for torsades; monitor closely.":worst>lim?"Prolonged for "+(sex||"this patient").toLowerCase()+" (limit "+lim+" ms). Avoid QT-prolonging drugs; electrolytes in hospital.":"Within normal limits (limit "+lim+" ms).")+(p.qtcPrinted?" Monitor printed QTc "+p.qtcPrinted+" ms.":""));};
+    cNum(c,[{label:"QT",unit:"ms",val:v.qt,ph:"e.g. 380",on:x=>{v.qt=x;upd();},pre:!!p.qt},{label:"Heart rate",unit:"/min",val:v.hr,ph:"e.g. 75",on:x=>{v.hr=x;upd();},pre:!!p.rate}]);
+    show=cRes(c);c.appendChild(el("p","csrc","Bazett 1920; Fridericia 1920. Limits: > 450 ms men, > 460 ms women; ≥ 500 ms high risk."));upd();return c;}
+  function calcShock(p){const c=cCard("Shock index","Heart rate ÷ systolic BP: a quick flag for occult shock in bleeding, sepsis and trauma.");const v={hr:p.rate||null,sbp:null};let show=null;
+    const upd=()=>{if(!show)return;if(!(v.hr>0&&v.sbp>0)){show("","Enter heart rate and systolic BP","");return;}const si=v.hr/v.sbp,lv=si>=1?"high":si>=0.9?"mod":"low";
+      show(lv,"Shock index "+si.toFixed(2),lv==="high"?"≥ 1.0: high risk of haemodynamic compromise; treat the cause, early notification.":lv==="mod"?"0.9–1.0: borderline; reassess often.":"< 0.9: within the usual range (0.5–0.7).");};
+    cNum(c,[{label:"Heart rate",unit:"/min",val:v.hr,ph:"e.g. 110",on:x=>{v.hr=x;upd();},pre:!!p.rate},{label:"Systolic BP",unit:"mmHg",val:null,ph:"e.g. 95",on:x=>{v.sbp=x;upd();}}]);
+    show=cRes(c);c.appendChild(el("p","csrc","Allgöwer & Burri 1967; Rady MY et al. 1994."));upd();return c;}
+  window.__calcShow=()=>{const sec=$("page-calc");[...sec.querySelectorAll(".card.cc")].forEach(x=>x.remove());const p=calcPrefill();
+    const n=$("calcNote");if(n)n.textContent=p.read?"Filled in from read #"+(lastReport._rid||"")+" and the patient card. Change anything that doesn't match the patient in front of you.":"No reading yet: fill in the values by hand.";
+    [calcHeart,calcWells,calcSgarbossa,calcSmith,calcQtc,calcShock].forEach(f=>sec.appendChild(f(p)));window.__track&&window.__track("calc");};
 
   // ---------- Offline mode (Netlify only) ----------
   if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")&&!window.claude){window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{});});}
@@ -2159,7 +2582,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     renderThumbs();refresh();if(sample&&imagesOK&&files.length>1&&!$("samePtChk").checked)setStatus("Confirm all photos are from this one patient.");else if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");
   }
   function renderThumbs(){sessPhotos();thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};const rb=document.createElement("button");rb.type="button";rb.className="rot";rb.textContent="↻";rb.setAttribute("aria-label","Turn image "+(i+1));rb.onclick=()=>window.__rotOpen(f);d.append(img,b,rb);if(window.__autoTurned(f)){const tb=document.createElement("span");tb.className="turned";tb.textContent="✓ Turned";tb.title="Turned upright automatically";d.appendChild(tb);}thumbs.appendChild(d);});}
-  $("camInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
+  $("camInput").onchange=e=>{const fl=[...e.target.files];e.target.value="";if(window.__gcGot&&window.__gcGot(fl))return;addFiles(fl);};
   $("fileInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
   ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
@@ -2192,7 +2615,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const fast=mode!=="thorough";
     const age=$("age").value.trim(),sex=$("sex").value,notes=$("notes").value.trim().slice(0,1500),thr=threshold();
     const pacer=window.__cx?window.__cx().pacer:"";
-    const dyn=[(pacer==="Pacemaker"||pacer==="ICD")?"DEVICE: the crew reports the patient has a "+pacer+". Look carefully for pacing spikes and a paced rhythm.":"",zoom?"IMAGES: "+zoom+". Use the zoomed images to read small waveforms (T waves, J-points, pacing spikes) and image 1 to confirm which lead is which. They are NOT other patients or other tracings.":"IMAGES: each image is a separate photo of this one patient's tracing(s)."].filter(Boolean).join("\n");
+    const dyn=[(pacer==="Pacemaker"||pacer==="ICD")?"DEVICE: the crew reports the patient has a "+pacer+". Look carefully for pacing spikes and a paced rhythm.":"",zoom?"IMAGES: "+zoom+". Use the zoomed images to read small waveforms (T waves, J-points, pacing spikes) and image 1 to confirm which lead is which. They are NOT other patients or other tracings.":"IMAGES: each image is a separate photo of this one patient's tracing(s).",layPrompt(),paperPrompt()].filter(Boolean).join("\n");
     return `You are the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) (up to 5) are photos of printed ECG paper from a corpuls, LIFEPAK or similar monitor, and MUST all belong to ONE patient: either several pages of the same 12-lead, or serial 12-leads of the same patient.
 
 SAME-PATIENT CHECK (do this first): compare everything printed on each image: name, patient ID, incident/record ID, age, sex, date and time, device. If any identifier conflicts between images (different name, ID, age or sex, or dates that can't be the same care episode), or the tracings are clearly from different people, set same_patient to false, explain which images conflict, and do NOT measure or combine them. If identifiers are simply not printed, set same_patient to "unconfirmed" and continue.
@@ -2527,8 +2950,12 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const r={decision:"not_met",criterion:"",territory:"",reasoning:"",checks:[],missing:[],warnings:[]};
     const cal=Number(d.calibration&&d.calibration.mm_per_mv);
     const f=(cal>=3&&cal<=25)?10/cal:1;
-    if(!(cal>=3&&cal<=25))r.warnings.push("Calibration pulse not measured; standard 10 mm/mV assumed.");
+    const pap=d._paper||null;
+    if(d.calibration&&d.calibration.crew)r.warnings.push("Calibration pulse not seen in the photo; using the gain you chose ("+cal+" mm/mV), values converted to 10 mm/mV.");
+    else if(!(cal>=3&&cal<=25))r.warnings.push("Calibration pulse not measured; standard 10 mm/mV assumed.");
     else if(Math.abs(cal-10)>0.6)r.warnings.push("Calibration is "+cal+" mm/mV; values converted to standard 10 mm/mV.");
+    if(pap&&pap.printedGain&&Math.abs(pap.printedGain-pap.gain)>0.6)r.warnings.push("You chose "+pap.gain+" mm/mV but the calibration pulse on the printout reads "+pap.printedGain+" mm/mV: the pulse was used. Check the gain printed in the corner of the paper.");
+    if(pap&&pap.printedSpeed&&pap.printedSpeed!==pap.speed)r.warnings.push("You chose "+pap.speed+" mm/s but the printout appears to read "+pap.printedSpeed+" mm/s: the printed speed was used for the rate and intervals.");
     const L=d.leads||{};
     // Photo readings are rounded to the nearest 0.5 mm (a photo can't be read more finely). The monitor's own
     // printed STJ numbers are exact and are NOT rounded (4.4): 0.98 mm stays 0.98 and does not meet ≥1 mm.
@@ -2746,7 +3173,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     LEADS.forEach(k=>{if(vis.has(k))return;const o=d.leads[k];if(o&&o.present!==false&&typeof o.j_mm==="number"&&!d._invented.includes(k))d._invented.push(k);d.leads[k]={present:false,j_mm:null,note:"not in photo"};});
     d._vis=[...vis];return d;}
   function finishRead(data,mode,t0){
-    applyVisible(data);applyMonitorSTJ(data);
+    ensureRid(data);applyPaper(data);applyVisible(data);applyMonitorSTJ(data);
     // 4.9: a lead the lead check couldn't find but the monitor printed an STJ number for is on the printout.
     // Its printed number is used, so it is not "ignored": it is listed separately with a smaller confidence cost.
     {const L=data.leads||{},inv=data._invented||[];data._viaStj=inv.filter(k=>L[k]&&L[k].stj_exact);data._invented=inv.filter(k=>!(L[k]&&L[k].stj_exact));
@@ -2756,7 +3183,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});data._lowv=lowVoltageNote(data);data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
     if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);return data;
   }
-  function logRead(data){if(!isNetlify)return;const st=data.stemi||{};api("POST",{verdict:"log",entry:{decision:st.decision,criterion:(data._mode==="thorough"?"[thorough] ":"")+S(st.criterion),conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:data._secs||0,missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
+  function logRead(data){if(!isNetlify)return;const st=data.stemi||{};api("POST",{verdict:"log",entry:{rid:data._rid||"",decision:st.decision,criterion:(data._mode==="thorough"?"[thorough] ":"")+S(st.criterion),conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:data._secs||0,missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
   // Automatic thorough read only for the riskiest miss: the fast read says NO, but it saw an OMI pattern.
   // A YES that rests only on J-points read from the photo (not on the monitor's printed STJ numbers)
   // is checked by a second, deeper read before it is trusted.
@@ -2872,7 +3299,7 @@ ${dyn}`;}
       if(bg!==me||lastReport!==fast)return;
       const ex=expandCompact(raw);ex._votesOther=(fast.stemi&&fast.stemi.cands)||[];ex._inv=await invFor(ex);ex._stjv=(fast._stjv&&fast._stjv.found)?fast._stjv:await stjFor(ex);if(bg!==me||lastReport!==fast)return;
       const data=finishRead(ex,"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
-      data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};
+      data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};if(fast._rid){data._rid=fast._rid;data._at=fast._at;}
       if(data._from.decision==="met"&&data.stemi.decision!=="met"){const fl=(fast.stemi.metLeads||[]).join(", ");
         data.stemi.decision="consult";data.stemi.criterion="Reads disagree on ST elevation";
         data.stemi.reasoning="The fast read found ST elevation meeting criteria"+(fl?" in "+fl:"")+", but a second, deeper read of the same photo did not. Check these leads on the paper yourself and call UMOC to discuss.";
@@ -2900,7 +3327,7 @@ ${dyn}`;}
     const code=store.get("eqg-code");if(!code)return Promise.resolve(null);
     const p=(async()=>{try{const images=[];for(const f of list){const img=await loadImg(f);images.push(turnedJpeg(img,deg,1400));}
       const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),30000);
-      try{const r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({leads:true,images}),signal:ctl.signal});
+      try{const r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({leads:true,images,hint:layHint()}),signal:ctl.signal});
         if(!r.ok)return null;const j=await r.json().catch(()=>({}));return Array.isArray(j.leads)&&j.leads.length?j.leads:null;}finally{clearTimeout(t);}}
       catch(e){return null;}})();
     invCache.byDeg[deg]=p;return p;}
@@ -3213,6 +3640,7 @@ ${dyn}`;}
       if(o.stj_check)box.appendChild(el("span","chkline","⚠ check paper"));
       if(o.stj_unclear)box.appendChild(el("span","chkline","STJ unclear · photo value"));
       if(o.note)box.title=S(o.note);
+      box.onclick=()=>window.__lvOpen&&window.__lvOpen(k);box.setAttribute("role","button");box.tabIndex=0;
       g.appendChild(box);
     });
     wrap.appendChild(g);
@@ -3222,6 +3650,7 @@ ${dyn}`;}
     items.forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
     {const s=el("span");s.append(el("em","tkey","T"),"Blue T label = abnormal T wave");lg.appendChild(s);}
     wrap.appendChild(lg);
+    {const b=el("button","linkbtn","Open the photo with lead boxes →");b.type="button";b.onclick=()=>window.__lvOpen&&window.__lvOpen(null);b.style.marginTop="6px";wrap.appendChild(b);}
     if(lb)wrap.appendChild(el("p","lbl lnote",(/paced/i.test(bbb)?"Paced rhythm":"LBBB")+": the standard mm thresholds don't apply. ST and T going the opposite way to the QRS is expected; the app checks modified Sgarbossa instead."));
     if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal), (RBBB) or (LBBB) is expected in that lead and is not counted as abnormal."));
     if(order.some(k=>(L[k]||{}).stj_check))wrap.appendChild(el("p","lbl lnote","⚠ check paper: the printed STJ number may have been misread from the photo. Read it on the paper."));
@@ -3282,6 +3711,18 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"5.7",d:"23 Oct 2026",t:"Results: lead map on the photo, at a glance, read ID with handover line, calculators",i:[
+      "New: tap any lead box (or 'Open the photo with lead boxes') to see the photo with approximate boxes for every lead, drawn from the printout layout you chose. Pinch to zoom; the app's number for that lead is shown next to it. Boxes are approximate: check the printed label inside each one.",
+      "New: 'At a glance' under the primary interpretation: Rhythm, Conduction and Other (LVH, Brugada, hyperkalaemia signs, pericarditis, early repolarisation, pacing, long QTc, low voltage).",
+      "New: every reading gets a read ID and time. 'Copy handover' puts a one-line summary on the clipboard (decision, rhythm, all 12 J-points, confidence, no patient identifiers) for the UMOC call or the handover. The read ID is kept in the usage log.",
+      "New: Calculators (Quick actions): HEART / HEAR, Wells PE, modified Sgarbossa, Smith's subtle anterior OMI formula, QTc (Bazett and Fridericia) and shock index. Offline; filled in from the last reading and the patient card where possible."]},
+    {v:"5.6",d:"22 Oct 2026",t:"Guided capture: printout layout, step-by-step camera, paper settings",i:[
+      "New: 'What does your ECG printout look like?' Choose 1, 2 or 4 pages (or a strip) and the lead order (Standard or Cabrera). Remembered on this phone. The reader is told where every lead is, so leads are less likely to be mixed up.",
+      "New: the camera now walks through the pages one at a time (for example 'Page 1 of 2 · Limb leads', then 'Chest leads'), shows a level indicator, checks each page for blur and glare, and lets you retake a single page before the photos are used.",
+      "New: paper speed (25/50 mm/s) and gain (5/10/20 mm/mV) are confirmed once and remembered. If the printout's calibration pulse disagrees with the chosen gain, the result says so.",
+      "Cabrera printouts: the lead printed as −aVR is reported as aVR (mirrored), so the criteria still apply to the standard 12 leads."]},
+    {v:"5.5",d:"19 Oct 2026",t:"Learning page: usage log and validation tally",i:[
+      "Fix: the Usage log and Validation tally on the Learning page never filled in (they always said 'No readings logged yet'). The update log under Settings had been given the same internal name and was replacing them. Both now show the logged readings and the reviewers' confirmed answers."]},
     {v:"5.4",d:"15 Oct 2026",t:"Says when the STJ table was not verified",i:[
       "When the printed STJ numbers could not be verified from a close-up, the report now says so at the top and why: the server file read.js is still old, the table was not found, or the check did not finish. Before, it quietly used the main read's copy.",
       "If the main read copied STJ numbers and the close-up check is still running, the app waits for it (up to 25 s, with a status line) instead of giving up after 8 s.",
@@ -3512,7 +3953,7 @@ ${dyn}`;}
       "Installable on the phone; reference pages work offline.",
       "Team access code."]}
   ];
-  function renderLog(){
+  function renderChangelog(){
     const w=el("div","chlog");w.appendChild(el("h3",null,"Update log"));
     const n=CHANGELOG.reduce((a,c)=>a+c.i.length,0);
     {const by=el("p","lbl","Built by JPS · "+n+" updates in "+CHANGELOG.length+" versions");let taps=0,tt=0;
@@ -3522,8 +3963,8 @@ ${dyn}`;}
       const ul=el("ul","chitems");c.i.forEach((t,k)=>{const li=el("li");li.append(el("span","chcode",c.v+String.fromCharCode(97+k)),el("span",null,t));ul.appendChild(li);});
       det.appendChild(ul);w.appendChild(det);});
     return w;}
-  $("settingsBtn").onclick=()=>{renderSettings();$("setList").appendChild(renderUsage());$("setList").appendChild(renderLog());sheetOpen("setSheet");};
-  $("setAll").onclick=()=>{secOn={};saveSec();renderSettings();$("setList").appendChild(renderUsage());$("setList").appendChild(renderLog());if(lastReport&&!report.hidden)applySections(lastReport);};
+  $("settingsBtn").onclick=()=>{renderSettings();$("setList").appendChild(renderUsage());$("setList").appendChild(renderChangelog());sheetOpen("setSheet");};
+  $("setAll").onclick=()=>{secOn={};saveSec();renderSettings();$("setList").appendChild(renderUsage());$("setList").appendChild(renderChangelog());if(lastReport&&!report.hidden)applySections(lastReport);};
 
   function render(d){
     report.textContent="";
@@ -3601,8 +4042,10 @@ ${dyn}`;}
     const p=d.primary||{};const h=el("div","card head");
     h.appendChild(el("p","k","Primary interpretation"+(d._mode==="fast"?" · fast read":d._mode==="thorough"?" · thorough read":"")));h.appendChild(el("div","r",S(p.rhythm)||"Interpretation unavailable"));
     if(p.summary)h.appendChild(el("p",null,S(p.summary)));
+    h.appendChild(glanceRows(d));
     const cc=d._conf;if(cc){h.appendChild(el("span","pill"+(cc.level==="Low"?" low":""),"Confidence: "+cc.level+" ("+cc.score+"%)"));
       const det=document.createElement("details");det.className="conf-d";const sm=document.createElement("summary");sm.textContent="Why this confidence?";det.appendChild(sm);det.appendChild(list(cc.why));h.appendChild(det);}
+    h.appendChild(ridRow(d));
     report.insertBefore(h,report.firstChild);
     if(d._from){const ch=d._from.decision!==(d.stemi&&d.stemi.decision);const n=el("div","upd"+(ch?" changed":""));
       n.appendChild(el("b",null,ch?"Updated by thorough read: decision CHANGED":"Confirmed by thorough read"));
@@ -3642,6 +4085,7 @@ ${dyn}`;}
     const P=d.parameters||{};const g=el("div","params");
     [["rate","Rate"],["regularity","Regularity"],["p_waves","P waves"],["pr","PR"],["qrs","QRS"],["qt","QT / QTc"],["axis","Axis"]].forEach(([k,l])=>{const v=P[k];if(!v)return;const c=el("div","param");c.appendChild(el("div","pk",l));c.appendChild(el("div","pv",S(typeof v==="object"?v.value:v)||"—"));if(typeof v==="object"&&v.note)c.appendChild(el("div","pn",S(v.note)));g.appendChild(c);});
     report.appendChild(card("Measured parameters",g));
+    {const w=el("div");w.style.padding="0 6px";const b=el("button","linkbtn","Risk scores for this patient: HEART, Wells, QTc, Sgarbossa →");b.type="button";b.onclick=()=>go("calc");w.appendChild(b);report.appendChild(w);}
 
     const PROTO={
       met:["Defib pads on; continuous monitoring.","Call UMOC 02 504 8555: \"STEMI Pathway Activation\", nearest approved PPCI facility, exact location. Stay on the call.","Give CASMEET on the conference call; depart scene as soon as possible.","Treat per Clinical Guidelines and Medication Formulary (antiplatelet, nitrate if SBP allows and no RV infarct / PDE-5 use, oxygen only if SpO₂ low).","Upload ECG and vitals; complete the STEMI Pathway tabs in SPMS.","Repeat 12-lead with any change; I-MIST-AMBO handover on arrival."],

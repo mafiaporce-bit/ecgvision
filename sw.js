@@ -1,8 +1,8 @@
 // EMS Quick ECG Guide – offline support.
 // The app shell (page, icon, manifest, fonts) is saved on the phone so the reference pages,
 // handover builder and UMOC call button work without signal. ECG analysis always needs internet.
-const CACHE = "eqg-shell-v1";
-const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icon.svg"];
+const CACHE = "eqg-shell-v2";
+const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png", "/favicon-48.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

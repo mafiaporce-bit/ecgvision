@@ -624,6 +624,15 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .cres.low{background:#E7F6EC;border-color:#7ED99A}.cres.mod{background:var(--warn-bg);border-color:var(--warn)}.cres.high{background:#FBE4E7;border-color:var(--crit)}
 .csrc{margin:8px 0 0;font-size:.72rem;color:var(--soft)}
 .cpre{display:inline-block;margin-left:6px;font-size:.7rem;font-weight:700;color:#1F6E43;background:#E7F6EC;border-radius:999px;padding:2px 8px;vertical-align:middle}
+/* ---- 5.8 OmniHeart v3.0 triage banner ---- */
+.omni{border-radius:20px;padding:14px 16px;border:2px solid;margin-bottom:10px}
+.omni.red{background:#FDE7EA;color:#5C0E19;border-color:#C3283A}
+.omni.amber{background:#FFF4D1;color:#3A2A00;border-color:#E0A800}
+.omni.green{background:#E3F5EA;color:#0F3D22;border-color:#2E8B57}
+.omni .q{font-size:.8rem;margin:0;opacity:.8;font-weight:700;letter-spacing:.02em}
+.omni .a{font-size:1.25rem;font-weight:900;margin:2px 0 4px;line-height:1.2}
+.omni p{margin:4px 0 0}
+.omni .sig{font-size:.82rem;opacity:.85}
 .thumb .chk-badge{position:absolute;left:4px;bottom:4px;font-size:.68rem;font-weight:700;border-radius:6px;padding:2px 6px;border:0;cursor:pointer}
 .thumb .chk-badge.need{background:#C3283A;color:#fff}
 .thumb .chk-badge.okb{background:rgba(0,0,0,.6);color:#fff}
@@ -1522,7 +1531,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="5.7";
+  const APP_VERSION="5.8";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2392,6 +2401,35 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const up=e=>{LV.ptrs.delete(e.pointerId);};st.addEventListener("pointerup",up);st.addEventListener("pointercancel",up);st.addEventListener("lostpointercapture",up);
     st.addEventListener("wheel",e=>{e.preventDefault();lvZoomAt(e.clientX,e.clientY,LV.s*(e.deltaY<0?1.15:0.87));},{passive:false});}
 
+  // ---------- 5.8: OmniHeart v3.0 triage directive ----------
+  // A summary label on top of the protocol result. It is worked out here in code FROM the protocol's own decision
+  // (STEMI PPCI pathway + the 12 OMI patterns); the AI never sets it, and it can never be lower than the protocol.
+  const OMNI={v:"3.0"};
+  const Q_BAD=/noise|noisy|artifact|artefact|wander|interferen|blur|glare|cut[- ]?off|unreadable|not readable|could not|cannot|can't|reversal|shiver|tremor|missing|faint|dark|shadow|fold|crease/i;
+  function omniTriage(d){
+    const st=d.stemi||{},dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult",q=d.quality||{};
+    const omi=st.omi||[],conf=omi.filter(x=>x.confirmed),summ=S(q.summary),lim=Array.isArray(q.limitations)?q.limitations:[];
+    const rev=/lead reversal/i.test(summ)||lim.some(x=>/lead reversal/i.test(S(x)));
+    const poor=!!(st.incomplete||Q_BAD.test(summ)||lim.some(x=>Q_BAD.test(S(x)))||(d._invented||[]).length||(d._look&&d._look.failed)||d._verifyFailed);
+    const sig=q.adequate===false?"RE-ACQUIRE":poor?"SUB-OPTIMAL":"OPTIMAL";
+    const why=[];if(rev)why.push("Possible lead reversal: check electrode placement and record a new 12-lead.");
+    let lv,label,action;
+    if(dec==="met"){lv="red";label="🔴 CODE OMI — STEMI PPCI criteria met";action="Activate per protocol: call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d.";}
+    else if(conf.length){lv="red";label="🔴 CODE OMI — OMI pattern confirmed";action="Per protocol this is not an automatic activation: call UMOC 02 504 8555 to discuss STEMI PPCI activation ("+conf.map(x=>x.n).join(", ")+").";}
+    else if(dec==="consult"||omi.length){lv="amber";label="🟡 HIGH-RISK — borderline / possible OMI";action="Call UMOC 02 504 8555 to discuss. Repeat the 12-lead every 10–15 minutes, or at once if symptoms change.";}
+    else if(sig==="RE-ACQUIRE"||st.incomplete||rev){lv="amber";label="🟡 HIGH-RISK — tracing not good enough to rule out";action="Record a new, complete 12-lead and analyze again. Until then do not treat this as a NO.";}
+    else{lv="green";label="🟢 No protocol criterion or OMI pattern found";action="Manage per working diagnosis and the Clinical Guidelines. A normal reading does not rule out ACS: repeat the 12-lead if symptoms continue or change.";}
+    if(sig==="RE-ACQUIRE")why.push("Tracing quality: the reader could not measure it safely"+(summ?" ("+summ+")":"")+".");
+    else if(sig==="SUB-OPTIMAL"&&summ&&Q_BAD.test(summ))why.push("Tracing quality: "+summ);
+    return {lv,label,action,sig,why};
+  }
+  window.__omniTriage=omniTriage;
+  function omniBox(d){const t=omniTriage(d);const b=el("div","omni "+t.lv);b.setAttribute("role",t.lv==="red"?"alert":"note");
+    b.appendChild(el("p","q","OmniHeart v"+OMNI.v+" triage"));b.appendChild(el("div","a",t.label));b.appendChild(el("p",null,t.action));
+    b.appendChild(el("p","sig","Signal: "+t.sig));t.why.forEach(x=>b.appendChild(el("p","sig","⚠ "+x)));
+    b.appendChild(el("p","sig","Follows "+PROTOCOL.name+" and the service's 12 OMI patterns. Decision support only: the crew, UMOC and the physician decide."));
+    return b;}
+
   // ---------- 5.7: at a glance (rhythm / conduction / other), read ID and handover line ----------
   const RC_TXT={sinus:"Sinus rhythm",sinus_brady:"Sinus bradycardia",sinus_tach:"Sinus tachycardia",sinus_arrhythmia:"Sinus arrhythmia",afib:"Atrial fibrillation",aflutter:"Atrial flutter",svt:"SVT",junctional:"Junctional rhythm",first_degree_block:"Sinus with 1st-degree AV block",mobitz1:"2nd-degree AV block, Mobitz I",mobitz2:"2nd-degree AV block, Mobitz II",complete_block:"Complete AV block",vt_mono:"Monomorphic VT",vt_poly_torsades:"Polymorphic VT / torsades",vf:"Ventricular fibrillation",idioventricular:"Idioventricular rhythm",paced:"Paced rhythm",asystole:"Asystole",undetermined:"Rhythm undetermined"};
   function glanceRows(d){const g=el("div","glance");const row=(k,v)=>{g.appendChild(el("span","k",k));g.appendChild(el("span","v",v));};
@@ -2407,7 +2445,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const js=LEADS.map(k=>{const j=J(k);return k+" "+(j===null?"n/a":(j>0?"+":"")+j);}).join(", ");
     const c=d.conduction||{},rate=Number(d.rate_bpm)||null,rc=RC_TXT[S(d.rhythm_class).toLowerCase()]||S(d.rhythm_class)||"";const nv=(d._stjVerified||[]).length;
     const stj=nv?"printed STJ verified "+nv+"/12":(d.printed&&d.printed.stj&&Object.keys(d.printed.stj).length?"printed STJ copied, not verified":"photo measurement");
-    return "EMS Quick ECG Guide read #"+d._rid+" · "+fmtAt(d._at)+" · Patient "+($("age").value||"?")+" "+($("sex").value||"").slice(0,1)+" · Decision: "+dec+(st.criterion?" ("+S(st.criterion)+")":"")+" · Rhythm: "+(rc||"—")+(rate?" "+rate+"/min":"")+(c.qrs_ms?", QRS "+c.qrs_ms+" ms":"")+(S(c.bbb)&&!/^none$/i.test(S(c.bbb))?", "+S(c.bbb):"")+" · J-points (mm at 10 mm/mV): "+js+" · "+stj+(d._conf?" · Confidence "+d._conf.score+"% ("+d._conf.level+")":"")+" · Decision support only; UMOC decides · App v"+APP_VERSION;}
+    return "EMS Quick ECG Guide read #"+d._rid+" · "+fmtAt(d._at)+" · Patient "+($("age").value||"?")+" "+($("sex").value||"").slice(0,1)+" · Triage: "+omniTriage(d).label.replace(/^[^A-Za-z]+/,"")+" · Decision: "+dec+(st.criterion?" ("+S(st.criterion)+")":"")+" · Rhythm: "+(rc||"—")+(rate?" "+rate+"/min":"")+(c.qrs_ms?", QRS "+c.qrs_ms+" ms":"")+(S(c.bbb)&&!/^none$/i.test(S(c.bbb))?", "+S(c.bbb):"")+" · J-points (mm at 10 mm/mV): "+js+" · "+stj+(d._conf?" · Confidence "+d._conf.score+"% ("+d._conf.level+")":"")+" · Decision support only; UMOC decides · App v"+APP_VERSION;}
   function ridRow(d){ensureRid(d);const r=el("div","rid");r.appendChild(el("span",null,"Read"));r.appendChild(el("b",null,"#"+d._rid));r.appendChild(el("span",null,fmtAt(d._at)));
     const cp=el("button",null,"Copy handover");cp.type="button";cp.onclick=()=>{const t=handoverText(d);const done=()=>toast("Handover line copied (no patient identifiers)");
       if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(()=>{window.prompt("Copy this handover line:",t);});else window.prompt("Copy this handover line:",t);window.__track&&window.__track("handover");};r.appendChild(cp);
@@ -2616,10 +2654,16 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const age=$("age").value.trim(),sex=$("sex").value,notes=$("notes").value.trim().slice(0,1500),thr=threshold();
     const pacer=window.__cx?window.__cx().pacer:"";
     const dyn=[(pacer==="Pacemaker"||pacer==="ICD")?"DEVICE: the crew reports the patient has a "+pacer+". Look carefully for pacing spikes and a paced rhythm.":"",zoom?"IMAGES: "+zoom+". Use the zoomed images to read small waveforms (T waves, J-points, pacing spikes) and image 1 to confirm which lead is which. They are NOT other patients or other tracings.":"IMAGES: each image is a separate photo of this one patient's tracing(s).",layPrompt(),paperPrompt()].filter(Boolean).join("\n");
-    return `You are the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) (up to 5) are photos of printed ECG paper from a corpuls, LIFEPAK or similar monitor, and MUST all belong to ONE patient: either several pages of the same 12-lead, or serial 12-leads of the same patient.
+    return `You are OmniHeart v${OMNI.v}, the measuring engine of EMS Quick ECG Guide, used by an Abu Dhabi EMS service (ADCDA ambulance, UMOC command). The attached image(s) (up to 5) are photos of printed ECG paper from a corpuls, LIFEPAK or similar monitor, and MUST all belong to ONE patient: either several pages of the same 12-lead, or serial 12-leads of the same patient.
 
 SAME-PATIENT CHECK (do this first): compare everything printed on each image: name, patient ID, incident/record ID, age, sex, date and time, device. If any identifier conflicts between images (different name, ID, age or sex, or dates that can't be the same care episode), or the tracings are clearly from different people, set same_patient to false, explain which images conflict, and do NOT measure or combine them. If identifiers are simply not printed, set same_patient to "unconfirmed" and continue.
 MULTIPLE IMAGES: if they are pages of one 12-lead, combine them so every lead is measured once. If they are serial 12-leads, measure the MOST RECENT one (latest printed time, or the last image if no time) for "leads", and describe changes from earlier ones in "serial_changes".
+
+OMNIHEART RULES (these sit UNDER the service protocol and never change it):
+- PROTOCOL FIRST: this service follows the ${PROTOCOL.name}, and its own 12 OMI patterns (listed under OMI PATTERNS below). Those are the rules. No other guideline, textbook cut-off or general ECG knowledge replaces them. STEMI activation, UMOC calls and treatment come only from the protocol, which the app applies in code to your measurements. Where anything you know differs from the protocol, the protocol wins.
+- SIGNAL QUALITY BEFORE MEASURING: look for muscle tremor/shivering, movement artifact, mains (50/60 Hz) interference, baseline wander and lead reversal (LA/RA swap: negative P, QRS and T in lead I with upright aVR; precordial misplacement: R-wave progression that fits no pattern). Do not read ST deviation from a lead whose baseline is too noisy or wandering to find the TP line: treat it as unreadable and name it in the quality line. If you suspect a lead reversal, start the quality line with "LEAD REVERSAL:" and name it. If the tracing cannot be measured safely, mark quality as not adequate.
+- MIMICS DO NOT CANCEL OMI: report pericarditis, early repolarisation, Brugada, hyperkalaemia, LVH and bundle branch block in their fields as usual. If the measurements fit an OMI pattern AND a mimic, report both; the app sends it to UMOC.
+- NO MISSED OCCLUSION: measure exactly as the rules below say. Do not round toward normal, and do not round toward abnormal.
 
 YOUR JOB IS TO MEASURE, NOT TO DECIDE. The app applies the service's STEMI activation criteria (ESC 2023 table) to YOUR per-lead measurements. If you over-measure, a patient is wrongly sent to the cath lab; if you under-measure, an occlusion is missed. Measure exactly what is on the paper.
 
@@ -3711,6 +3755,12 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"5.8",d:"23 Oct 2026",t:"OmniHeart v3.0 triage",i:[
+      "New OmniHeart triage banner above the STEMI result: 🔴 CODE OMI, 🟡 HIGH-RISK or 🟢 no criterion found. It is worked out from the STEMI PPCI pathway (UMOC & ADCDA) and the 12 OMI patterns, never from the AI alone, and is never lower than the protocol.",
+      "The banner shows the tracing quality (OPTIMAL, SUB-OPTIMAL or RE-ACQUIRE). An unreadable tracing, missing leads or a possible lead reversal is never shown as green. The triage label is included in the handover line.",
+      "The reader now checks for shivering, movement, mains interference, baseline wander and lead reversal before measuring, and follows the service protocol first.",
+      "The Lead-by-lead read now sits directly under the STEMI PPCI decision, so the numbers behind the decision are the next thing you see.",
+      "Same OmniHeart build as the ADCDA (UESP) app's ECG page, which labels it 5.6; in this app 5.6 is the guided capture and 5.7 the results page."]},
     {v:"5.7",d:"23 Oct 2026",t:"Results: lead map on the photo, at a glance, read ID with handover line, calculators",i:[
       "New: tap any lead box (or 'Open the photo with lead boxes') to see the photo with approximate boxes for every lead, drawn from the printout layout you chose. Pinch to zoom; the app's number for that lead is shown next to it. Boxes are approximate: check the printed label inside each one.",
       "New: 'At a glance' under the primary interpretation: Rhythm, Conduction and Other (LVH, Brugada, hyperkalaemia signs, pericarditis, early repolarisation, pacing, long QTc, low voltage).",
@@ -3991,7 +4041,9 @@ ${dyn}`;}
     if(st.reasoning)box.appendChild(el("p",null,S(st.reasoning)));
     if(dec!=="not_met"){const a=el("a","call",dec==="met"?"Call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d":"Call UMOC 02 504 8555 for conference call");a.href="tel:025048555";box.appendChild(a);}
     else box.appendChild(el("p",null,"Manage per working diagnosis. Transport to the nearest appropriate facility."));
+    if(!pending)report.appendChild(omniBox(d));
     report.appendChild(box);
+    report.appendChild(card("Lead-by-lead read (J-point, standard 10 mm/mV)",leadMap(d))); // 5.8: straight under the decision
     if(st.omi&&st.omi.length){const ob=el("div","omibox");ob.setAttribute("role","alert");
       const conf=st.omi.filter(x=>x.confirmed);
       ob.appendChild(el("p","q","OMI pattern seen"));
@@ -4065,7 +4117,6 @@ ${dyn}`;}
     }
 
     if(files.length>1&&(d.images_used||arr(d.serial_changes).length)){const w=el("div");if(d.images_used)w.appendChild(el("p",null,S(d.images_used)));const sc=arr(d.serial_changes);if(sc.length){w.appendChild(el("p","lbl","Changes between serial ECGs"));w.appendChild(list(sc));}report.appendChild(card("Photos used",w));}
-    report.appendChild(card("Lead-by-lead read (J-point, standard 10 mm/mV)",leadMap(d)));
     const pr=d.printed||{};const pi=arr(pr.interpretation);const stj=pr.stj&&typeof pr.stj==="object"?Object.entries(pr.stj).filter(([k,v])=>v!==null&&v!==""):[];
     const pm=[["HR",pr.hr],["PR",pr.pr],["QRS",pr.qrs],["QT/QTc",pr.qtc],["Axes",pr.axes]].filter(x=>x[1]);
     if(pi.length||stj.length||pm.length){const w=el("div");

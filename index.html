@@ -603,6 +603,10 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .lv-tools button[aria-pressed="true"]{background:#fff;color:#0B1624}
 .lv-tools span{margin-left:auto}
 .lv-note{position:absolute;left:12px;right:12px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:.74rem;padding:6px 10px;border-radius:10px;text-align:center}
+/* 6.4 pixel measure on the lead tiles */
+.lead .pxl{display:block;margin:3px auto 0;font-size:.66rem;font-weight:700;border-radius:6px;padding:1px 4px;width:max-content;max-width:100%;background:#fff;color:#4A5A6C;border:1px solid #D4DDE6}
+.lead .pxl.pxok{color:#1F6E43;border-color:#9FD8B5;background:#F1FBF4}.lead .pxl.pxno{color:#8A5A00;border-color:#E8C27A;background:#FFF6E0}.lead .pxl.pxun{color:#7A8794}
+.pxnote{border-left:3px solid #9DB4CC;padding-left:8px}
 /* 6.0 measure + strips */
 .lv-line{position:absolute;left:-2000px;right:-2000px;height:0;border-top:2px solid #4FC3F7;pointer-events:none;border-top-width:calc(2px * var(--inv,1))}
 .lv-line.jp{border-top-color:#FF6B7E}
@@ -1543,7 +1547,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="6.3";
+  const APP_VERSION="6.4";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2434,8 +2438,9 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const pick=(ac,len)=>{const {Ps,sc}=scoreCurve(ac);if(!sc.length)return null;let i=0;for(let j=1;j<sc.length;j++)if(sc[j]>sc[i])i=j;const best=sc[i],P=Ps[i];if(best<0.08)return null;
       const near=(t,tol)=>{let j=0;for(let q=1;q<Ps.length;q++)if(Math.abs(Ps[q]-t)<Math.abs(Ps[j]-t))j=q;if(Math.abs(Ps[j]-t)>tol)return -1;const lo=Math.max(0,j-4),hi=Math.min(sc.length-1,j+4);let jj=lo;for(let q=lo;q<=hi;q++)if(sc[q]>sc[jj])jj=q;return jj;};
       const t=P/5;if(t>=3.5){const jj=near(t,Math.max(0.6,0.1*t));if(jj>=0&&sc[jj]>=0.3*best&&sc[jj]>0.06)return {P:Ps[jj],score:sc[jj],how:"thin"};}
-      const maxL=ac.length-1;if(5*P<maxL-2){const L=Math.round(5*P);let mx=0;for(let q=Math.max(1,L-3);q<=L+3;q++)mx=Math.max(mx,ac[q]);if(mx>0.5*ac[Math.round(P)]&&mx>0.08)return {P,score:best,how:"thin"};}
-      if(len/P<50)return {P:P/5,score:best,how:"bold"};return {P,score:best,how:"single"};};
+      // Only one line spacing is visible. A photo of a 12-lead shows 80 mm or more of paper, so a spacing that would make
+      // the paper shorter than that is the 5 mm (bold) spacing, not the 1 mm one.
+      if(len/P<80&&P/5>=2)return {P:P/5,score:best,how:"bold"};return {P,score:best,how:"single"};};
     const est=(sig,axis)=>{const band=160,maxL=Math.min(420,Math.floor((axis===1?h:w)/3));if(maxL<30)return null;let sum=null,n=0;
       if(axis===1){const step=Math.max(band,Math.floor((w*0.7-band)/8)||band);for(let sx=Math.floor(w*0.15);sx+band<=Math.floor(w*0.85);sx+=step){const s=new Float64Array(h);for(let yy=0;yy<h;yy++){let t=0;for(let xx=sx;xx<sx+band;xx++)t+=sig[yy*w+xx];s[yy]=t;}const r=acf(detrend(s),maxL);if(!r)continue;if(!sum)sum=new Float64Array(maxL+1);for(let L=0;L<=maxL;L++)sum[L]+=r[L];n++;}}
       else{const step=Math.max(band,Math.floor((h*0.7-band)/8)||band);for(let sy=Math.floor(h*0.15);sy+band<=Math.floor(h*0.85);sy+=step){const s=new Float64Array(w);for(let yy=sy;yy<sy+band;yy++){const row=yy*w;for(let xx=0;xx<w;xx++)s[xx]+=sig[row+xx];}const r=acf(detrend(s),maxL);if(!r)continue;if(!sum)sum=new Float64Array(maxL+1);for(let L=0;L<=maxL;L++)sum[L]+=r[L];n++;}}
@@ -2502,6 +2507,131 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   $("lvStripsCv").addEventListener("click",e=>{const r=$("lvStripsCv").getBoundingClientRect();const px=e.clientX-r.left,py=e.clientY-r.top;const hit=(LV.stripRects||[]).find(c=>px>=c.X&&px<=c.X+c.W&&py>=c.Y&&py<=c.Y+c.H);if(!hit)return;
     lvView("photo");const fi=lvPageOf(hit.k);const go=()=>{lvChips();lvGo(hit.k);LV.meas.base=null;LV.meas.jp=null;lvMeasOn(true);};if(fi!==LV.fi){LV.sel=hit.k;lvLoad(fi).then(go);}else go();});
   window.__lvOpenStrips=()=>{lvOpen(null).then(()=>lvView("strips"));};
+
+  // ---------- 6.4: pixel digitizer (shadow mode) ----------
+  // Measures ST at the J-point from the photo's pixels: removes the paper grid, follows the trace, finds each
+  // complete beat's QRS, takes the PR-segment baseline and the J-point level, and reports the median of the beats.
+  // Same photo in, same numbers out. Shown next to the AI's value; it does NOT change any decision (shadow mode)
+  // until it has been checked against the monitor's printed STJ numbers.
+  const DG={};
+  // Work image for one region of the photo, scaled to about 10 px per mm.
+  DG.work=function(img,rx0,ry0,rx1,ry1,pxmm){const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;const sc=Math.min(1,10/pxmm),pm=pxmm*sc;
+    const sx=Math.max(0,rx0*iw),sy=Math.max(0,ry0*ih),sw=Math.min(iw,rx1*iw)-sx,sh=Math.min(ih,ry1*ih)-sy;const W=Math.max(16,Math.round(sw*sc)),H=Math.max(16,Math.round(sh*sc));
+    const c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");x.imageSmoothingEnabled=true;x.imageSmoothingQuality="high";x.drawImage(img,sx,sy,sw,sh,0,0,W,H);
+    const d=x.getImageData(0,0,W,H).data,dk=new Uint8Array(W*H);for(let i=0,p=0;i<d.length;i+=4,p++)dk[p]=255-Math.max(d[i],d[i+1],d[i+2]);
+    // grid removal: a grid line darkens (almost) a whole row or column; the trace never does. Low percentile = background.
+    const pctRow=(y)=>{const h=new Uint32Array(256);for(let i=0;i<W;i++)h[dk[y*W+i]]++;const t=Math.floor(W*0.2);let a=0;for(let v=0;v<256;v++){a+=h[v];if(a>t)return v;}return 255;};
+    const pctCol=(xx)=>{const h=new Uint32Array(256);for(let i=0;i<H;i++)h[dk[i*W+xx]]++;const t=Math.floor(H*0.2);let a=0;for(let v=0;v<256;v++){a+=h[v];if(a>t)return v;}return 255;};
+    const rb=new Uint8Array(H),cb=new Uint8Array(W);for(let y=0;y<H;y++)rb[y]=pctRow(y);for(let i=0;i<W;i++)cb[i]=pctCol(i);
+    const res=new Uint8Array(W*H);const hist=new Uint32Array(256);
+    for(let y=0;y<H;y++){const r=rb[y];for(let i=0;i<W;i++){const p=y*W+i;const v=dk[p]-Math.max(r,cb[i]);const q=v>0?v:0;res[p]=q;hist[q]++;}}
+    let acc=0,p995=255;for(let v=255;v>=0;v--){acc+=hist[v];if(acc>W*H*0.005){p995=v;break;}}
+    const T=Math.max(26,0.4*p995);return {W,H,pm,res,T,sx,sy,sc};};
+  // Follow the trace through one strip [x0,x1) x [y0,y1) of a work image; yc = where the baseline should be.
+  DG.trace=function(w,x0,x1,y0,y1,yc){const {W,res,T,pm}=w;const n=x1-x0;if(n<10)return null;const top=new Float32Array(n),bot=new Float32Array(n),cen=new Float32Array(n);
+    const cols=[];for(let k=0;k<n;k++){const xx=x0+k;const rr=[];let y=y0;
+      while(y<y1){if(res[y*W+xx]>T){let a=y,b=y,s=0,m=0;while(b<y1&&(res[b*W+xx]>T||(b+1<y1&&res[(b+1)*W+xx]>T))){const v=res[b*W+xx];s+=v;m+=v*b;b++;}rr.push({t:a,b:b-1,c:s?m/s:(a+b-1)/2,s});y=b+1;}else y++;}
+      rr.sort((u,v)=>v.s-u.s);cols.push(rr.slice(0,6));}
+    // dynamic programming: the trace is continuous, so a jump across empty paper costs; straying far from the row's baseline costs a little
+    const lam=3/pm,unary=r=>1-0.6*Math.min(Math.abs(r.c-yc)/(15*pm),1);
+    const S=new Array(n),B=new Array(n),prevCol=new Int32Array(n).fill(-1);let last=-1;
+    for(let k=0;k<n;k++){const rr=cols[k];if(!rr.length)continue;S[k]=new Float64Array(rr.length);B[k]=new Int16Array(rr.length).fill(-1);prevCol[k]=last;
+      rr.forEach((r,i)=>{let best=0,bi=-1;if(last>=0){best=-1e9;cols[last].forEach((q,j)=>{const gap=Math.max(0,r.t-q.b,q.t-r.b);const v=S[last][j]-lam*gap;if(v>best){best=v;bi=j;}});}S[k][i]=best+unary(r);B[k][i]=bi;});last=k;}
+    if(last<0)return null;
+    const pick=new Array(n).fill(null);let k=last,i=0;for(let j=1;j<S[k].length;j++)if(S[k][j]>S[k][i])i=j;
+    while(k>=0&&i>=0){pick[k]=cols[k][i];const j=B[k][i];k=prevCol[k];i=j;}
+    let lastp=-1;for(let q=0;q<n;q++){if(pick[q]){if(lastp>=0&&q-lastp>1){for(let z=lastp+1;z<q;z++){const f=(z-lastp)/(q-lastp);const a=pick[lastp],b=pick[q];top[z]=bot[z]=cen[z]=a.c+(b.c-a.c)*f;}}top[q]=pick[q].t;bot[q]=pick[q].b;cen[q]=pick[q].c;lastp=q;}}
+    if(lastp<0)return null;const first=pick.findIndex(Boolean);for(let z=0;z<first;z++){top[z]=bot[z]=cen[z]=pick[first].c;}for(let z=lastp+1;z<n;z++){top[z]=bot[z]=cen[z]=pick[lastp].c;}
+    return {top,bot,cen,n,cov:pick.filter(Boolean).length/n,has:pick.map(Boolean)};};
+  // Measure ST at the J-point on every complete beat of a traced strip. Returns paper millimetres (before gain correction).
+  DG.measure=function(tr,pm,speed){const n=tr.n,s=new Float32Array(n),f=(speed===50?2:1);for(let k=0;k<n;k++)s[k]=-tr.cen[k]/pm;
+    const th=[];for(let k=0;k<n;k++)th.push((tr.bot[k]-tr.top[k])/pm);const thick=th.slice().sort((a,b)=>a-b)[Math.floor(n*0.5)]||0.3;
+    const w=Math.max(1,Math.round(0.2*pm*f)),act=new Float32Array(n);
+    for(let k=0;k<n;k++){const a=s[Math.max(0,k-w)],b=s[Math.min(n-1,k+w)];const sl=Math.abs(b-a)/((Math.min(n-1,k+w)-Math.max(0,k-w))/pm||1);act[k]=Math.max(sl,Math.max(0,th[k]-thick-0.25)*pm/f);}
+    const srt=Array.from(act).sort((a,b)=>a-b);const p98=srt[Math.floor(n*0.98)]||0;const thr=Math.max(3.5/f,0.3*p98);
+    // QRS complexes = runs of steep columns
+    const cx=[];let k=0;const gapMax=Math.round(0.8*pm*f);
+    while(k<n){if(act[k]>thr){let a=k,b=k,g=0;while(b+1<n&&g<=gapMax){b++;if(act[b]>thr)g=0;else g++;}b-=g;cx.push({on:a,off:b});k=b+1;}else k++;}
+    const lvl=(a,b)=>{a=Math.max(0,Math.round(a));b=Math.min(n-1,Math.round(b));if(b<a)return null;const v=[];for(let q=a;q<=b;q++)v.push(s[q]);v.sort((x,y)=>x-y);return v[Math.floor(v.length/2)];};
+    const exc=c=>{let lo=1e9,hi=-1e9;for(let q=Math.max(0,c.on-2);q<=Math.min(n-1,c.off+2);q++){lo=Math.min(lo,-tr.bot[q]/pm);hi=Math.max(hi,-tr.top[q]/pm);}return hi-lo;};
+    let qrs=cx.filter(c=>(c.off-c.on+1)/pm/f>=0.25&&exc(c)>=1.2);
+    // calibration pulse: a step up, a flat top about 5 mm (0.2 s) long, a step down
+    const pulse=new Set();for(let i=0;i+1<qrs.length;i++){const A=qrs[i],B=qrs[i+1];const gap=(B.on-A.off)/pm/f;if(gap<3.2||gap>7.5)continue;
+      const mid=lvl(A.off+0.5*pm*f,B.on-0.5*pm*f),pre=lvl(A.on-1.5*pm*f,A.on-0.3*pm*f),post=lvl(B.off+0.3*pm*f,B.off+1.5*pm*f);
+      let sd=0,cnt=0;for(let q=Math.round(A.off+0.5*pm*f);q<=B.on-0.5*pm*f;q++){sd+=(s[q]-mid)**2;cnt++;}sd=cnt?Math.sqrt(sd/cnt):9;
+      if(mid!==null&&pre!==null&&Math.abs(mid-pre)>=3.5&&sd<0.35&&(post===null||Math.abs(post-pre)<1.5)){pulse.add(A);pulse.add(B);}}
+    qrs=qrs.filter(c=>!pulse.has(c));
+    // very wide complexes (PVCs, paced beats) are left out when narrower beats exist
+    const wids=qrs.map(c=>c.off-c.on).sort((a,b)=>a-b);const wmed=wids[Math.floor(wids.length/2)]||0;
+    const beats=[];const m0=Math.round(0.03*n);
+    qrs.forEach(c=>{if(wmed&&c.off-c.on>1.7*wmed+0.5*pm*f)return;
+      const b0=c.on-1.6*pm*f,b1=c.on-0.35*pm*f;if(b0<m0)return;
+      for(let q=Math.round(b0);q<=b1;q++)if(act[q]>thr*0.6)return; // something steep in the PR window: not a clean beat
+      let J=c.off+1;const jmax=c.off+1.2*pm*f;const thrJ=1.4/f;while(J<jmax&&J<n-1&&act[J]>thrJ)J++;
+      const j1=J+0.25*pm*f;if(j1>n-1-m0)return;
+      const base=lvl(b0,b1),jl=lvl(J,j1);if(base===null||jl===null)return;const st=jl-base;if(Math.abs(st)>6)return;
+      let sd=0,cnt=0;for(let q=Math.round(b0);q<=b1;q++){sd+=(s[q]-base)**2;cnt++;}
+      beats.push({on:c.on,off:c.off,J,st,noise:Math.sqrt(sd/Math.max(1,cnt))});});
+    if(!beats.length)return {n:0,beats,qrs:qrs.length,ok:false};
+    const medOf=a=>{const v=a.slice().sort((x,y)=>x-y);return v.length%2?v[(v.length-1)/2]:(v[v.length/2-1]+v[v.length/2])/2;};
+    let use=beats.map(b=>b.st);const m1=medOf(use);if(use.length>=3)use=use.filter(x=>Math.abs(x-m1)<=0.75); // a beat far from the others (PVC, artefact) is left out
+    const med=medOf(use),spread=use.length>1?Math.max(...use)-Math.min(...use):0;const noise=medOf(beats.map(b=>b.noise));
+    // a number is shown only when at least two beats agree within 0.6 mm
+    return {n:beats.length,used:use.length,st:med,spread,noise,beats,qrs:qrs.length,ok:use.length>=2&&spread<=0.6};};
+  // Find the trace rows of one column band: long horizontal stretches of trace (text and labels are broken up).
+  // Page tilt from the trace rows: compare the trace profile of the left and right parts of the page.
+  DG.tilt=function(w){const {W,H,res,T,pm}=w;const prof=(xa,xb)=>{const p=new Float32Array(H);for(let xx=xa;xx<xb;xx+=2)for(let y=0;y<H;y++)if(res[y*W+xx]>T)p[y]++;const k=Math.max(1,Math.round(pm)),o=new Float32Array(H);let a=0;for(let y=0;y<H;y++){a+=p[y];if(y>=k)a-=p[y-k];o[y]=a;}return o;};
+    const xa0=Math.round(W*0.05),xa1=Math.round(W*0.25),xb0=Math.round(W*0.75),xb1=Math.round(W*0.95);const L=prof(xa0,xa1),Rr=prof(xb0,xb1);const mx=Math.round(15*pm);let best=-1,bs=0;
+    for(let sh=-mx;sh<=mx;sh++){let c=0;for(let y=Math.max(0,-sh);y<Math.min(H,H-sh);y++)c+=L[y]*Rr[y+sh];if(c>best){best=c;bs=sh;}}
+    return bs/(((xb0+xb1)-(xa0+xa1))/2);};
+  // Trace rows: long, roughly horizontal stretches of trace along the page tilt (text and labels are broken up, the trace is not).
+  DG.rows=function(w,x0,x1,want,tilt){const {W,H,res,T,pm}=w;const half=Math.max(1,Math.round(1.2*pm)),xm=(x0+x1)/2;const cnt=new Float32Array(H),hit=new Uint8Array(H);let tot=0;
+    for(let xx=x0;xx<x1;xx+=2){tot++;hit.fill(0);const off=Math.round(tilt*(xx-xm));for(let y=0;y<H;y++)if(res[y*W+xx]>T){const yb=y-off;for(let dy=-half;dy<=half;dy++){const yy=yb+dy;if(yy>=0&&yy<H)hit[yy]=1;}}for(let y=0;y<H;y++)cnt[y]+=hit[y];}
+    const cov=cnt.map(v=>tot?v/tot:0);const peaks=[],minGap=Math.round(10*pm),order=Array.from(cov.keys()).sort((a,b)=>cov[b]-cov[a]);
+    for(const y of order){if(cov[y]<0.5)break;if(peaks.every(p=>Math.abs(p.y-y)>=minGap))peaks.push({y,cov:cov[y]});if(peaks.length>=want+2)break;}
+    return {peaks:peaks.sort((a,b)=>a.y-b.y),xm};};
+  // Choose the lead rows among candidate rows: well covered AND evenly spaced (header text lines are neither).
+  DG.pickRows=function(peaks,want,strip,pm){const c=peaks.slice().sort((a,b)=>b.cov-a.cov).slice(0,8).sort((a,b)=>a.y-b.y);if(c.length<want)return c.length>=want-(strip?1:0)?c:null;
+    let best=null,bs=-1e9;const n=c.length;const idx=[];
+    const rec=(st)=>{if(idx.length===want){const rs=idx.map(i=>c[i]);const g=[];for(let i=1;i<rs.length;i++)g.push(rs[i].y-rs[i-1].y);const gg=strip?g.slice(0,Math.max(1,g.length-1)):g;
+        if(g.some(x=>x<12*pm))return;const med=gg.slice().sort((a,b)=>a-b)[Math.floor(gg.length/2)]||1;const pen=gg.reduce((a,x)=>a+Math.abs(x-med)/med,0);
+        const sc=rs.reduce((a,r)=>a+r.cov,0)-2*pen;if(sc>bs){bs=sc;best=rs;}return;}
+      for(let i=st;i<n;i++){idx.push(i);rec(i+1);idx.pop();}};rec(0);return best;};
+  // Digitize every lead on the photos of this reading, following the chosen layout. Shadow mode only.
+  async function digitizeReport(d){const lay=layGet();if(!lay||!lay.pages)return {skip:"Pixel measure needs a page layout (1, 2 or 4 pages)."};
+    if([90,180,270].includes(Number(d&&(d._rot||d.rot))||0))return {skip:"The photo was read sideways; pixel measure needs an upright photo."};
+    const pp=paperGet(),cal=Number(d&&d.calibration&&d.calibration.mm_per_mv);const gain=(cal>=3&&cal<=25)?cal:(pp.gain||10);const speed=pp.speed||25;
+    const out={leads:{},pages:[],gain,speed};const pages=Math.min(lay.pg.length,files.length);
+    for(let p=0;p<pages;p++){const img=await loadImg(files[p]).catch(()=>null);if(!img){out.pages.push({p,why:"photo"});continue;}
+      const g=gridCal(img);if(!g){out.pages.push({p,why:"grid"});continue;}const pa=paperArea(img);const w=DG.work(img,pa.x0,pa.y0,pa.x1,pa.y1,g.pxmm);
+      const pg=lay.pg[Math.min(p,lay.pg.length-1)],ncol=pg.cols.length,nrow=Math.max(...pg.cols.map(c=>c.length));
+      const want=nrow+(pg.strip?1:0);
+      const bandRows=(xa,xb)=>{const R=DG.rows(w,Math.max(0,Math.round(xa)),Math.min(w.W,Math.round(xb)),want+3,0);const r=DG.pickRows(R.peaks,want,!!pg.strip,w.pm);return r?r.slice(0,nrow):null;};
+      // rows of the first column (left part of the page) to follow the first row's trace across the page
+      const left=bandRows(w.W*0.06,w.W*0.2);if(!left||left.length<nrow){out.pages.push({p,why:"rows",found:left?left.length:0});continue;}
+      const spacing0=left.length>1?(left[left.length-1].y-left[0].y)/(left.length-1):20*w.pm;
+      const tr0=DG.trace(w,0,w.W,Math.max(0,Math.round(left[0].y-spacing0*0.45)),Math.min(w.H,Math.round(left[0].y+spacing0*0.45)),left[0].y);
+      let xs=Math.round(w.W*0.02),xe=Math.round(w.W*0.98);
+      if(tr0){const win=Math.round(5*w.pm),dens=i=>{let a=0,c=0;for(let q=i;q<Math.min(tr0.n,i+win);q++){a+=tr0.has[q]?1:0;c++;}return c?a/c:0;};let a=0;while(a<tr0.n-win&&dens(a)<0.75)a++;let b=tr0.n-win;while(b>a&&dens(b)<0.75)b--;if(b+win-a>20*w.pm){xs=a;xe=b+win;}}
+      if(ncol>1){const cap=Math.round(250*w.pm);if(xe-xs>cap*1.04)xe=xs+cap;}
+      const colW=(xe-xs)/ncol;const rowsByCol=[];
+      for(let ci=0;ci<ncol;ci++){const r=bandRows(xs+ci*colW+colW*0.25,xs+ci*colW+colW*0.75);rowsByCol.push(r&&r.length>=nrow?r:null);}
+      for(let ci=0;ci<ncol;ci++)if(!rowsByCol[ci]){let k=1;while(k<ncol&&!rowsByCol[ci-k]&&!rowsByCol[ci+k])k++;rowsByCol[ci]=rowsByCol[ci-k]||rowsByCol[ci+k]||left;}
+      pg.cols.forEach((col,ci)=>col.forEach((ld,ri)=>{const k=ld.replace("-aVR","aVR"),neg=ld==="-aVR";const rows=rowsByCol[ci],r=rows[ri];if(!r)return;
+        const sp=rows.length>1?(rows[rows.length-1].y-rows[0].y)/(rows.length-1):spacing0;
+        const x0=Math.round(xs+ci*colW+colW*0.03),x1=Math.round(xs+(ci+1)*colW-colW*0.03),yc=r.y,y0=Math.max(0,Math.round(yc-sp*0.48)),y1=Math.min(w.H,Math.round(yc+sp*0.48));
+        const tr=DG.trace(w,x0,x1,y0,y1,yc);if(!tr){out.leads[k]={n:0,why:"no trace"};return;}const m=DG.measure(tr,w.pm,speed);
+        const std=m.n?Math.round((neg?-1:1)*m.st*10/gain*10)/10:null;
+        out.leads[k]={st:std,ok:!!m.ok,n:m.n,used:m.used||0,spread:m.n?Math.round(m.spread*10/gain*10)/10:null,noise:m.noise,cov:tr.cov,page:p,box:{x0:(w.sx+x0/w.sc)/(img.naturalWidth||img.width),x1:(w.sx+x1/w.sc)/(img.naturalWidth||img.width),y0:(w.sy+y0/w.sc)/(img.naturalHeight||img.height),y1:(w.sy+y1/w.sc)/(img.naturalHeight||img.height)}};}));
+      const rows=left,tilt=0;
+      out.pages.push({p,pxmm:g.pxmm,how:g.how,tilt,rows:rows.map(r=>r.y),xs,xe});}
+    return out;}
+  window.__digiTest={DG,gridCal:img=>gridCal(img),paperArea:img=>paperArea(img),digitizeReport};
+  function pixRun(d){if(!d||d._pix||d._pixBusy||!files.length||!d.leads)return;const lay=layGet();if(!lay)return;d._pixBusy=true;
+    setTimeout(async()=>{let r;try{r=await digitizeReport(d);}catch(e){r={skip:"Pixel measure could not run on this photo."};}d._pixBusy=false;d._pix=r;
+      if(lastReport!==d)return;const h=[...report.querySelectorAll(".card>h3")].find(x=>/^Lead-by-lead/.test(x.textContent));if(!h)return;const c=h.parentNode;
+      while(c.children.length>1)c.removeChild(c.lastChild);c.appendChild(leadMap(d));try{applySections(d);}catch(e){}},80);}
+  window.__pixRun=pixRun;
 
   // ---------- 5.9: at the cut-off on a doubtful tracing = consult, not YES ----------
   // A YES that rests only on photo reads sitting exactly on the threshold (no printed STJ numbers), on a
@@ -3863,6 +3993,9 @@ ${dyn}`;}
       if(o.stj_check)box.appendChild(el("span","chkline","⚠ check paper"));
       if(o.stj_unclear)box.appendChild(el("span","chkline","STJ unclear · photo value"));
       if(o.note)box.title=S(o.note);
+      {const px=d._pix&&d._pix.leads&&d._pix.leads[k];if(px&&j!==null){const ok=px.ok&&typeof px.st==="number";const diff=ok?Math.abs(px.st-j):null;
+        const sp=el("span","pxl"+(!ok?" pxun":diff<=0.5?" pxok":" pxno"),"px "+(ok?(px.st>0?"+":px.st<0?"−":"")+Math.abs(px.st)+(diff<=0.5?" ✓":" ≠"):"?"));
+        sp.title=ok?"Pixel measure (test mode): median of "+px.used+" beats":"Pixel measure: fewer than two clean, agreeing beats in this lead";box.appendChild(sp);}}
       box.onclick=()=>window.__lvOpen&&window.__lvOpen(k);box.setAttribute("role","button");box.tabIndex=0;
       g.appendChild(box);
     });
@@ -3873,6 +4006,13 @@ ${dyn}`;}
     items.forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
     {const s=el("span");s.append(el("em","tkey","T"),"Blue T label = abnormal T wave");lg.appendChild(s);}
     wrap.appendChild(lg);
+    {const P=d._pix;let t=null;
+      if(P&&P.skip)t="Pixel measure (test mode): "+P.skip;
+      else if(P&&P.leads){const ks=order.filter(k=>J(k)!==null&&P.leads[k]);const okk=ks.filter(k=>P.leads[k].ok);const agree=okk.filter(k=>Math.abs(P.leads[k].st-J(k))<=0.5);
+        t="Pixel measure (test mode, does not change the decision): measured from the photo's pixels, same photo gives the same numbers. "+(okk.length?"Within 0.5 mm of this reading in "+agree.length+" of "+okk.length+" leads"+(okk.length-agree.length?" (≠ marks the others: check them on the paper)":"")+".":"No lead had two clean, agreeing beats.")+(ks.length-okk.length?" "+(ks.length-okk.length)+" lead"+(ks.length-okk.length>1?"s":"")+" not measurable (?).":"");
+        if((P.pages||[]).some(x=>x.why))t+=" Some photos could not be measured ("+P.pages.filter(x=>x.why).map(x=>"photo "+(x.p+1)+": "+({grid:"grid not found",rows:"lead rows not found",photo:"could not open"}[x.why]||x.why)).join(", ")+").";}
+      else if(d._pixBusy||(!P&&files.length&&layGet()))t="Pixel measure (test mode): measuring the photo…";
+      if(t)wrap.appendChild(el("p","lbl lnote pxnote",t));}
     {const row=el("div");row.style.cssText="display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:6px";const b=el("button","linkbtn","Open the photo with lead boxes →");b.type="button";b.onclick=()=>window.__lvOpen&&window.__lvOpen(null);const b2=el("button","linkbtn","Lead strips & measure →");b2.type="button";b2.onclick=()=>window.__lvOpenStrips&&window.__lvOpenStrips();row.append(b,b2);wrap.appendChild(row);}
     if(lb)wrap.appendChild(el("p","lbl lnote",(/paced/i.test(bbb)?"Paced rhythm":"LBBB")+": the standard mm thresholds don't apply. ST and T going the opposite way to the QRS is expected; the app checks modified Sgarbossa instead."));
     if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal), (RBBB) or (LBBB) is expected in that lead and is not counted as abnormal."));
@@ -3935,6 +4075,10 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"6.4",d:"23 Oct 2026",t:"Pixel measure (test mode)",i:[
+      "New, in test mode: after each reading the app measures the ST level at the J-point straight from the photo's pixels: it removes the paper grid, follows the trace, finds each complete beat and takes the median. The same photo always gives the same numbers, and it works offline with no credits.",
+      "Each lead box shows 'px' with that number: ✓ when it is within 0.5 mm of the reading, ≠ when it is not (check that lead on the paper), ? when fewer than two clean beats agree. It does not change any decision yet: it will only be used once it has been checked against the monitor's printed STJ numbers on enough of your printouts.",
+      "Needs a page layout (1, 2 or 4 pages) and an upright photo. Strip printouts and photos of only part of a page are not measured yet."]},
     {v:"6.3",d:"23 Oct 2026",t:"Two reads disagree: the safer one wins. Same photo, same answer",i:[
       "Fix: when the quick read and the deeper read (or the two reads of Double-check) disagree, the safer one is kept. If either read found criteria met or a possible STEMI, the result is at least 'consult UMOC'; NO only when both reads say NO. Before, a quick read already marked 'possible STEMI, consult' could end as a green NO when the deeper read saw nothing.",
       "New: each photo gets a fingerprint (the photo itself is not kept). Adding the same photo again within 12 hours, even after New patient, with the same age, sex and settings, shows the same reading instead of a new one that could come back different. 'Read again anyway' still forces a fresh read. A new photo of the same paper is a new photo and gets a new read."]},
@@ -4363,6 +4507,7 @@ ${dyn}`;}
     {const bc=document.getElementById("bgCard");const sb=report.querySelector(".stemi");if(bc&&sb)sb.after(bc);else if(bc&&report.children.length>1)report.insertBefore(bc,report.children[1]);}
     if(isNetlify)report.appendChild(reviewCard(d));
     applySections(d);
+    pixRun(d);
     report.hidden=false;report.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
   }
 

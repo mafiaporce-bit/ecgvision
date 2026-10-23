@@ -333,9 +333,6 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .drop.locked>p{opacity:.6}
 
 .imghint{font-size:.8rem;color:var(--soft);margin:10px 0 0}
-.samept{display:flex;align-items:flex-start;gap:10px;margin:12px auto 0;max-width:420px;text-align:left;background:var(--warn-bg);border:2px solid var(--warn);border-radius:12px;padding:10px 12px;font-size:.92rem;cursor:pointer}
-.samept input{width:22px;height:22px;flex-shrink:0;margin:0;accent-color:var(--accent)}
-.samept.ok{background:var(--ok-bg);border-color:var(--ok)}
 .pt-block{border:2px solid var(--crit);background:var(--crit-bg);border-radius:20px;padding:16px}
 .pt-block h3{margin:0 0 6px;color:var(--crit)}
 
@@ -1027,7 +1024,6 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       <div class="thumbs" id="thumbs"></div>
       <div class="upbar" id="upBar" hidden><div class="up-top"><b id="upTxt">Uploading photo 0%</b><span id="upNote">Upload speed depends on your internet connection.</span></div><div class="up-track"><i id="upFill"></i></div></div>
       <p class="imghint" id="imgHint">Up to 5 photos, all from this one patient: pages of the same 12-lead, or serial 12-leads.</p>
-      <label class="samept" id="samePt" hidden><input type="checkbox" id="samePtChk"><span>I confirm all photos are from <b>this one patient</b></span></label>
     </div>
     <textarea id="notes" hidden></textarea>
     <div class="optgrid">
@@ -1547,7 +1543,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="6.1";
+  const APP_VERSION="6.3";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2158,7 +2154,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   // Turn a photo clockwise by deg and swap the turned copy into the photo list.
   function rotateFile(f,img,deg,auto){return new Promise(res=>{const sw=deg%180!==0,c=document.createElement("canvas");c.width=sw?img.height:img.width;c.height=sw?img.width:img.height;
     const x=c.getContext("2d");x.translate(c.width/2,c.height/2);x.rotate(deg*Math.PI/180);x.drawImage(img,-img.width/2,-img.height/2);
-    c.toBlob(b=>{if(!b){res(null);return;}const nf=new File([b],"ecg-upright.jpg",{type:"image/jpeg"});cleared.add(nf);upright.add(nf);if(auto)autoTurned.add(nf);
+    c.toBlob(b=>{if(!b){res(null);return;}const nf=new File([b],"ecg-upright.jpg",{type:"image/jpeg"});cleared.add(nf);window.__fpCarry&&window.__fpCarry(f,nf);upright.add(nf);if(auto)autoTurned.add(nf);
       const i=files.indexOf(f);if(i>=0)files[i]=nf;res(i>=0?nf:null);},"image/jpeg",0.93);});}
   $("rotDone").onclick=()=>{const f=rotFile,deg=rotDeg;$("rotOv").hidden=true;rotFile=null;
     if(deg&&f){rotateFile(f,rotImg,deg,false).then(nf=>{if(!nf)return;renderThumbs();refresh();toast("Photo turned upright");setTimeout(rotNext,250);});}
@@ -2352,7 +2348,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   $("camUse").onclick=()=>{const pages=gc.pages.filter(Boolean);if(!pages.length){camClose();return;}
     if(gc.paper)paperSet(gc.paper);const fl=pages.map(c=>{if(c.prior!=null)camPrior.set(c.file,c.prior);return c.file;});const lid=gc.lay&&gc.lay.id;
     camClose();addFiles(fl);window.__track&&window.__track("guided",{pages:fl.length,layout:lid});
-    if(files.length>1){$("samePtChk").checked=true;refresh();if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");}};
+  };
   function paperPrompt(){const p=paperGet();return "PAPER (confirmed by the crew): "+p.speed+" mm/s, "+p.gain+" mm/mV. Verify against the printed values and the calibration pulse; if the printout disagrees, use what is printed and report it in cal/speed.";}
 
   // ---------- 5.7: lead map viewer (the photo, with approximate lead boxes from the chosen layout) ----------
@@ -2518,6 +2514,14 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   function sigLevel(d){const st=d.stemi||{},q=d.quality||{},summ=S(q.summary),lim=Array.isArray(q.limitations)?q.limitations:[];
     const poor=!!(st.incomplete||Q_BAD.test(summ)||lim.some(x=>Q_BAD.test(S(x)))||(d._invented||[]).length||(d._look&&d._look.failed)||d._verifyFailed);
     return q.adequate===false?"RE-ACQUIRE":poor?"SUB-OPTIMAL":"OPTIMAL";}
+  // 6.3: when two reads of the same photo disagree, the safer one wins. If either read found criteria met or a possible
+  // STEMI, the final answer is at least "consult UMOC"; NO only when both reads say NO.
+  function safestOfTwo(d,other,who){const t=d&&d.stemi;if(!t||t.decision!=="not_met"||!other||!(other.decision==="met"||other.decision==="consult"||other.cutoff))return false;
+    const fl=((other.cutoff&&other.cutoff.leads)||other.metLeads||[]).join(", ");const st=other.decision==="met"||!!other.cutoff;
+    t.decision="consult";t.safest={from:other.decision,leads:fl,st};t.criterion="Two reads disagree: the safer result is kept";
+    t.reasoning=who+" found "+(st?"ST elevation meeting criteria"+(fl?" in "+fl:""):"a borderline result ("+S(other.criterion)+")")+"; the other read of the same photo found no criterion met. When two reads of one photo disagree, the app keeps the safer one: measure "+(fl||"the leads")+" on the paper (photo viewer → Measure) and call UMOC to discuss.";
+    t.warnings=["Two reads of this photo disagree"+(fl?" about "+fl:"")+". Look at the paper: if you see ST elevation, treat it as STEMI and call UMOC."].concat(t.warnings||[]);
+    d._conf=computeConfidence(d);return true;}
   function applyCutoffRule(d){const st=d&&d.stemi;if(!st||st.decision!=="met"||typeof st.J!=="function"||typeof st.thr!=="function")return false;
     const L=d.leads||{},met=st.metLeads||[];if(!met.length)return false;const J=st.J,thr=st.thr;
     const photo=met.filter(k=>!(L[k]||{}).stj_exact);if(!photo.length)return false; // every met lead backed by the monitor's printed STJ number: nothing to doubt
@@ -2753,15 +2757,15 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   function monUpdate(phase,secs,sub){if(!mon)return;mon.querySelector(".rm-phase").textContent=phase;const e=mon.querySelector(".rm-secs");e.textContent=secs+" s";if(sub)e.dataset.sub=sub;}
   function monStop(){const h=$("readMon");h.hidden=true;h.textContent="";mon=null;statusEl.hidden=false;}
   function setStatus(t,o={}){statusEl.className="status"+(o.err?" err":"");statusEl.textContent="";if(o.pulse){const s=document.createElement("span");s.className="pulse";statusEl.appendChild(s);}statusEl.append(t);}
-  function refresh(){setTimeout(prewarm,0);sessPatient();const multi=files.length>1;$("samePt").hidden=!multi;$("samePt").classList.toggle("ok",$("samePtChk").checked);const unchecked=files.some(f=>!window.__cleared(f));baseDisabled=busy||!patientOK()||!files.length||!sample||!imagesOK||(multi&&!$("samePtChk").checked)||unchecked;upUI();clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
+  function refresh(){setTimeout(prewarm,0);sessPatient();const unchecked=files.some(f=>!window.__cleared(f));baseDisabled=busy||!patientOK()||!files.length||!sample||!imagesOK||unchecked;upUI();clearBtn.hidden=busy||(!files.length&&report.hidden);$("imgCount").textContent=files.length?files.length+" of "+maxCount+" photos":"No image yet";}
   function addFiles(list){
     if(!patientOK()){setStatus("Enter age and sex first.",{err:true});return;}
     const ok=[...list].filter(f=>/^image\//.test(f.type));
     if(!ok.length){setStatus("That file isn't an image. Use a JPEG, PNG or WebP photo.",{err:true});return;}
-    const before=files.length;const added=[];ok.forEach(f=>{if(files.length<maxCount){files.push(f);added.push(f);}});if(added.length){window.__rdQueue(added);window.__track&&window.__track("photo");}if(files.length!==before)$("samePtChk").checked=false;if(ok.length>files.length-before)setStatus("Maximum "+maxCount+" photos per patient. Extra photos were not added.",{err:true});
-    renderThumbs();refresh();if(sample&&imagesOK&&files.length>1&&!$("samePtChk").checked)setStatus("Confirm all photos are from this one patient.");else if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");
+    const before=files.length;const added=[];ok.forEach(f=>{if(files.length<maxCount){files.push(f);added.push(f);}});if(added.length){added.forEach(f=>{try{fpOf(f);}catch(e){}});window.__rdQueue(added);window.__track&&window.__track("photo");}if(ok.length>files.length-before)setStatus("Maximum "+maxCount+" photos per patient. Extra photos were not added.",{err:true});
+    renderThumbs();refresh();if(sample&&imagesOK)setStatus("Ready. Tap Analyze ECG.");
   }
-  function renderThumbs(){sessPhotos();thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);$("samePtChk").checked=false;renderThumbs();refresh();};const rb=document.createElement("button");rb.type="button";rb.className="rot";rb.textContent="↻";rb.setAttribute("aria-label","Turn image "+(i+1));rb.onclick=()=>window.__rotOpen(f);d.append(img,b,rb);if(window.__autoTurned(f)){const tb=document.createElement("span");tb.className="turned";tb.textContent="✓ Turned";tb.title="Turned upright automatically";d.appendChild(tb);}thumbs.appendChild(d);});}
+  function renderThumbs(){sessPhotos();thumbs.textContent="";files.forEach((f,i)=>{const d=document.createElement("div");d.className="thumb";const img=document.createElement("img");img.alt="ECG image "+(i+1);const u=URL.createObjectURL(f);img.src=u;img.onload=()=>URL.revokeObjectURL(u);const b=document.createElement("button");b.textContent="Remove";b.setAttribute("aria-label","Remove image "+(i+1));b.onclick=()=>{files.splice(i,1);renderThumbs();refresh();};const rb=document.createElement("button");rb.type="button";rb.className="rot";rb.textContent="↻";rb.setAttribute("aria-label","Turn image "+(i+1));rb.onclick=()=>window.__rotOpen(f);d.append(img,b,rb);if(window.__autoTurned(f)){const tb=document.createElement("span");tb.className="turned";tb.textContent="✓ Turned";tb.title="Turned upright automatically";d.appendChild(tb);}thumbs.appendChild(d);});}
   $("camInput").onchange=e=>{const fl=[...e.target.files];e.target.value="";if(window.__gcGot&&window.__gcGot(fl))return;addFiles(fl);};
   $("fileInput").onchange=e=>{addFiles(e.target.files);e.target.value="";};
   ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
@@ -2773,7 +2777,6 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     applyDevice(lastReport);lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});applyCutoffRule(lastReport);lastReport._lowv=lowVoltageNote(lastReport);lastReport._conf=computeConfidence(lastReport);lastReport._rhythm=rhythmAssess(lastReport,{age:parseInt($("age").value,10)});if(lastReport._fast)lastReport.evidence=buildEvidence(lastReport);
     const y=window.scrollY;render(lastReport);window.scrollTo({top:y});
     setStatus("Decision updated using the same measurements. No new read needed.");};
-  $("samePtChk").onchange=()=>{refresh();if($("samePtChk").checked&&patientOK())setStatus("Ready. Tap Analyze ECG.");};
   try{$("dblChk").checked=store.get("eqg-dbl")==="1";}catch(e){}
   const syncDbl=()=>$("dblChk").closest(".tog").classList.toggle("on",$("dblChk").checked);
   $("dblChk").addEventListener("change",syncDbl);syncDbl();
@@ -3300,6 +3303,23 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   // 6.1: nothing changed since the last read (same photos, patient, layout and paper settings) -> show that result again, no new read.
   function readKey(){try{return JSON.stringify({f:files.slice(0,maxCount).map(f=>[f.name,f.size,f.lastModified]),age:$("age").value,sex:$("sex").value,pacer:(window.__cx?window.__cx().pacer:"")||"",lay:store.get("eqg-layout")||"",paper:store.get("eqg-paper")||"",dbl:$("dblChk").checked});}catch(e){return null;}}
   let forceRead=false;
+  // 6.3: same photo, same answer. Each photo gets a fingerprint (SHA-256 of its bytes; the photo itself is not kept).
+  // A finished reading is remembered for 12 hours under the fingerprints + patient + settings, so the same photo
+  // added again (even after New patient) shows the same reading instead of a new one that could come back different.
+  const FP=new WeakMap(),RC="readcache",RC_MAX=20,RC_AGE=12*3600000;
+  function fpOf(f){if(!f)return Promise.resolve(null);if(!FP.has(f))FP.set(f,(async()=>{try{if(!(window.crypto&&crypto.subtle))return null;const h=await crypto.subtle.digest("SHA-256",await f.arrayBuffer());return [...new Uint8Array(h)].slice(0,16).map(x=>x.toString(16).padStart(2,"0")).join("");}catch(e){return null;}})());return FP.get(f);}
+  window.__fpCarry=(from,to)=>{try{FP.set(to,fpOf(from));}catch(e){}};
+  async function fpKey(){try{const list=files.slice(0,maxCount);if(!list.length)return null;const hs=await Promise.all(list.map(fpOf));if(hs.some(h=>!h))return null;
+    return JSON.stringify({v:APP_VERSION,h:hs,age:$("age").value,sex:$("sex").value,pacer:(window.__cx?window.__cx().pacer:"")||"",lay:store.get("eqg-layout")||"",paper:store.get("eqg-paper")||"",dbl:$("dblChk").checked});}catch(e){return null;}}
+  async function cacheGet(k){try{const a=await idb.get(RC);if(!Array.isArray(a))return null;return a.find(x=>x&&x.k===k&&Date.now()-x.at<RC_AGE)||null;}catch(e){return null;}}
+  function cachePut(d){if(!d||!d._fpKey||d._mode==="thorough"&&!d._from)return;let snap;try{snap=JSON.parse(JSON.stringify(d));}catch(e){return;}
+    setTimeout(async()=>{if((bg&&bg.fast===d)||(lk&&lk.report===d)||(d._look&&d._look.pending))return; // only finished readings
+      try{let a=await idb.get(RC);a=(Array.isArray(a)?a:[]).filter(x=>x&&x.k!==d._fpKey&&Date.now()-x.at<RC_AGE);a.unshift({k:d._fpKey,at:Date.now(),data:snap});await idb.set(RC,a.slice(0,RC_MAX));}catch(e){}},0);}
+  function showCached(e,k){const d=e.data;try{if(d.stemi){const st=d.stemi;d.stemi=Object.assign(evaluate(d,{age:parseInt($("age").value,10),sex:$("sex").value}),st);}}catch(x){}
+    d._key=readKey();d._fpKey=k;lastReport=d;sessReport(d);render(d);
+    const n=el("div","notice reuse");n.appendChild(el("b",null,"Same photo"+(files.length>1?"s":"")+" as read #"+(d._rid||"")+(d._at?" ("+fmtAt(d._at)+")":"")+": the same result is shown (no new read, no credits). "));
+    const b=el("button","linkbtn","Read again anyway →");b.type="button";b.onclick=()=>{forceRead=true;n.remove();runRead("fast");};n.appendChild(b);report.insertBefore(n,report.firstChild);
+    setStatus("Same photo"+(files.length>1?"s":"")+" and patient as read #"+(d._rid||"")+": the same result is shown. Tap 'Read again anyway' for a fresh read.");track("reuse",{cache:true});}
   // Real reading time (tap -> result ready on the server), not counting time spent in another app.
   function takeTiming(list){if(!list.length)return null;const T=list.reduce((a,b)=>b.total>a.total?b:a);return T;}
   // Reading time (server + AI) and upload time are reported separately.
@@ -3488,7 +3508,7 @@ ${dyn}`;}
       if(bg!==me||lastReport!==fast)return;
       const ex=expandCompact(raw);ex._votesOther=(fast.stemi&&fast.stemi.cands)||[];ex._inv=await invFor(ex);ex._stjv=(fast._stjv&&fast._stjv.found)?fast._stjv:await stjFor(ex);if(bg!==me||lastReport!==fast)return;
       const data=finishRead(ex,"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
-      data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};if(fast._rid){data._rid=fast._rid;data._at=fast._at;}data._key=fast._key;
+      data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};if(fast._rid){data._rid=fast._rid;data._at=fast._at;}data._key=fast._key;data._fpKey=fast._fpKey;
       if(data._from.decision==="met"&&data.stemi.decision!=="met"&&!(data.stemi.decision==="consult"&&(data.stemi.cutoff||/LVH|cut-off|mimic|repolari/i.test(S(data.stemi.criterion)+" "+S(data.stemi.reasoning))))){const fl=(fast.stemi.metLeads||[]).join(", ");
         data.stemi.decision="consult";data.stemi.criterion="Reads disagree on ST elevation";
         data.stemi.reasoning="The fast read found ST elevation meeting criteria"+(fl?" in "+fl:"")+", but a second, deeper read of the same photo did not. Check these leads on the paper yourself and call UMOC to discuss.";
@@ -3496,8 +3516,9 @@ ${dyn}`;}
       else if(data._from.decision==="met"&&data.stemi.decision==="met")data._confirmedYes=true;
       lookCancel();try{if(lookFromReads(data,fast,data,"thorough"))data._conf=computeConfidence(data);}catch(e){}
       if(applyCutoffRule(data))data._conf=computeConfidence(data);
+      safestOfTwo(data,fast.stemi||{},"The quick read");
       clearInterval(me.timer);bg=null;
-      const y=window.scrollY;lastReport=data;render(data);window.scrollTo({top:y});
+      const y=window.scrollY;lastReport=data;sessReport(data);render(data);window.scrollTo({top:y});
       setStatus("Thorough read finished ("+timeTxt(data)+")."+tx+" "+(data._from.decision===data.stemi.decision?"Decision unchanged.":"Decision CHANGED: see the top of the report."));
       logRead(data);
     }catch(e){
@@ -3577,6 +3598,9 @@ ${dyn}`;}
       const n=el("div","notice reuse");n.appendChild(el("b",null,"Nothing changed since read #"+(lastReport._rid||"")+": showing the same result (no new read, no credits). "));
       const b=el("button","linkbtn","Read again anyway →");b.type="button";b.onclick=()=>{forceRead=true;n.remove();runRead("fast");};n.appendChild(b);
       report.querySelectorAll(".notice.reuse").forEach(x=>x.remove());report.insertBefore(n,report.firstChild);report.scrollIntoView({behavior:"smooth"});setStatus("Same photos and patient as the last read: result shown again. Tap 'Read again anyway' for a fresh read.");track("reuse");return;}
+    const runFp=mode==="fast"?await fpKey():null;
+    if(runFp&&!forceRead&&!busy){const hit=await cacheGet(runFp);if(hit&&hit.data){showCached(hit,runFp);return;}}
+    if(busy)return;
     forceRead=false;
     if(files.some(f=>orienting.has(f))){setStatus("Checking which way is up… one moment.");return;}
     bgCancel();lookCancel();
@@ -3601,7 +3625,7 @@ ${dyn}`;}
       const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"fast":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onJob:id=>sessJob(id),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       const raws=dbl?await Promise.all([one(),one()]):[await one()];
       const data=await settleReads(raws,mode,t0);
-      const tx=applyTiming(data,takeTiming(tim));bgCancel();lookCancel();data._key=readKey();lastReport=data;sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);else if(isNetlify&&!data._double)lookStart(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
+      const tx=applyTiming(data,takeTiming(tim));bgCancel();lookCancel();data._key=readKey();data._fpKey=runFp;lastReport=data;sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);else if(isNetlify&&!data._double)lookStart(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
       logRead(data);track("result",{decision:data.stemi&&data.stemi.decision,secs:data._secs||0,mode,double:!!data._double});
     }catch(e){
       clearInterval(timer);if(!(e&&e.code==="cancelled"))track("error",{msg:String((e&&e.code)||"error")});
@@ -3622,7 +3646,10 @@ ${dyn}`;}
     data._inv=await invFor(data);data._stjv=await stjFor(data);
     const out=finishRead(data,mode,t0);
     if(raws.length>1){try{const a=expandCompact(raws[0]),b=expandCompact(raws[1]);if(lookFromReads(out,a,b,"double"))out._conf=computeConfidence(out);}catch(e){}
-    if(applyCutoffRule(out))out._conf=computeConfidence(out);}
+    if(applyCutoffRule(out))out._conf=computeConfidence(out);
+    if(raws.length>1&&out.stemi&&out.stemi.decision==="not_met"){try{const pt={age:parseInt($("age").value,10),sex:$("sex").value};
+      const one=r=>{const c=applyVisible(Object.assign(expandCompact(r),{_inv:out._inv,_stjv:out._stjv}));applyPaper(c);applyMonitorSTJ(c);applyDevice(c);c.stemi=evaluate(c,pt);applyCutoffRule(c);return c.stemi;};
+      const hit=[one(raws[0]),one(raws[1])].find(x=>x.decision!=="not_met");if(hit)safestOfTwo(out,hit,"One of the two reads");}catch(e){}}}
     return out;}
 
   // ---------- Keep the patient when the phone closes the app (3.8) ----------
@@ -3637,7 +3664,7 @@ ${dyn}`;}
   function sessPatient(){if(!sessReady)return;const o=sessGet();o.age=$("age").value;o.sex=$("sex").value;o.pacer=cx.pacer||"";o.at=Date.now();sessPut(o);}
   function sessPend(pd){const o=sessGet();o.pend=pd;if(pd)o.report=null;sessPut(o);}
   function sessJob(id){const o=sessGet();if(o.pend){o.pend.ids=(o.pend.ids||[]).concat([id]);sessPut(o);}}
-  function sessReport(d){const o=sessGet();try{o.report={data:JSON.parse(JSON.stringify(d)),at:Date.now()};}catch(e){o.report=null;}sessPut(o);}
+  function sessReport(d){const o=sessGet();try{o.report={data:JSON.parse(JSON.stringify(d)),at:Date.now()};}catch(e){o.report=null;}sessPut(o);cachePut(d);}
   function sessPhotos(){if(!sessReady)return;clearTimeout(photoSave);photoSave=setTimeout(()=>{idb.set("photos",files.slice(0,maxCount));sessPatient();},300);}
   function sessClear(){try{localStorage.removeItem(SESS);}catch(e){}idb.del("photos");}
   // Collect a read that was started before the app was closed.
@@ -3654,7 +3681,7 @@ ${dyn}`;}
     if(o.pacer&&!cx.pacer){cx.pacer=o.pacer;try{cxApply();}catch(e){}}
     const ph=await idb.get("photos");
     if(Array.isArray(ph)&&ph.length&&!files.length){ph.slice(0,maxCount).forEach(f=>{if(f&&f.size){const nf=f instanceof File?f:new File([f],"ecg-photo.jpg",{type:f.type||"image/jpeg"});files.push(nf);window.__restored(nf);}});
-      if(files.length>1)$("samePtChk").checked=true;renderThumbs();}
+      renderThumbs();}
     refresh();
     const pd=o.pend,code=store.get("eqg-code");
     if(pd&&pd.ids&&pd.ids.length&&code&&Date.now()-pd.startedAt<15*60000&&isNetlify){
@@ -3769,7 +3796,7 @@ ${dyn}`;}
       else if(e.ev==="analyze")sp.append("Started a "+(e.d&&e.d.mode==="thorough"?"thorough ":"")+"reading"+(e.d&&e.d.double?" (double-check)":""));
       else sp.append(EVT[e.ev]||e.ev);row.appendChild(sp);ev.appendChild(row);});}
   clearBtn.onclick=()=>{bgCancel();lookCancel();zoomCache=null;dropUpload();sessClear();
-    files=[];$("samePtChk").checked=false;renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
+    files=[];renderThumbs();report.hidden=true;report.textContent="";lastReport=null;
     $("age").value="";$("sex").value="";$("notes").value="";syncPick();window.__cxReset&&window.__cxReset();
     setStatus("Enter age and sex, then add an ECG image.");refresh();window.scrollTo({top:0});
   };
@@ -3908,6 +3935,11 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"6.3",d:"23 Oct 2026",t:"Two reads disagree: the safer one wins. Same photo, same answer",i:[
+      "Fix: when the quick read and the deeper read (or the two reads of Double-check) disagree, the safer one is kept. If either read found criteria met or a possible STEMI, the result is at least 'consult UMOC'; NO only when both reads say NO. Before, a quick read already marked 'possible STEMI, consult' could end as a green NO when the deeper read saw nothing.",
+      "New: each photo gets a fingerprint (the photo itself is not kept). Adding the same photo again within 12 hours, even after New patient, with the same age, sex and settings, shows the same reading instead of a new one that could come back different. 'Read again anyway' still forces a fresh read. A new photo of the same paper is a new photo and gets a new read."]},
+    {v:"6.2",d:"23 Oct 2026",t:"No same-patient tick box",i:[
+      "Removed the 'I confirm all photos are from this one patient' tick box: Analyze ECG no longer waits for it. The reader's own check still stops the read when names, IDs, ages or times printed on the photos don't match."]},
     {v:"6.1",d:"23 Oct 2026",t:"No activation on a tracing the reader can't measure; same photos, same answer",i:[
       "Fix: a YES from photo reads needs an adequate tracing. If the reader rates the tracing 'not safely measurable' (Signal: RE-ACQUIRE), the app now says 'possible STEMI, consult UMOC, record a new 12-lead' instead of activating. On a sub-optimal tracing both leads of the pair need a full millimetre above the cut-off; next to LVH, early repolarisation, pericarditis or a disagreement between reads, half a millimetre. A pair where one lead sits exactly on the line never activates by itself. Printed STJ numbers from the monitor still count in full.",
       "Fix: tapping Analyze ECG again with nothing changed (same photos, patient, layout, paper) shows the same result again instead of running a new read that could come back different. 'Read again anyway' forces a fresh read.",
@@ -4221,7 +4253,6 @@ ${dyn}`;}
       const a=el("a","call","Call UMOC 02 504 8555 · discuss activation");a.href="tel:+97125048555";a.target="_blank";a.rel="noopener";a.addEventListener("click",()=>toast("Opening dialer: UMOC 02 504 8555"));ob.appendChild(a);
       report.appendChild(ob);}
     {const ns=nextSteps(d);if(ns.length){const x=el("div","xleads");x.appendChild(el("h3",null,"Next ECG steps"));x.appendChild(list(ns));report.appendChild(x);}}
-    if(d.same_patient==="unconfirmed"&&files.length>1)st.warnings=(st.warnings||[]).concat(["No patient identifiers printed on the photos. You confirmed they are from one patient."]);
     {const pr=d.printed||{},pa=parseInt(pr.age,10),ps=S(pr.sex).trim().toUpperCase(),ea=parseInt($("age").value,10),es=$("sex").value;
       const mm=[];if(pa>0&&ea>0&&Math.abs(pa-ea)>1)mm.push("age "+pa+" (you entered "+ea+")");
       if(/^(M|MALE)$/.test(ps)&&es==="Female")mm.push("sex M (you entered Female)");if(/^(F|FEMALE)$/.test(ps)&&es==="Male")mm.push("sex F (you entered Male)");
@@ -4242,7 +4273,7 @@ ${dyn}`;}
         st.warnings=["⚠ The printed STJ numbers could NOT be verified from a close-up ("+why+"). The numbers shown are the main read's copy, which can misread the LP15's slashed zeros (0.04 as 0.84). Check them against the STJ table on the paper."].concat(st.warnings||[]);}}
     if(d._stjUnclear&&d._stjUnclear.length)st.warnings=(st.warnings||[]).concat(["Printed STJ unclear in "+d._stjUnclear.join(", ")+": three readers gave three different numbers, so the photo value is used there. Read "+(d._stjUnclear.length>1?"those numbers":"that number")+" on the paper."]);
     if(d._rotNote){const n=el("p","lbl");n.textContent="↻ "+d._rotNote;n.style.margin="2px 6px 8px";report.appendChild(n);}
-    (st.warnings||[]).forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
+    st.warnings=[...new Set(st.warnings||[])];st.warnings.forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
     if((st.checks||[]).length){const u=el("ul","why");
       const KEY={"i":"stemi","ii":"post","iii":"lcx","iv":"lm","v":"lbbbv","vi":"rbbbv","W":"wellens"};
       const PAGE={"i":"criteria","ii":"enhanced","iii":"enhanced","iv":"enhanced","v":"enhanced","vi":"enhanced","W":"criteria"};
@@ -4264,7 +4295,9 @@ ${dyn}`;}
       const det=document.createElement("details");det.className="conf-d";const sm=document.createElement("summary");sm.textContent="Why this confidence?";det.appendChild(sm);det.appendChild(list(cc.why));h.appendChild(det);}
     h.appendChild(ridRow(d));
     report.insertBefore(h,report.firstChild);
-    if(d._from){const ch=d._from.decision!==(d.stemi&&d.stemi.decision);const n=el("div","upd"+(ch?" changed":""));
+    if(d._from&&d.stemi&&d.stemi.safest){const n=el("div","upd changed");n.appendChild(el("b",null,"The two reads disagree: the safer result is kept"));
+      n.appendChild(el("span",null,"The quick read said "+(d.stemi.safest.st?"YES / possible STEMI":(DEC_TXT[d._from.decision]||"consult UMOC"))+"; the deeper read found no criterion met. Now: consult UMOC and measure the leads on the paper yourself."));report.insertBefore(n,report.firstChild);}
+    else if(d._from){const ch=d._from.decision!==(d.stemi&&d.stemi.decision);const n=el("div","upd"+(ch?" changed":""));
       n.appendChild(el("b",null,ch?"Updated by thorough read: decision CHANGED":"Confirmed by thorough read"));
       n.appendChild(el("span",null,ch?(d._from.decision==="met"&&d.stemi.decision==="consult"?(d.stemi.cutoff||/LVH|cut-off|mimic|repolari/i.test(S(d.stemi.criterion))?"Fast read said YES; the deeper read puts it at the cut-off or next to a mimic ("+S(d.stemi.criterion)+"). Now: consult UMOC and check the paper yourself.":"Fast read said YES; the deeper read did not see ST elevation. Now: consult UMOC and check the paper yourself."):"Fast read said "+(DEC_TXT[d._from.decision]||"?")+"; thorough read says "+(DEC_TXT[d.stemi.decision]||"?")+". Follow the thorough result."):"Same decision as the fast read ("+(DEC_TXT[d.stemi.decision]||"?")+")."));
       report.insertBefore(n,report.firstChild);}

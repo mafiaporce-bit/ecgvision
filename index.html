@@ -1547,7 +1547,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="6.0";
+  const APP_VERSION="6.1";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2513,21 +2513,35 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   // differ by a millimetre nearby, is shown as "possible STEMI, consult UMOC" instead of an activation.
   // A clear STEMI (values above the cut-off, or printed STJ numbers) is not touched.
   const mmTxt=v=>v===null||v===undefined?"n/a":(v>0?"+":v<0?"−":"")+Math.abs(v)+" mm";
+  // Signal rating shared by the rule and the OmniHeart banner: RE-ACQUIRE (the reader says it could not measure safely),
+  // SUB-OPTIMAL (noise, wander, glare, cut-off or missing leads, a lead the check could not find, a failed second look), OPTIMAL.
+  function sigLevel(d){const st=d.stemi||{},q=d.quality||{},summ=S(q.summary),lim=Array.isArray(q.limitations)?q.limitations:[];
+    const poor=!!(st.incomplete||Q_BAD.test(summ)||lim.some(x=>Q_BAD.test(S(x)))||(d._invented||[]).length||(d._look&&d._look.failed)||d._verifyFailed);
+    return q.adequate===false?"RE-ACQUIRE":poor?"SUB-OPTIMAL":"OPTIMAL";}
   function applyCutoffRule(d){const st=d&&d.stemi;if(!st||st.decision!=="met"||typeof st.J!=="function"||typeof st.thr!=="function")return false;
     const L=d.leads||{},met=st.metLeads||[];if(!met.length)return false;const J=st.J,thr=st.thr;
-    const atCut=met.every(k=>{const o=L[k]||{};const j=J(k);return !o.stj_exact&&j!==null&&j<thr(k)+0.5;});if(!atCut)return false;
-    const why=[],q=d.quality||{},summ=S(q.summary),lim=Array.isArray(q.limitations)?q.limitations:[];
-    if(q.adequate===false||st.incomplete||Q_BAD.test(summ)||lim.some(x=>Q_BAD.test(S(x))))why.push("the tracing quality is sub-optimal"+(summ?" ("+summ+")":""));
-    const c=d.conduction||{},f=d.flags||{};if(c.lvh)why.push("LVH voltage is present (tall R waves often carry a benign ST elevation)");if(f.early_repol)why.push("an early repolarisation pattern was also seen");if(f.pericarditis)why.push("a pericarditis pattern was also seen");
+    const photo=met.filter(k=>!(L[k]||{}).stj_exact);if(!photo.length)return false; // every met lead backed by the monitor's printed STJ number: nothing to doubt
+    const sig=sigLevel(d),q=d.quality||{},summ=S(q.summary),c=d.conduction||{},f=d.flags||{};
+    const why=[];
+    if(sig==="RE-ACQUIRE")why.push("the reader rated the tracing as not safely measurable"+(summ?" ("+summ+")":""));
+    else if(sig==="SUB-OPTIMAL")why.push("the tracing quality is sub-optimal"+(summ?" ("+summ+")":""));
+    if(c.lvh)why.push("LVH voltage is present (tall R waves often carry a benign ST elevation)");if(f.early_repol)why.push("an early repolarisation pattern was also seen");if(f.pericarditis)why.push("a pericarditis pattern was also seen");
     const look=d._look&&d._look.done?d._look:null;
     if(look&&look.disagree&&look.disagree.length){const terr=new Set(met.map(k=>TERR[k]).filter(Boolean));
       const near=look.disagree.filter(k=>{const x=look.leads[k];return x&&typeof x.a==="number"&&typeof x.b==="number"&&Math.abs(x.a-x.b)>=1&&(met.includes(k)||terr.has(TERR[k])||CONTIG.some(([p,r])=>(p===k&&met.includes(r))||(r===k&&met.includes(p))));});
       if(near.length)why.push("the two reads differ by 1 mm or more nearby ("+near.map(k=>k+" "+mmTxt(look.leads[k].a)+" / "+mmTxt(look.leads[k].b)).join(", ")+")");}
-    if(!why.length)return false;
-    st.cutoff={leads:met.slice(),why:why.slice(),criterion:S(st.criterion)};
-    st.decision="consult";st.criterion="At the cut-off on a doubtful tracing: "+S(st.criterion);
-    st.reasoning="Possible STEMI, not activated by the app: "+met.map(k=>k+" "+mmTxt(J(k))+" (needs ≥"+thr(k)+")").join(", ")+" measured from the photo sit exactly at the cut-off, and "+why.join("; ")+". Call UMOC for a conference call, read these leads on the paper yourself, and repeat the 12-lead in 10–15 minutes.";
-    st.edge=[...new Set([...(st.edge||[]),...met])];return true;}
+    if(!why.length)return false; // a clean tracing with nothing against it: the protocol's own thresholds decide, even exactly at the cut-off
+    // How much margin above the threshold a photo read needs before the app activates on it:
+    // RE-ACQUIRE: none is enough (consult); SUB-OPTIMAL: a full millimetre; otherwise half a box.
+    const need=sig==="RE-ACQUIRE"?Infinity:sig==="SUB-OPTIMAL"?1.0:0.5;
+    const solid=k=>{const o=L[k]||{};const j=J(k);return j!==null&&(o.stj_exact||j>=thr(k)+need);};
+    const pairOK=CONTIG.some(([a,b])=>met.includes(a)&&met.includes(b)&&solid(a)&&solid(b));
+    if(pairOK)return false;
+    const weak=met.filter(k=>!solid(k));
+    st.cutoff={leads:met.slice(),weak,why:why.slice(),criterion:S(st.criterion),sig,need};
+    st.decision="consult";st.criterion=(sig==="RE-ACQUIRE"?"Possible STEMI on a tracing the reader could not measure safely: ":"At the cut-off on a doubtful tracing: ")+S(st.criterion);
+    st.reasoning="Possible STEMI, not activated by the app: "+met.map(k=>k+" "+mmTxt(J(k))+" (needs ≥"+thr(k)+")").join(", ")+" are photo measurements with no printed STJ number behind them, "+(sig==="RE-ACQUIRE"?"and ":"the margin above the cut-off is less than "+need+" mm in "+weak.join(", ")+", and ")+why.join("; ")+". "+(sig==="RE-ACQUIRE"?"Record a new 12-lead now. If the paper itself clearly shows ST elevation, call UMOC without waiting.":"Call UMOC for a conference call, measure these leads on the paper (Measure in the photo viewer), and repeat the 12-lead in 10–15 minutes.");
+    st.edge=[...new Set([...(st.edge||[]),...weak])];return true;}
 
   // ---------- 5.8: OmniHeart v3.0 triage directive ----------
   // A summary label on top of the protocol result. It is worked out here in code FROM the protocol's own decision
@@ -2538,12 +2552,12 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const st=d.stemi||{},dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult",q=d.quality||{};
     const omi=st.omi||[],conf=omi.filter(x=>x.confirmed),summ=S(q.summary),lim=Array.isArray(q.limitations)?q.limitations:[];
     const rev=/lead reversal/i.test(summ)||lim.some(x=>/lead reversal/i.test(S(x)));
-    const poor=!!(st.incomplete||Q_BAD.test(summ)||lim.some(x=>Q_BAD.test(S(x)))||(d._invented||[]).length||(d._look&&d._look.failed)||d._verifyFailed);
-    const sig=q.adequate===false?"RE-ACQUIRE":poor?"SUB-OPTIMAL":"OPTIMAL";
+    const sig=sigLevel(d);
     const why=[];if(rev)why.push("Possible lead reversal: check electrode placement and record a new 12-lead.");
     let lv,label,action;
     if(dec==="met"){lv="red";label="🔴 CODE OMI — STEMI PPCI criteria met";action="Activate per protocol: call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d.";}
     else if(conf.length){lv="red";label="🔴 CODE OMI — OMI pattern confirmed";action="Per protocol this is not an automatic activation: call UMOC 02 504 8555 to discuss STEMI PPCI activation ("+conf.map(x=>x.n).join(", ")+").";}
+    else if(dec==="consult"&&st.cutoff){lv="amber";label=st.cutoff.sig==="RE-ACQUIRE"?"🟡 HIGH-RISK — possible STEMI, tracing not measurable":"🟡 HIGH-RISK — possible STEMI at the cut-off";action=(st.cutoff.sig==="RE-ACQUIRE"?"Record a new 12-lead now and analyze again. ":"Measure "+(st.cutoff.weak||[]).join(", ")+" on the paper (photo viewer → Measure). ")+"Call UMOC 02 504 8555 to discuss; if the paper clearly shows ST elevation, activate per protocol.";}
     else if(dec==="consult"||omi.length){lv="amber";label="🟡 HIGH-RISK — borderline / possible OMI";action="Call UMOC 02 504 8555 to discuss. Repeat the 12-lead every 10–15 minutes, or at once if symptoms change.";}
     else if(sig==="RE-ACQUIRE"||st.incomplete||rev){lv="amber";label="🟡 HIGH-RISK — tracing not good enough to rule out";action="Record a new, complete 12-lead and analyze again. Until then do not treat this as a NO.";}
     else{lv="green";label="🟢 No protocol criterion or OMI pattern found";action="Manage per working diagnosis and the Clinical Guidelines. A normal reading does not rule out ACS: repeat the 12-lead if symptoms continue or change.";}
@@ -3283,6 +3297,9 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
 
   let readMode="fast";
   analyzeBtn.onclick=()=>runRead("fast");
+  // 6.1: nothing changed since the last read (same photos, patient, layout and paper settings) -> show that result again, no new read.
+  function readKey(){try{return JSON.stringify({f:files.slice(0,maxCount).map(f=>[f.name,f.size,f.lastModified]),age:$("age").value,sex:$("sex").value,pacer:(window.__cx?window.__cx().pacer:"")||"",lay:store.get("eqg-layout")||"",paper:store.get("eqg-paper")||"",dbl:$("dblChk").checked});}catch(e){return null;}}
+  let forceRead=false;
   // Real reading time (tap -> result ready on the server), not counting time spent in another app.
   function takeTiming(list){if(!list.length)return null;const T=list.reduce((a,b)=>b.total>a.total?b:a);return T;}
   // Reading time (server + AI) and upload time are reported separately.
@@ -3471,7 +3488,7 @@ ${dyn}`;}
       if(bg!==me||lastReport!==fast)return;
       const ex=expandCompact(raw);ex._votesOther=(fast.stemi&&fast.stemi.cands)||[];ex._inv=await invFor(ex);ex._stjv=(fast._stjv&&fast._stjv.found)?fast._stjv:await stjFor(ex);if(bg!==me||lastReport!==fast)return;
       const data=finishRead(ex,"thorough",me.t0);const tx=applyTiming(data,takeTiming(tim));
-      data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};if(fast._rid){data._rid=fast._rid;data._at=fast._at;}
+      data._from={decision:fast.stemi&&fast.stemi.decision,secs:fast._secs};if(fast._rid){data._rid=fast._rid;data._at=fast._at;}data._key=fast._key;
       if(data._from.decision==="met"&&data.stemi.decision!=="met"&&!(data.stemi.decision==="consult"&&(data.stemi.cutoff||/LVH|cut-off|mimic|repolari/i.test(S(data.stemi.criterion)+" "+S(data.stemi.reasoning))))){const fl=(fast.stemi.metLeads||[]).join(", ");
         data.stemi.decision="consult";data.stemi.criterion="Reads disagree on ST elevation";
         data.stemi.reasoning="The fast read found ST elevation meeting criteria"+(fl?" in "+fl:"")+", but a second, deeper read of the same photo did not. Check these leads on the paper yourself and call UMOC to discuss.";
@@ -3556,6 +3573,11 @@ ${dyn}`;}
   async function runRead(mode){
     readMode=mode;
     if(!sample||!files.length||busy)return;
+    if(mode==="fast"&&!forceRead&&lastReport&&lastReport._key&&lastReport._key===readKey()&&!report.hidden){
+      const n=el("div","notice reuse");n.appendChild(el("b",null,"Nothing changed since read #"+(lastReport._rid||"")+": showing the same result (no new read, no credits). "));
+      const b=el("button","linkbtn","Read again anyway →");b.type="button";b.onclick=()=>{forceRead=true;n.remove();runRead("fast");};n.appendChild(b);
+      report.querySelectorAll(".notice.reuse").forEach(x=>x.remove());report.insertBefore(n,report.firstChild);report.scrollIntoView({behavior:"smooth"});setStatus("Same photos and patient as the last read: result shown again. Tap 'Read again anyway' for a fresh read.");track("reuse");return;}
+    forceRead=false;
     if(files.some(f=>orienting.has(f))){setStatus("Checking which way is up… one moment.");return;}
     bgCancel();lookCancel();
     if(isNetlify&&navigator.onLine===false){setStatus("No connection. ECG analysis needs internet. Reference pages and the UMOC call still work offline.",{err:true});return;}
@@ -3579,7 +3601,7 @@ ${dyn}`;}
       const one=()=>sample.json(buildPrompt(zz.zoom,mode),{images:zz.imgs,modelTier:mode==="fast"?"default":"complex",effort:mode==="fast"?"fast":"",signal:ctl.signal,cache:false,onTiming:t=>tim.push(t),onJob:id=>sessJob(id),onText:()=>{if(!started&&!dbl){started=true;phase="Writing the report";tick();}}});
       const raws=dbl?await Promise.all([one(),one()]):[await one()];
       const data=await settleReads(raws,mode,t0);
-      const tx=applyTiming(data,takeTiming(tim));bgCancel();lookCancel();lastReport=data;sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);else if(isNetlify&&!data._double)lookStart(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
+      const tx=applyTiming(data,takeTiming(tim));bgCancel();lookCancel();data._key=readKey();lastReport=data;sessReport(data);if(mode==="fast"&&isNetlify&&needsThorough(data))bgThorough(data);else if(isNetlify&&!data._double)lookStart(data);render(data);clearInterval(timer);setStatus((mode==="fast"?"Fast read":"Thorough read")+" ready ("+timeTxt(data)+")."+tx+(bg&&bg.fast===data&&yesFromPhoto(data)?" Possible STEMI: a second read is confirming it.":" Confirm against your own reading before acting."));
       logRead(data);track("result",{decision:data.stemi&&data.stemi.decision,secs:data._secs||0,mode,double:!!data._double});
     }catch(e){
       clearInterval(timer);if(!(e&&e.code==="cancelled"))track("error",{msg:String((e&&e.code)||"error")});
@@ -3829,7 +3851,7 @@ ${dyn}`;}
     if(order.some(k=>tExpected(d,k)))wrap.appendChild(el("p","lbl lnote","T inversion marked (normal), (RBBB) or (LBBB) is expected in that lead and is not counted as abnormal."));
     if(order.some(k=>(L[k]||{}).stj_check))wrap.appendChild(el("p","lbl lnote","⚠ check paper: the printed STJ number may have been misread from the photo. Read it on the paper."));
     if(order.some(k=>(L[k]||{}).stj_unclear))wrap.appendChild(el("p","lbl lnote","STJ unclear: the three readers of the printed STJ table (the main read and two close-up readers) all gave different numbers for "+order.filter(k=>(L[k]||{}).stj_unclear).join(", ")+", so the photo value is used there. Read the number on the paper."));
-    if(r.cutoff)wrap.appendChild(el("p","lbl lnote","At the cut-off on a doubtful tracing: "+r.cutoff.leads.map(k=>k+" reads exactly "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")").join(", ")+". These are photo measurements with no printed STJ number behind them, and "+r.cutoff.why.join("; ")+". Not activated by the app: consult UMOC and check the paper."));
+    if(r.cutoff)wrap.appendChild(el("p","lbl lnote",(r.cutoff.sig==="RE-ACQUIRE"?"Not activated: the reader rated this tracing as not safely measurable. ":"Not activated: the margin above the cut-off is under "+r.cutoff.need+" mm in "+(r.cutoff.weak||[]).join(", ")+" on a doubtful tracing. ")+r.cutoff.leads.map(k=>k+" "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")").join(", ")+" are photo measurements with no printed STJ number behind them, and "+r.cutoff.why.join("; ")+". Consult UMOC and measure the leads on the paper."));
     {const lone=(r.edge||[]).filter(k=>!(r.cutoff&&r.cutoff.leads.includes(k)));if(lone.length)wrap.appendChild(el("p","lbl lnote","At the cut-off: "+lone.map(k=>k+" reads exactly "+(J(k)>0?"+":"")+J(k)+" mm (needs ≥"+thr(k)+")").join(", ")+" with no neighbouring lead elevated. A photo can't measure to half a box, so this is not called ST elevation. Check "+(lone.length>1?"these leads":"this lead")+" on the paper if the patient has symptoms."));}
     {const lkp=lk&&lk.report===d?lk.leads:[];const mm=v=>(v>0?"+":v<0?"−":"")+Math.abs(v)+" mm";
       if(lkp.length)wrap.appendChild(el("p","lbl lnote","Second look in progress on "+lkp.join(", ")+": these leads are measured again on complete beats only before they are coloured."));
@@ -3886,6 +3908,10 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"6.1",d:"23 Oct 2026",t:"No activation on a tracing the reader can't measure; same photos, same answer",i:[
+      "Fix: a YES from photo reads needs an adequate tracing. If the reader rates the tracing 'not safely measurable' (Signal: RE-ACQUIRE), the app now says 'possible STEMI, consult UMOC, record a new 12-lead' instead of activating. On a sub-optimal tracing both leads of the pair need a full millimetre above the cut-off; next to LVH, early repolarisation, pericarditis or a disagreement between reads, half a millimetre. A pair where one lead sits exactly on the line never activates by itself. Printed STJ numbers from the monitor still count in full.",
+      "Fix: tapping Analyze ECG again with nothing changed (same photos, patient, layout, paper) shows the same result again instead of running a new read that could come back different. 'Read again anyway' forces a fresh read.",
+      "The OmniHeart banner names the case: 'possible STEMI at the cut-off' or 'possible STEMI, tracing not measurable', with the leads to measure on the paper."]},
     {v:"6.0",d:"23 Oct 2026",t:"Lead strips and a tap-to-measure calliper",i:[
       "New: 'Lead strips' in the photo viewer: the real photo cut into the 12 leads and laid out as one page at the same scale, each with the app's number. Nothing is redrawn or invented; it is your photo, rearranged. Needs a page layout (1, 2 or 4 pages).",
       "New: 'Measure': two lines you drag onto the baseline and the J-point of any lead; the app reads the paper's grid from the photo (px per mm) and shows the ST level in millimetres, next to the app's own value. If the grid can't be read, 'Calibrate' takes two taps on the 1 mV pulse instead.",

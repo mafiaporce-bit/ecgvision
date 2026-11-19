@@ -972,6 +972,111 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 #analyzeBtn{flex-direction:column;gap:0;line-height:1.15}
 #analyzeBtn .ab-up{font-size:.66rem;font-weight:600;letter-spacing:.01em;opacity:.95}
 #analyzeBtn.uploading{opacity:1!important;cursor:progress;background:linear-gradient(90deg,#2D4963 var(--p),#8E9BAA var(--p))!important;border-color:#8E9BAA!important;color:#fff}
+/* ---- 7.2: result screen, part 1: the answer first, a lighter interpretation card, one "check before acting" box ---- */
+.stemi.dz{padding:16px 16px 14px!important;border-radius:24px!important;box-shadow:0 10px 28px rgba(18,26,35,.14)}
+.stemi.dz.met{background:linear-gradient(160deg,#CF2F42,#9E1C2C)}
+.stemi.dz.consult{background:linear-gradient(160deg,#B96E06,#8F5200)}
+.stemi.dz .q{font-size:.7rem!important;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.dz-top{display:flex;align-items:center;gap:12px;margin:8px 0 6px}
+.dz-ic{flex:none;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
+.dz-ic svg{width:24px;height:24px}
+.stemi.dz .a{font-size:2.3rem!important;line-height:1!important;margin:0!important;font-weight:800}
+.stemi.dz .a.long{font-size:1.6rem!important}
+.stemi.dz .dz-sub{font-size:.95rem!important;font-weight:600;margin:3px 0 0!important;opacity:.95}
+.stemi.dz .dz-crit{font-weight:700;font-size:.92rem!important;margin:8px 0 0!important}
+.stemi.dz .dz-why{font-size:.86rem!important;line-height:1.4;opacity:.95;margin:4px 0 0!important}
+.stemi.dz .call{flex-direction:column;gap:1px;min-height:54px!important;font-size:1.02rem!important;margin-top:12px!important;border-radius:16px!important;line-height:1.15;padding:8px 10px}
+.stemi.dz .call span{display:inline-flex;align-items:center;gap:8px}
+.stemi.dz .call svg{width:18px;height:18px}
+.stemi.dz .call small{font-size:.74rem;font-weight:600;opacity:.8}
+.omni.oz{padding:11px 14px;border-width:1px;border-radius:18px;margin-bottom:0}
+.omni.oz .q{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase}
+.omni.oz .a{font-size:1rem;display:flex;align-items:center;gap:8px;margin:4px 0 2px;line-height:1.25}
+.omni.oz .dot{flex:none;width:10px;height:10px;border-radius:50%}
+.omni.red .dot{background:#C3283A}.omni.amber .dot{background:#D99A00}.omni.green .dot{background:#2E8B57}
+.omni.oz p{font-size:.86rem;line-height:1.4}
+.omni.oz details{margin-top:6px}
+.omni.oz summary{font-size:.76rem;opacity:.8;cursor:pointer}
+.omni.oz .sig{font-size:.76rem}
+.cba{background:#FFF8EA;border:1px solid #F0D9A8;border-radius:20px;padding:12px 14px}
+.cba-h{display:flex;align-items:center;gap:8px;color:#7A4700;font-weight:700;font-size:.95rem;font-family:"Inter Tight",Inter,sans-serif}
+.cba-h svg{width:18px;height:18px;flex:none}
+.cba-h .n{margin-left:auto;font-size:.72rem;font-family:Inter,sans-serif;background:#7A4700;color:#fff;border-radius:999px;padding:1px 8px}
+.cba ul{list-style:none;margin:8px 0 0!important;padding:0!important}
+.cba li{margin:0!important;padding:8px 0 8px 14px;border-top:1px solid rgba(122,71,0,.14);font-size:.88rem;line-height:1.4;color:#3A2A00;position:relative}
+.cba li::before{content:"";position:absolute;left:0;top:15px;width:6px;height:6px;border-radius:50%;background:#C98A1B}
+.cba li.hot{font-weight:600}
+.cba li.hot::before{background:#C3283A}
+.cba details{border-top:1px solid rgba(122,71,0,.14);padding-top:8px}
+.cba summary{font-size:.8rem;color:#7A4700;font-weight:600;cursor:pointer}
+.cba details li{color:#5c4a22}
+.cba.quiet{background:var(--card);border-color:var(--line)}
+.cba.quiet .cba-h{color:var(--soft);font-size:.85rem}
+.cba.quiet li{color:var(--soft);border-top-color:var(--line)}
+.cba.quiet li::before{background:var(--line)}
+.head.hd2{background:var(--card)!important;color:var(--ink);border:1px solid rgba(18,26,35,.06)!important;padding:14px 16px!important}
+.head.hd2 .k{color:var(--soft)!important;font-size:.7rem!important;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.head.hd2 .r{color:var(--ink);font-size:1.18rem!important;font-weight:700;margin:4px 0 6px!important;line-height:1.2}
+.head.hd2 p{color:var(--ink)}
+.head.hd2 .hl-note{color:var(--soft)!important;background:var(--field);border-radius:10px;padding:7px 9px;margin:0 0 2px!important}
+.hd-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.hd-stat{background:var(--field);border-radius:14px;padding:9px 11px;min-width:0}
+.hd-stat .l,.hd-conf .l{display:block;font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.hd-stat .v{display:block;font-weight:700;font-size:.95rem;line-height:1.2;margin-top:2px}
+.hd-stat .s{display:block;font-size:.8rem;color:var(--soft);margin-top:1px}
+.hd-flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.hd-flags span{font-size:.76rem;font-weight:600;background:var(--warn-bg);color:#7A4700;border-radius:999px;padding:3px 10px}
+.head.hd2 .hd-none{font-size:.8rem;color:var(--soft);margin-top:8px}
+.hd-conf{margin-top:8px;background:var(--field);border-radius:14px;padding:9px 11px}
+.hd-conf summary{list-style:none;cursor:pointer;display:block}
+.hd-conf summary::-webkit-details-marker{display:none}
+.hd-conf .row{display:flex;align-items:baseline;gap:8px}
+.hd-conf .v{font-weight:700;font-size:.95rem}
+.hd-conf .more{margin-left:auto;font-size:.76rem;color:var(--accent);font-weight:600}
+.hd-conf[open] .more{opacity:.5}
+.hd-conf .bar{height:6px;border-radius:99px;background:rgba(18,26,35,.1);margin-top:7px;overflow:hidden}
+.hd-conf .bar i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.hd-conf.low .bar i{background:#C98A1B}
+.hd-conf.high .bar i{background:var(--ok)}
+.hd-conf ul{margin:8px 0 0;padding-left:1.2em;font-size:.82rem;color:var(--ink)}
+.head.hd2 .rid{color:var(--soft);border-top:1px solid var(--line);padding-top:10px}
+.head.hd2 .rid b{color:var(--ink)}
+.head.hd2 .rid button{border:1px solid var(--line);background:var(--field);color:var(--accent)}
+.head.hd2 .srvline{opacity:1;color:var(--soft)}
+/* ---- 7.3: result screen, part 2: clearer lead boxes, sections that fold, one calm style ---- */
+.card.fold{padding:0!important;overflow:hidden}
+.card.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 16px;min-height:50px;-webkit-tap-highlight-color:transparent}
+.card.fold>summary::-webkit-details-marker{display:none}
+.card.fold>summary h3{margin:0;font-size:1rem;flex:1 1 auto;min-width:0}
+.card.fold .fsub{flex:0 1 auto;max-width:52%;font-size:.78rem;color:var(--soft);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card.fold[open] .fsub{display:none}
+.card.fold .chev{flex:none;width:9px;height:9px;border-right:2px solid var(--soft);border-bottom:2px solid var(--soft);transform:rotate(45deg);margin:-5px 3px 0 2px;transition:transform .15s}
+.card.fold[open] .chev{transform:rotate(-135deg);margin-top:5px}
+.card.fold[open]>summary{padding-bottom:8px}
+.card.fold .fbody{padding:0 16px 16px}
+.alert.none{padding:11px 16px;border-radius:18px}
+.alert.none h3{margin:0;font-size:.92rem;color:var(--ok);display:flex;align-items:center;gap:8px}
+.alert.none h3::before{content:"";flex:none;width:10px;height:10px;border-radius:50%;background:var(--ok)}
+.alert.none ul{margin-top:6px}
+.xleads{border:1px solid rgba(18,26,35,.08);border-radius:20px;padding:13px 16px;box-shadow:var(--shadow)}
+.xleads h3{font-family:"Inter Tight",Inter,sans-serif;font-weight:650;letter-spacing:-.015em}
+.lsum{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 10px}
+.lsum span{font-size:.76rem;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--field);color:var(--soft)}
+.lsum .c-ste{background:var(--crit);color:#fff}
+.lsum .c-sub{background:#F2EAFB;color:#5B2A99}
+.lsum .c-std{background:var(--warn-bg);color:var(--warn)}
+.lsum .c-chk{background:#FFE17A;color:#3A2A00}
+.lsum .c-unit{background:none;padding:3px 0;font-weight:500;margin-left:auto}
+.leadmap{gap:8px}
+.leadmap .lead{padding:8px 3px 7px;border-radius:14px}
+.leadmap .lead b{font-size:.78rem;font-weight:700;letter-spacing:.02em;opacity:.72}
+.leadmap .lead.ste b{color:#fff;opacity:.92}
+.leadmap .lead span.jv{font-size:clamp(.95rem,4.4vw,1.1rem);margin-top:0}
+.legend{font-size:.72rem;gap:4px 10px}
+.lnotes{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.lnotes summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--accent)}
+.lnotes ul{margin-top:8px;font-size:.84rem;color:var(--soft)}
+.why li.ck-no .claim{font-weight:500;color:var(--soft)}
 </style>
 </head>
 <body>
@@ -1557,7 +1662,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="7.1";
+  const APP_VERSION="7.3";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -2725,9 +2830,12 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   }
   window.__omniTriage=omniTriage;
   function omniBox(d){const t=omniTriage(d);const b=el("div","omni "+t.lv);b.setAttribute("role",t.lv==="red"?"alert":"note");
-    b.appendChild(el("p","q","OmniHeart v"+OMNI.v+" triage"));b.appendChild(el("div","a",t.label));b.appendChild(el("p",null,t.action));
-    b.appendChild(el("p","sig","Signal: "+t.sig));t.why.forEach(x=>b.appendChild(el("p","sig","⚠ "+x)));
-    b.appendChild(el("p","sig","Follows "+PROTOCOL.name+" and the service's 12 OMI patterns. Decision support only: the crew, UMOC and the physician decide."));
+    b.classList.add("oz");
+    b.appendChild(el("p","q","OmniHeart v"+OMNI.v+" triage · signal "+S(t.sig).toLowerCase()));
+    {const a=el("div","a"),dot=el("span","dot");dot.setAttribute("aria-hidden","true");a.append(dot,el("span",null,t.label.replace(/^[^A-Za-z]+/,"")));b.appendChild(a);}
+    b.appendChild(el("p",null,t.action));t.why.forEach(x=>b.appendChild(el("p","sig","⚠ "+x)));
+    {const det=document.createElement("details"),sm=document.createElement("summary");sm.textContent="About this triage";det.appendChild(sm);
+      det.appendChild(el("p","sig","Follows "+PROTOCOL.name+" and the service's 12 OMI patterns. Decision support only: the crew, UMOC and the physician decide."));b.appendChild(det);}
     return b;}
 
   // ---------- 5.7: at a glance (rhythm / conduction / other), read ID and handover line ----------
@@ -2756,16 +2864,14 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     if(st.decision==="met"&&saysNone&&ste.length&&!wide)return {changed:"none",
       text:rhythm+", ST elevation "+ste.map(mm).join(", ")+" mm",
       note:"The reader's own wording was "+q(raw.slice(0,140))+". The final numbers"+src+" meet the criteria, so the line above is written from the numbers."};
-    if(st._mon==="normal")return {text:raw,note:"This is the photo read's wording. The monitor's own analysis printed "+q("Normal ECG")+": see the decision below."};
-    if(st._mon==="stemi")return {text:raw,note:"This is the photo read's wording. The monitor's own analysis printed "+q(S(d._mon&&d._mon.stemi&&d._mon.stemi.text)||"STEMI")+": see the decision below."};
+    if(st._mon==="normal")return {text:raw,note:"This is the photo read's wording. The monitor's own analysis printed "+q("Normal ECG")+": see the decision above."};
+    if(st._mon==="stemi")return {text:raw,note:"This is the photo read's wording. The monitor's own analysis printed "+q(S(d._mon&&d._mon.stemi&&d._mon.stemi.text)||"STEMI")+": see the decision above."};
     return {text:raw,note:""};}
   window.__headline=d=>headline(d||lastReport);
-  function glanceRows(d){const g=el("div","glance");const row=(k,v)=>{g.appendChild(el("span","k",k));g.appendChild(el("span","v",v));};
-    const rc=S(d.rhythm_class).toLowerCase(),rate=Number(d.rate_bpm)||null;row("Rhythm",(RC_TXT[rc]||S(d.rhythm_class)||"—")+(rate?" · "+rate+"/min":""));
+  function glanceData(d){const rc=S(d.rhythm_class).toLowerCase(),rate=Number(d.rate_bpm)||null;
     const c=d.conduction||{},q=Number(c.qrs_ms)||null,bbb=S(c.bbb),bb=bbb&&!/^none$/i.test(bbb)?bbb:"";
-    row("Conduction",bb?bb+(q?" · QRS "+q+" ms":""):q?(q>=120?"Wide QRS · "+q+" ms":"Narrow QRS · "+q+" ms"):"—");
     const f=d.flags||{},o=[];if(c.lvh)o.push("LVH voltage");if(f.delta_wave)o.push("delta wave (pre-excitation)");if(f.brugada)o.push("Brugada pattern");if(f.hyperk)o.push("hyperkalaemia signs");if(f.pericarditis)o.push("pericarditis pattern");if(f.early_repol)o.push("early repolarisation");if(f.pacer_spikes)o.push("pacing spikes");if(f.capture_failure)o.push("failure to capture");if(f.diffuse_std_avr)o.push("diffuse ST depression with STE in aVR");if(Number(f.qtc_ms)>=500)o.push("QTc "+f.qtc_ms+" ms (long)");if(d._lowv)o.push("low voltage");
-    row("Other",o.length?o.join(", ").replace(/^./,x=>x.toUpperCase()):"Nothing else flagged");return g;}
+    return {rhythm:RC_TXT[rc]||S(d.rhythm_class)||"—",rate:rate?rate+"/min":"",cond:bb||(q?(q>=120?"Wide QRS":"Narrow QRS"):"—"),qrs:q?"QRS "+q+" ms":"",other:o.map(x=>x.replace(/^./,y=>y.toUpperCase()))};}
   const RID_CH="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   function ensureRid(d){if(!d._rid){const a=new Uint8Array(4);try{crypto.getRandomValues(a);}catch(e){for(let i=0;i<4;i++)a[i]=Math.floor(Math.random()*256);}let s="";a.forEach(b=>{s+=RID_CH[b%RID_CH.length];});d._rid=s;}if(!d._at)d._at=Date.now();}
   function fmtAt(t){const x=new Date(t);return x.toLocaleDateString("en-GB",{day:"numeric",month:"short"})+" "+x.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}
@@ -4166,6 +4272,12 @@ ${dyn}`;}
   const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e;};
   const list=items=>{const u=el("ul");items.forEach(t=>u.appendChild(el("li",null,t)));return u;};
   const card=(title,content)=>{const c=el("div","card");c.appendChild(el("h3",null,title));c.appendChild(content);return c;};
+  // 7.3: a section that folds. Tap the title to open or close it; the phone remembers your choice for that section.
+  let foldPref={};try{foldPref=JSON.parse(store.get("eqg-fold")||"{}")||{};}catch(e){foldPref={};}
+  const fcard=(key,title,content,o)=>{o=o||{};const c=document.createElement("details");c.className="card fold";c.dataset.fold=key;
+    const sm=document.createElement("summary");sm.appendChild(el("h3",null,title));if(o.sub)sm.appendChild(el("span","fsub",o.sub));const ch=el("span","chev");ch.setAttribute("aria-hidden","true");sm.appendChild(ch);c.appendChild(sm);
+    const b=el("div","fbody");b.appendChild(content);c.appendChild(b);c.open=(key in foldPref)?!!foldPref[key]:!!o.open;
+    sm.addEventListener("click",()=>setTimeout(()=>{foldPref[key]=c.open;try{store.set("eqg-fold",JSON.stringify(foldPref));}catch(e){}},0));return c;};
 
   // T-wave inversions that are normal or expected, so they are not shown as abnormal:
   // aVR (always inverted), V1 (often inverted in healthy adults), III alone (when aVF is upright),
@@ -4187,7 +4299,7 @@ ${dyn}`;}
     // LBBB / paced: the standard mm thresholds don't apply. ST normally goes the OPPOSITE way to the QRS
     // ("discordant", expected). Only concordant ST, or ST/S ≥25%, is highlighted (modified Sgarbossa).
     const lb=/LBBB|paced/i.test(bbb);
-    const wrap=el("div");const g=el("div","leadmap");
+    const wrap=el("div");const g=el("div","leadmap");const cnt={ste:0,sub:0,std:0,chk:0};
     order.forEach(k=>{
       const o=L[k]||{},j=J(k),t=S(o.t).toLowerCase(),qp=S(o.qrs).toLowerCase(),qm=Number(o.qrs_mm)||0;
       let cls="lead",line,badge=null,bcls="need";
@@ -4227,8 +4339,16 @@ ${dyn}`;}
         const sp=el("span","pxl"+(!ok?" pxun":diff<=0.5?" pxok":" pxno"),"px "+(ok?(px.st>0?"+":px.st<0?"−":"")+Math.abs(px.st)+(diff<=0.5?" ✓":" ≠"):"?"));
         sp.title=ok?"Pixel measure (test mode): median of "+px.used+" beats":"Pixel measure: fewer than two clean, agreeing beats in this lead";box.appendChild(sp);}}
       box.onclick=()=>window.__lvOpen&&window.__lvOpen(k);box.setAttribute("role","button");box.tabIndex=0;
+      ["ste","sub","std"].forEach(x=>{if(box.classList.contains(x))cnt[x]++;});if(["edge","lkx","lkp","stjchk"].some(x=>box.classList.contains(x)))cnt.chk++;
       g.appendChild(box);
     });
+    // 7.3: the count first, so the grid can be read at a glance.
+    {const sum=el("div","lsum"),n=(x,one,many)=>x+" "+(x===1?one:many);
+      if(!lb){if(cnt.ste)sum.appendChild(el("span","c-ste",n(cnt.ste,"lead meets threshold","leads meet threshold")));else sum.appendChild(el("span",null,"No lead meets threshold"));
+        if(cnt.sub)sum.appendChild(el("span","c-sub",cnt.sub+" elevated, below threshold"));if(cnt.std)sum.appendChild(el("span","c-std",cnt.std+" ST depression"));}
+      else if(cnt.ste)sum.appendChild(el("span","c-ste",n(cnt.ste,"lead Sgarbossa-positive","leads Sgarbossa-positive")));
+      if(cnt.chk)sum.appendChild(el("span","c-chk",cnt.chk+" to check on the paper"));
+      sum.appendChild(el("span","c-unit","J-point, mm at 10 mm/mV"));wrap.appendChild(sum);}
     wrap.appendChild(g);
     const lg=el("div","legend");
     const items=lb?[["var(--crit)","Concordant ST or ST/S ≥25% (Sgarbossa)"],["#9AA9BA","Discordant: expected with "+(/paced/i.test(bbb)?"paced rhythm":"LBBB")],["var(--warn)","Concordant ST depression V1–V3"],["var(--field-b)","Normal / not in photo"]]
@@ -4259,7 +4379,7 @@ ${dyn}`;}
         if(parts.length)wrap.appendChild(el("p","lbl lnote",(look.src==="look"?"Second look (complete beats only): ":look.src==="double"?"Two reads compared: ":"Fast and thorough reads compared: ")+parts.join(" ")));}
       else if(d._look&&d._look.failed)wrap.appendChild(el("p","lbl lnote","The second look at "+(d._look.names||[]).join(", ")+" didn't finish; these values are from one read only."));}
     const notes=LEADS.filter(k=>L[k]&&L[k].note).map(k=>k+": "+S(L[k].note));
-    if(notes.length){const n=list(notes);n.style.marginTop="10px";n.style.fontSize=".88rem";wrap.appendChild(n);}
+    if(notes.length){const det=document.createElement("details");det.className="lnotes";const sm=document.createElement("summary");sm.textContent="Where each number came from ("+notes.length+")";det.appendChild(sm);det.appendChild(list(notes));wrap.appendChild(det);}
     return wrap;
   }
 
@@ -4287,7 +4407,7 @@ ${dyn}`;}
   function secKey(n){const c=n.classList;if(!c)return null;
     if(c.contains("omibox"))return "omi";if(c.contains("xleads"))return "next";if(c.contains("review"))return "review";
     if(c.contains("rhythm"))return c.contains("critical")?null:"rhythm";if(c.contains("alert"))return "alert";
-    if(c.contains("card")){const h=n.querySelector(":scope>h3");const t=h?h.textContent:"";const m=TITLE_KEY.find(([p])=>t.startsWith(p));return m?m[1]:null;}
+    if(c.contains("card")){const h=n.querySelector(":scope>h3,:scope>summary>h3");const t=h?h.textContent:"";const m=TITLE_KEY.find(([p])=>t.startsWith(p));return m?m[1]:null;}
     return null;}
   function applySections(d){
     report.querySelectorAll(".omi-mini").forEach(x=>x.remove());
@@ -4306,6 +4426,16 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"7.3",d:"19 Nov 2026",t:"Result screen, part 2: clearer leads, sections that fold",i:[
+      "The lead boxes start with a count ('2 leads meet threshold', '2 elevated, below threshold', 'to check on the paper'), and the number in each box is larger than the lead name. The long list of where each number came from folds under the grid.",
+      "Protocol check, Why this reading, Monitor printout, Measured parameters, Field actions, Differential and Image quality now fold: tap the title to open or close. Field actions and Measured parameters start open; the Protocol check opens by itself when a criterion is met or needs checking; the Monitor printout opens by itself when it disagrees with the photo read or has unconfirmed numbers. The phone remembers what you opened or closed. The switches in Settings work as before.",
+      "When some printed STJ numbers are confirmed and others are not, the 'Check before acting' box now says which leads, so it is seen even with the Monitor printout folded.",
+      "Look only: no decision, threshold or safety check changed."]},
+    {v:"7.2",d:"19 Nov 2026",t:"Result screen, part 1: the answer first",i:[
+      "The answer is now the first thing on the result: YES, Consult UMOC or NO in large letters, with the reason and the UMOC call button in the same box. The interpretation card moved under it.",
+      "All warnings sit in ONE 'Check before acting' box straight under the decision, with a count, instead of separate yellow boxes further down. No warning is hidden; only plain information (which numbers came from the monitor's table, the T-axis note, a sideways photo that was fully confirmed) folds into 'Notes on this read'.",
+      "OmniHeart triage is a slimmer box under the decision. The interpretation card is lighter: rhythm and conduction as two tiles, flags as small tags, confidence as a bar (tap 'Why?' for the reasons).",
+      "Look only: no decision, threshold or safety check changed."]},
     {v:"7.1",d:"19 Nov 2026",t:"The header line agrees with the final numbers",i:[
       "Fix: the line at the top of the report was the reader's own wording, written before the app replaced photo values with the monitor's confirmed STJ numbers. So the header could say 'ST elevation V4-V5' above a result of NO. Now, when the final answer is NO but the wording says ST elevation or STEMI (or the answer is YES and the wording says there is none), the header is written from the final numbers, and the reader's wording is shown underneath as what it was. Confidence drops 10 points when this happens, and says why.",
       "When the photo read and the monitor's own statement disagree, a line under the header says the header is the photo read's wording and names what the monitor printed."]},
@@ -4625,28 +4755,38 @@ ${dyn}`;}
     if(files.length>1&&d.same_patient===false){const b=el("div","pt-block");b.appendChild(el("h3",null,"Photos appear to be from different patients"));b.appendChild(el("p",null,S(d.same_patient_reason)||"Identifiers on the photos don't match."));b.appendChild(el("p",null,"No reading was made. Tap New patient and add photos from one patient only."));report.appendChild(b);report.hidden=false;d.stemi={decision:"consult",criterion:"Not analysed: mixed patients",checks:[],warnings:[]};return;}
     if(d.is_ecg===false){report.appendChild(card("Not readable as an ECG",el("p",null,S(d.quality?.summary)||"Retake the photo with the full tracing in frame.")));report.hidden=false;return;}
 
+    // 7.2: order of the top of the result: [critical rhythm] > decision > triage > check before acting > interpretation.
+    let rhCard=null,rhCrit=false,omniEl=null,chkBox=null;
     {const rh=d._rhythm;if(rh&&(rh.level!=="none"||rh.actions.length)){const card2=el("div","rhythm "+rh.level);
       card2.appendChild(el("p","q",rh.level==="critical"?"Rhythm alert":rh.level==="caution"?"Rhythm: caution":"Rhythm"));card2.appendChild(el("div","a",rh.title||"Rhythm"));
       if(rh.notes.length)card2.appendChild(list(rh.notes));if(rh.actions.length)card2.appendChild(list(rh.actions));
       if(rh.flags.length){const fl=el("div","rflags");rh.flags.forEach(x=>fl.appendChild(el("div","flagline"+(x.lv==="critical"?" crit":""),"⚠ "+x.t)));card2.appendChild(fl);}
-      report.appendChild(card2);}
+      rhCard=card2;rhCrit=rh.level==="critical";}
       const mn=mimicNote(d);if(mn){d.stemi.warnings=(d.stemi.warnings||[]).concat([mn]);}}
     const st=d.stemi||{};const dec=["met","consult","not_met"].includes(st.decision)?st.decision:"consult";
     // A YES read only from the photo is shown as "Possible STEMI — confirming" until the second read agrees.
     const pending=dec==="met"&&d._mode==="fast"&&!!bg&&bg.fast===d&&yesFromPhoto(d);
-    const box=el("div","stemi "+dec+(pending?" pending":""));box.setAttribute("role",dec==="met"?"alert":"note");
+    const box=el("div","stemi dz "+dec+(pending?" pending":""));box.setAttribute("role",dec==="met"?"alert":"note");
     box.appendChild(el("p","q","STEMI PPCI criteria met?"));
-    box.appendChild(el("div","a",pending?"Possible STEMI — confirming…":dec==="met"?(d._confirmedYes?"YES — Activate STEMI pathway (confirmed by 2 reads)":"YES — Activate STEMI pathway"):dec==="consult"?"Not fully met — consult UMOC":st.incomplete?"NO in the "+(12-(st.missing||[]).length)+" leads shown — incomplete":"NO"));
+    const SV=x=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+x+'</svg>';
+    const PHONE=SV('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>');
+    {const IC={met:SV('<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>'),consult:PHONE,not_met:SV('<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>'),wait:SV('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')};
+      const top=el("div","dz-top"),ic=el("span","dz-ic"),tx=el("div");ic.innerHTML=pending?IC.wait:IC[dec];
+      const big=pending?"Possible STEMI":dec==="met"?"YES":dec==="consult"?"Consult UMOC":"NO";
+      const sub=pending?"Confirming with a second read…":dec==="met"?"Activate STEMI pathway"+(d._confirmedYes?" · confirmed by 2 reads":""):dec==="consult"?"Criteria not fully met":st.incomplete?"In the "+(12-(st.missing||[]).length)+" leads shown — incomplete":"";
+      tx.appendChild(el("div","a"+(big.length>3?" long":""),big));if(sub)tx.appendChild(el("p","dz-sub",sub));top.append(ic,tx);box.appendChild(top);}
     if(dec!=="met"&&st.incomplete)box.appendChild(el("p","pend","Only "+(12-(st.missing||[]).length)+" of 12 leads are in this photo ("+(st.missing||[]).join(", ")+" missing). Add the missing page and analyze again before ruling out STEMI."));
     if(pending)box.appendChild(el("p","pend",'A second, deeper read is checking this photo (about 45 s). If the monitor\'s own report says STEMI, or the patient is unstable, call UMOC now.'));
     if(d._verifyFailed&&dec==="met")box.appendChild(el("p","pend","The second read didn't finish, so this YES is not double-checked. Check the leads on the paper."));
-    if(st.criterion)box.appendChild(el("p",null,S(st.criterion)+(st.territory&&!S(st.criterion).includes(S(st.territory))?" · "+S(st.territory):"")));
-    if(st.reasoning)box.appendChild(el("p",null,S(st.reasoning)));
-    if(dec!=="not_met"){const a=el("a","call",dec==="met"?"Call UMOC 02 504 8555 · \u201cSTEMI Pathway Activation\u201d":"Call UMOC 02 504 8555 for conference call");a.href="tel:025048555";box.appendChild(a);}
-    else box.appendChild(el("p",null,"Manage per working diagnosis. Transport to the nearest appropriate facility."));
-    if(!pending)report.appendChild(omniBox(d));
+    if(st.criterion)box.appendChild(el("p","dz-crit",S(st.criterion)+(st.territory&&!S(st.criterion).includes(S(st.territory))?" · "+S(st.territory):"")));
+    if(st.reasoning)box.appendChild(el("p","dz-why",S(st.reasoning)));
+    if(dec!=="not_met"){const a=el("a","call"),sp=el("span");a.href="tel:025048555";sp.innerHTML=PHONE;sp.appendChild(document.createTextNode("Call UMOC 02 504 8555"));a.appendChild(sp);
+      a.appendChild(el("small",null,dec==="met"?"Say: “STEMI Pathway Activation”":"For a conference call with the receiving facility"));box.appendChild(a);}
+    else box.appendChild(el("p","dz-why","Manage per working diagnosis. Transport to the nearest appropriate facility."));
+    if(rhCard&&rhCrit)report.appendChild(rhCard);
     report.appendChild(box);
-    report.appendChild(card("Lead-by-lead read (J-point, standard 10 mm/mV)",leadMap(d))); // 5.8: straight under the decision
+    if(!pending){omniEl=omniBox(d);report.appendChild(omniEl);}
+    report.appendChild(card("Lead-by-lead read",leadMap(d))); // 5.8: straight under the decision
     if(st.omi&&st.omi.length){const ob=el("div","omibox");ob.setAttribute("role","alert");
       const conf=st.omi.filter(x=>x.confirmed);
       ob.appendChild(el("p","q","OMI pattern seen"));
@@ -4677,6 +4817,9 @@ ${dyn}`;}
     {const v=d._stjv,nAi=(d._stjUsed!==undefined&&d.printed&&d.printed.stj)?Object.keys(d.printed.stj).filter(k=>typeof d.printed.stj[k]==="number").length:0;
       if(nAi&&!(d._stjVerified||[]).length){const why=v&&v.old?"the server file netlify/edge-functions/read.js is still the old version (upload the 5.2+ file)":v&&v.reason?v.reason:"the check did not finish in time";
         const w="⚠ The printed STJ numbers could NOT be confirmed ("+why+"). They are the main read's copy, which can misread the LP15's slashed zeros (0.04 as 0.84), so the app treats them as photo values, not as the monitor's exact numbers. Check them against the STJ table on the paper.";if(!(st.warnings||[]).includes(w))st.warnings=[w].concat(st.warnings||[]);}}
+    // 7.3: some printed numbers confirmed, some not. Said in the check box, because the Monitor printout section can be folded.
+    if((d._stjVerified||[]).length&&(d._stjUnverified||[]).length){const v=d._stjv,why=v&&v.old?"server file read.js is old":v&&v.reason?v.reason:"";
+      const w="Printed STJ numbers not confirmed in "+d._stjUnverified.join(", ")+(why?" ("+why+")":"")+": the app treats them as photo values, not as the monitor's exact numbers. Read them on the paper if the result depends on those leads.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}
     if(d._stjMathFixed&&d._stjMathFixed.length){const w="Printed limb-lead STJ numbers that did not add up were corrected by Einthoven's law (III = II − I): "+d._stjMathFixed.join(", ")+". Check them against the paper.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}
     if(d._stjMath==="inconsistent"){const w="⚠ The printed limb-lead STJ numbers, as read from the photo, do not add up (Einthoven's law), so at least one was probably misread. None of them is treated as exact: read the STJ table on the paper.";if(!(st.warnings||[]).includes(w))st.warnings=[w].concat(st.warnings||[]);}
     if(d._monNote&&!(st.warnings||[]).includes(d._monNote))st.warnings=[d._monNote].concat(st.warnings||[]);
@@ -4684,12 +4827,23 @@ ${dyn}`;}
     {const sv=d._srv;if(sv&&sv.note&&sv.note.includes("model_fallback")){const w="The reading model set in Netlify ("+sv.asked+") is not available on this API key, so "+sv.model+" read this ECG. Check CLAUDE_MODEL in Netlify.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}}
     if(srvOld&&!(st.warnings||[]).includes(srvOld))st.warnings=[srvOld].concat(st.warnings||[]);
     if(d._stjUnclear&&d._stjUnclear.length)st.warnings=(st.warnings||[]).concat(["Printed STJ unclear in "+d._stjUnclear.join(", ")+": three readers gave three different numbers, so the photo value is used there. Read "+(d._stjUnclear.length>1?"those numbers":"that number")+" on the paper."]);
-    if(d._rotNote){const n=el("p","lbl");n.textContent="↻ "+d._rotNote;n.style.margin="2px 6px 8px";report.appendChild(n);}
-    st.warnings=[...new Set(st.warnings||[])];st.warnings.forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
+    // 7.2: every warning in ONE box straight under the decision. Nothing is hidden: only three kinds of plain information
+    // (which numbers came from the monitor's table, the T-axis note, a sideways photo that was fully confirmed) fold away as notes.
+    {const NOTE=/^(J-points taken from the monitor's printed STJ measurement|The AI's copy of the printed STJ table had)/;
+      st.warnings=[...new Set(st.warnings||[])];
+      const notes=st.warnings.filter(w=>NOTE.test(w)||w===d._axisNote),warn=st.warnings.filter(w=>!notes.includes(w));if(d._rotNote)notes.push(d._rotNote);
+      const li=w=>el("li",/^⚠/.test(w)?"hot":null,w.replace(/^⚠\s*/,""));
+      if(warn.length||notes.length){chkBox=el("div","cba"+(warn.length?"":" quiet"));const hd=el("div","cba-h");
+        hd.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(warn.length?'<path d="M12 3 2.5 20h19L12 3z"/><path d="M12 10v4M12 17.2v.1"/>':'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8v.1"/>')+'</svg>';
+        hd.appendChild(el("b",null,warn.length?"Check before acting":"Notes on this read"));if(warn.length>1)hd.appendChild(el("span","n",String(warn.length)));chkBox.appendChild(hd);
+        if(warn.length){chkBox.setAttribute("role","note");const u=el("ul");warn.forEach(w=>u.appendChild(li(w)));chkBox.appendChild(u);
+          if(notes.length){const det=document.createElement("details"),sm=document.createElement("summary");sm.textContent="Notes on this read ("+notes.length+")";det.appendChild(sm);const u2=el("ul");notes.forEach(w=>u2.appendChild(li(w)));det.appendChild(u2);chkBox.appendChild(det);}}
+        else{const u=el("ul");notes.forEach(w=>u.appendChild(li(w)));chkBox.appendChild(u);}
+        (omniEl||box).after(chkBox);}}
     if((st.checks||[]).length){const u=el("ul","why");
       const KEY={"i":"stemi","ii":"post","iii":"lcx","iv":"lm","v":"lbbbv","vi":"rbbbv","W":"wellens"};
       const PAGE={"i":"criteria","ii":"enhanced","iii":"enhanced","iv":"enhanced","v":"enhanced","vi":"enhanced","W":"criteria"};
-      st.checks.forEach(c=>{const li=el("li");li.appendChild(el("div","claim",(c.ok===true?"✅ ":c.ok===false?"✖ ":"⚠️ ")+c.t));
+      st.checks.forEach(c=>{const li=el("li",c.ok===true?"ck-ok":c.ok===false?"ck-no":"ck-chk");li.appendChild(el("div","claim",(c.ok===true?"✅ ":c.ok===false?"✖ ":"⚠️ ")+c.t));
         const m=/^\((i|ii|iii|iv|v|vi|W)\)/.exec(c.t);const mo=/^\(OMI\) (?:Possible )?(.+?)(?: SEEN:|:)/.exec(c.t);const oh=mo?OMI.find(x=>x.n===mo[1]):null;
         if(oh){const det=document.createElement("details");det.className="cfig";det.open=c.ok!==false;const sm=document.createElement("summary");sm.textContent="What "+oh.n+" looks like";det.appendChild(sm);const f=el("div","figs");oh.f.forEach(b=>f.appendChild(fig(b)));det.appendChild(f);det.appendChild(el("p","lbl",oh.d));const go=el("button","linkbtn","All OMI patterns →");go.type="button";go.onclick=()=>window.goPage("omi");det.appendChild(go);li.appendChild(det);}
         if(m&&FIGS[KEY[m[1]]]){const det=document.createElement("details");det.className="cfig";if(c.ok!==false)det.open=true;
@@ -4697,16 +4851,20 @@ ${dyn}`;}
           const f=el("div","figs");FIGS[KEY[m[1]]].forEach(b=>f.appendChild(fig(b)));det.appendChild(f);
           const go=el("button","linkbtn","Open full criteria →");go.type="button";go.onclick=()=>window.goPage(PAGE[m[1]]);det.appendChild(go);li.appendChild(det);}
         u.appendChild(li);});
-      report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
+      const nMet=st.checks.filter(c=>c.ok===true).length,nChk=st.checks.filter(c=>c.ok!==true&&c.ok!==false).length;
+      report.appendChild(fcard("protocol","Protocol check",u,{sub:"ESC 2023 · "+(nMet?nMet+" met":"none met")+(nChk?" · "+nChk+" to check":""),open:nMet>0||nChk>0}));}
 
-    const p=d.primary||{};const h=el("div","card head");
+    const p=d.primary||{};const h=el("div","card head hd2");
     h.appendChild(el("p","k","Primary interpretation"+(d._mode==="fast"?" · fast read":d._mode==="thorough"?" · thorough read":"")));const hl=headline(d);h.appendChild(el("div","r",hl.text||"Interpretation unavailable"));if(hl.note)h.appendChild(el("p","hl-note",hl.note));
     if(p.summary)h.appendChild(el("p",null,S(p.summary)));
-    h.appendChild(glanceRows(d));
-    const cc=d._conf;if(cc){h.appendChild(el("span","pill"+(cc.level==="Low"?" low":""),"Confidence: "+cc.level+" ("+cc.score+"%)"));
-      const det=document.createElement("details");det.className="conf-d";const sm=document.createElement("summary");sm.textContent="Why this confidence?";det.appendChild(sm);det.appendChild(list(cc.why));h.appendChild(det);}
+    {const g=glanceData(d),sts=el("div","hd-stats");const tile=(l,v,s2)=>{const t=el("div","hd-stat");t.appendChild(el("span","l",l));t.appendChild(el("span","v",v));if(s2)t.appendChild(el("span","s",s2));sts.appendChild(t);};
+      tile("Rhythm",g.rhythm,g.rate);tile("Conduction",g.cond,g.qrs);h.appendChild(sts);
+      if(g.other.length){const fl=el("div","hd-flags");g.other.forEach(x=>fl.appendChild(el("span",null,x)));h.appendChild(fl);}else h.appendChild(el("p","hd-none","Nothing else flagged"));}
+    const cc=d._conf;if(cc){const det=document.createElement("details");det.className="hd-conf "+(cc.level==="Low"?"low":cc.level==="High"?"high":"mid");
+      const sm=document.createElement("summary"),row=el("div","row");row.appendChild(el("span","l","Confidence"));row.appendChild(el("span","v",cc.level+" · "+cc.score+"%"));row.appendChild(el("span","more","Why?"));sm.appendChild(row);
+      const bar=el("div","bar"),fill=document.createElement("i");fill.style.width=Math.max(4,Math.min(100,Number(cc.score)||0))+"%";bar.appendChild(fill);sm.appendChild(bar);det.appendChild(sm);det.appendChild(list(cc.why));h.appendChild(det);}
     h.appendChild(ridRow(d));
-    report.insertBefore(h,report.firstChild);
+    (chkBox||omniEl||box).after(h);if(rhCard&&!rhCrit)h.after(rhCard);
     if(d._from&&d.stemi&&d.stemi.safest){const n=el("div","upd changed");n.appendChild(el("b",null,"The two reads disagree: the safer result is kept"));
       n.appendChild(el("span",null,"The quick read said "+(d.stemi.safest.st?"YES / possible STEMI":(DEC_TXT[d._from.decision]||"consult UMOC"))+"; the deeper read found no criterion met. Now: consult UMOC and measure the leads on the paper yourself."));report.insertBefore(n,report.firstChild);}
     else if(d._from){const ch=d._from.decision!==(d.stemi&&d.stemi.decision);const n=el("div","upd"+(ch?" changed":""));
@@ -4723,10 +4881,10 @@ ${dyn}`;}
     if(ev.length){
       const u=el("ul","why");
       ev.forEach(x=>{if(!x)return;const li=el("li");li.appendChild(el("div","claim",S(x.claim)));if(x.criterion)li.appendChild(el("div","crit",S(x.criterion)));const ls=arr(x.leads);if(ls.length){const t=el("div","ltags");ls.forEach(l=>t.appendChild(el("span",null,l)));li.appendChild(t);}u.appendChild(li);});
-      report.appendChild(card("Why this reading",u));
+      report.appendChild(fcard("why","Why this reading",u,{sub:ev.length+" finding"+(ev.length===1?"":"s")}));
     }
 
-    if(files.length>1&&(d.images_used||arr(d.serial_changes).length)){const w=el("div");if(d.images_used)w.appendChild(el("p",null,S(d.images_used)));const sc=arr(d.serial_changes);if(sc.length){w.appendChild(el("p","lbl","Changes between serial ECGs"));w.appendChild(list(sc));}report.appendChild(card("Photos used",w));}
+    if(files.length>1&&(d.images_used||arr(d.serial_changes).length)){const w=el("div");if(d.images_used)w.appendChild(el("p",null,S(d.images_used)));const sc=arr(d.serial_changes);if(sc.length){w.appendChild(el("p","lbl","Changes between serial ECGs"));w.appendChild(list(sc));}report.appendChild(fcard("photos","Photos used",w,{}));}
     const pr=d.printed||{};const pi=arr(pr.interpretation);const stj=pr.stj&&typeof pr.stj==="object"?Object.entries(pr.stj).filter(([k,v])=>v!==null&&v!==""):[];
     const pm=[["HR",pr.hr],["PR",pr.pr],["QRS",pr.qrs],["QT/QTc",pr.qtc],["Axes",pr.axes]].filter(x=>x[1]);
     if(pi.length||stj.length||pm.length){const w=el("div");
@@ -4736,17 +4894,17 @@ ${dyn}`;}
         w.appendChild(el("p","lbl","Printed STJ level (mm)"+(nv&&!unv.length?" · confirmed"+(d._stjv&&d._stjv.found?" from a close-up by two readers":"")+(d._stjMath==="ok"?" · limb leads add up (Einthoven)":""):nv?" · "+nv+" confirmed"+(d._stjMath==="ok"?" (limb leads add up)":"")+", "+unv.length+" NOT confirmed (marked ?)":" · as copied by the AI, NOT confirmed"+(d._stjv&&d._stjv.old?": server file read.js is old":d._stjv&&d._stjv.reason?": "+d._stjv.reason:""))));w.appendChild(t);}
       if(d._photoVs){const pv=d._photoVs;const x=el("p","lbl","Photo read against the monitor's confirmed STJ numbers on this printout: average difference "+pv.mean+" mm over "+pv.n+" leads, largest "+pv.max+" mm ("+pv.lead+"). The monitor's numbers are the ones used.");x.style.marginTop="8px";w.appendChild(x);}
       const n=el("p","lbl","The monitor's automatic statement is unconfirmed. Your own reading and UMOC decide.");n.style.marginTop="8px";w.appendChild(n);
-      report.appendChild(card("Monitor printout",w));}
+      report.appendChild(fcard("printout","Monitor printout",w,{open:(d._stjUnverified||[]).length>0||/^(stemi|normal)$/.test(S(st._mon)),sub:pi.length?S(pi[0]).replace(/[*•]+/g," ").replace(/\s+/g," ").trim().slice(0,40):stj.length?"STJ table":""}));}
 
     const om=arr(d.omi_patterns);if(om.length){const w=el("div");const tags=el("div","omi");om.forEach(o=>tags.appendChild(el("span",null,o)));w.appendChild(tags);
       om.forEach(o=>{const low=o.toLowerCase();const hit=OMI.find(x=>{const n=x.n.toLowerCase();return low.includes(n.split(" (")[0].replace(" t wave","").replace(" pattern",""))||n.includes(low);});
         if(hit){const b=el("div","pat");b.appendChild(el("b",null,hit.n));const f=el("div","figs");hit.f.forEach(x=>f.appendChild(fig(x)));b.appendChild(f);b.appendChild(el("p",null,hit.d));w.appendChild(b);}});
       const go=el("button","linkbtn","All OMI patterns →");go.type="button";go.onclick=()=>window.goPage("omi");w.appendChild(go);
-      report.appendChild(card("OMI patterns present",w));}
+      report.appendChild(fcard("omilist","OMI patterns present",w,{sub:om.length+" named",open:true}));}
 
     const P=d.parameters||{};const g=el("div","params");
     [["rate","Rate"],["regularity","Regularity"],["p_waves","P waves"],["pr","PR"],["qrs","QRS"],["qt","QT / QTc"],["axis","Axis"]].forEach(([k,l])=>{const v=P[k];if(!v)return;const c=el("div","param");c.appendChild(el("div","pk",l));c.appendChild(el("div","pv",S(typeof v==="object"?v.value:v)||"—"));if(typeof v==="object"&&v.note)c.appendChild(el("div","pn",S(v.note)));g.appendChild(c);});
-    report.appendChild(card("Measured parameters",g));
+    report.appendChild(fcard("params","Measured parameters",g,{sub:[["rate","Rate"],["pr","PR"],["qrs","QRS"]].map(([k,l])=>{const v=P[k];const x=S(v&&typeof v==="object"?v.value:v);return x?l+" "+x:"";}).filter(Boolean).join(" · "),open:true}));
     {const w=el("div");w.style.padding="0 6px";const b=el("button","linkbtn","Risk scores for this patient: HEART, Wells, QTc, Sgarbossa →");b.type="button";b.onclick=()=>go("calc");w.appendChild(b);report.appendChild(w);}
 
     const PROTO={
@@ -4756,10 +4914,10 @@ ${dyn}`;}
     const fdec=(d.stemi&&d.stemi.decision)||"consult";
     const fw=el("div");cxFlags(true).forEach(x=>fw.appendChild(el("div","flagline","⚠ "+x)));fw.appendChild(list(PROTO[fdec]||PROTO.consult));
     const fc=arr(d.field).slice(0,3);if(fc.length){fw.appendChild(el("p","lbl","Rhythm-specific"));fw.appendChild(list(fc));}
-    report.appendChild(card("Field actions (service protocol)",fw));
-    const df=arr(d.differential);if(df.length)report.appendChild(card("Differential",list(df)));
+    report.appendChild(fcard("actions","Field actions",fw,{sub:"service protocol",open:true}));
+    const df=arr(d.differential);if(df.length)report.appendChild(fcard("diff","Differential",list(df),{sub:df.length+" to consider"}));
     const q=d.quality||{};const qc=el("div");qc.appendChild(el("p",null,S(q.summary)||"No quality notes."));const lm=arr(q.limitations);if(lm.length)qc.appendChild(list(lm));
-    report.appendChild(card("Image quality and limits",qc));
+    report.appendChild(fcard("quality","Image quality and limits",qc,{sub:(S(q.summary)||"No quality notes").slice(0,40),open:q.adequate===false||lm.length>0}));
 
     if(d._mode==="fast"&&isNetlify){
       if(bg&&bg.fast===d){const tc=el("div","card thorough refining");tc.id="bgCard";

@@ -31,12 +31,28 @@ export default async (req) => {
         criterion: clip(e.criterion, 80), conf: Math.max(0, Math.min(100, Number(e.conf) || 0)),
         omi: Array.isArray(e.omi) ? e.omi.slice(0, 12).map((x) => clip(x, 40)) : [],
         double: !!e.double, secs: Math.max(0, Math.min(600, Number(e.secs) || 0)), missing: Math.max(0, Math.min(12, Number(e.missing) || 0)),
+        // 6.7: which model read it, and how far its photo read was from the monitor's own confirmed STJ numbers
+        // ([leads compared, average difference mm, largest difference mm]); "mon" = the monitor's statement disagreed.
+        model: clip(e.model, 40), effort: clip(e.effort, 10), mon: clip(e.mon, 12),
+        pv: Array.isArray(e.pv) && e.pv.length === 3 && e.pv.every((x) => Number.isFinite(Number(x))) ? [Math.max(0, Math.min(12, Math.round(Number(e.pv[0])))), Math.max(0, Math.min(20, Number(e.pv[1]))), Math.max(0, Math.min(20, Number(e.pv[2])))] : null,
         ref: "", review: "",
       };
       log.entries.push(entry);
       if (log.entries.length > MAX_LOG) log.entries = log.entries.slice(-MAX_LOG);
       await store.set("log", JSON.stringify(log));
       return json({ ok: true, id: entry.id });
+    }
+
+    // 7.0: the quiet pixel measure compared with the monitor's confirmed STJ numbers for one logged read:
+    // [leads compared, leads the pixel measure could read, average difference mm, largest difference mm].
+    if (b.verdict === "pix") {
+      const e = log.entries.find((x) => x.id === b.id);
+      if (!e) return json({ error: "not_found" }, 404);
+      const p = Array.isArray(b.px) && b.px.length === 4 ? b.px.map(Number) : null;
+      if (!p || !p.every((x) => Number.isFinite(x) && x >= 0 && x <= 20)) return json({ error: "bad_request" }, 400);
+      e.px = [Math.round(p[0]), Math.round(p[1]), p[2], p[3]];
+      await store.set("log", JSON.stringify(log));
+      return json({ ok: true });
     }
 
     if (b.verdict === "reference") {

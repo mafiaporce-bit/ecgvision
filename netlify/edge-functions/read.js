@@ -1,4 +1,5 @@
 // ECG analysis entry point (Edge Function, /api/read).
+// GET ?ver=1 -> { v }: the version of these server files (the app's System check compares it with what it needs).
 // POST {upload:true, images} -> saves the photos once per patient and replies { img }. Every read for
 //           that patient (fast, double-check, thorough) then sends only { prompt, img }, so the photos
 //           cross the phone's connection once. The app starts this upload as soon as the photo is added.
@@ -9,24 +10,42 @@
 // GET ?id= -> the job's status: queued / running / done (with the report text) / error.
 // DELETE ?id=&cancel=1 -> asks the job to stop (Stop / New patient). DELETE ?id= -> removes the finished result.
 // DELETE ?img= -> removes the patient's photos (New patient).
-// POST {leads:true, images} -> { leads: [...] }: the leads two models can see in the photos (or null).
+// POST {leads:true, images} -> { leads: [...] }: the leads two models can see in the photos (or null, with "errs"
+//           when the check could not run).
 // POST {stj:true, images} -> { img, box:[x0,y0,x1,y1], rot }: where the printed "STJ Level" table is (fractions of
-//           that image), or { img:-1 } if no table is printed. The app then crops the table at full resolution.
+//           that image), or { img:-1 } if no table is printed ({ img:-1, err } when the check could not run).
 // POST {stj:true, crop:true, images:[close-up of the table]} -> { stj:{I:0.29,...}, a, b }: the table transcribed
 //           by two models; "stj" keeps only the values both read the same. (5.2: the LIFEPAK's slashed zero was
 //           being read as 8 from the small, shrunken photo: 0.04 became 0.84.)
 // POST {orient:true, images:[2-4 small copies of one photo, each turned a different way]} -> { pick }:
-//           which copy is the right way up (index), or -1 if it can't be told. Used to turn photos
-//           upright automatically when they are added. Two models must agree (the fast one, set with
-//           CLAUDE_ORIENT_MODEL, default claude-haiku-5-5, and the main CLAUDE_MODEL).
+//           which copy is the right way up (index), or -1 if it can't be told. Two models must agree (the fast
+//           one, set with CLAUDE_ORIENT_MODEL, default claude-haiku-5-5, and the main CLAUDE_MODEL).
+// POST {selftest:true} -> the System check: is the API key accepted, do the reading models answer, does the
+//           storage work, is the background reader deployed. No photo and no patient data are involved.
+//
+// 6.5: NO sampling settings (temperature / top_p / top_k) are sent any more. Current Claude models answer a
+// request that carries them with a 400 error (Anthropic's model documentation). From 5.9 to 6.4 every helper
+// question below carried temperature 0 and had no second try without it, so the lead check and the two-reader
+// printed-STJ check could not do their job, and the app carried on without saying so.
 import { getStore } from "@netlify/blobs";
 
+const VERSION = "6.5";
+const API = "https://api.anthropic.com/v1/messages";
+const DEFAULT_MODEL = "claude-sonnet-5", DEFAULT_FAST = "claude-haiku-5-5";
 const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 const TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const env = (k) => (Netlify.env.get(k) || "").trim();
-const LEVELS = ["low", "medium", "high"];
+const LEVELS = ["low", "medium", "high", "xhigh", "max"];
+const level = (v, d) => (LEVELS.includes(v) ? v : d);
 const ID = /^[a-z0-9]{6,12}-[a-z0-9]{4,16}$/;
 const BG = "/.netlify/functions/read-background";
+// Models: CLAUDE_MODEL reads the ECG (thorough read, second look); CLAUDE_FAST_MODEL, if set, makes the first
+// (fast) read; CLAUDE_ORIENT_MODEL is the small helper for the simple side questions.
+const mainModel = () => env("CLAUDE_MODEL") || DEFAULT_MODEL;
+const firstModel = () => env("CLAUDE_FAST_MODEL") || mainModel();
+const helpModel = () => env("CLAUDE_ORIENT_MODEL") || DEFAULT_FAST;
+const fastEffort = () => level(env("CLAUDE_FAST_EFFORT"), "low");
+const fullEffort = () => level(env("CLAUDE_EFFORT"), "medium");
 
 function jobs() {
   try { return getStore({ name: "ecg-jobs", consistency: "strong" }); } catch { return getStore("ecg-jobs"); }
@@ -54,6 +73,51 @@ function badImages(images) {
 // The job stores a placeholder where the photos go; the background function swaps the saved photos in.
 const expandImages = (content, images) =>
   content.flatMap((b) => (b.type === "images_ref" ? images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } })) : [b]));
+const imageBlocks = (images) => images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
+
+// What the AI service said when it refused a request, in a few words (never contains the key).
+const whyOf = (t) => {
+  try { const j = JSON.parse(t); const e = j && j.error; if (e && (e.message || e.type)) return String((e.type ? e.type + ": " : "") + (e.message || "")).slice(0, 220); } catch {}
+  return String(t || "").replace(/\s+/g, " ").slice(0, 220);
+};
+
+// One short question to one model. Returns { text } or { err, why }.
+// - No sampling settings (see the note at the top).
+// - Thinking is on by default on current models and counts toward max_tokens, so the answer gets room
+//   (2000 tokens) and the thinking level is kept low. A model that doesn't take "effort" is asked again without it.
+async function ask(key, model, content, ms) {
+  const send = async (body) => {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), ms || 18000);
+    try {
+      return await fetch(API, {
+        method: "POST",
+        headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        body: JSON.stringify(body),
+        signal: ctl.signal,
+      });
+    } finally {
+      clearTimeout(t);
+    }
+  };
+  const body = { model, max_tokens: 2000, output_config: { effort: "low" }, messages: [{ role: "user", content }] };
+  try {
+    let r = await send(body);
+    if (r.status === 400) {
+      const t = await r.text();
+      if (!/effort|output_config/i.test(t)) return { err: 400, why: whyOf(t) };
+      delete body.output_config;
+      r = await send(body);
+    }
+    if (!r.ok) return { err: r.status, why: whyOf(await r.text()) };
+    const j = await r.json();
+    const text = (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join(" ").trim();
+    if (!text) return { err: "empty", why: "no answer text (stop: " + (j.stop_reason || "?") + ")" };
+    return { text };
+  } catch (e) {
+    return { err: e && e.name === "AbortError" ? "timeout" : "network", why: "" };
+  }
+}
 
 // Which way is up? The same photo, turned 2 or 4 ways, is shown to two models (the fast model and the main
 // reading model), each with the pictures in a different order. Each picks the one whose printed text reads
@@ -74,28 +138,13 @@ async function pickUpright(key, images, order, models) {
   });
   content.push({ type: "text", text: ORIENT_TEXT(L) });
   for (const model of [...new Set(models)]) {
-    const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), 12000);
-    try {
-      const r = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-        body: JSON.stringify({ model, max_tokens: 400, temperature: 0, messages: [{ role: "user", content }] }),
-        signal: ctl.signal,
-      });
-      if (r.status === 400 || r.status === 404) continue; // model not available on this key: try the main model
-      if (!r.ok) return -1;
-      const j = await r.json();
-      const txt = (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join(" ").trim();
-      // Only a clear answer counts: just the letter, or "Picture B" / "Answer: B".
-      const m = txt.match(/^[\s"'*(\[]*([A-D])[\s"'*)\].!]*$/i) || txt.match(/\b(?:picture|answer)\s*(?:is\s*)?:?\s*\**([A-D])\b/i);
-      const p = m ? L.indexOf(m[1].toUpperCase()) : -1;
-      return p >= 0 ? order[p] : -1;
-    } catch {
-      return -1;
-    } finally {
-      clearTimeout(t);
-    }
+    const r = await ask(key, model, content, 14000);
+    if (r.err === 400 || r.err === 404) continue; // model not available on this key: try the next one
+    if (!r.text) return -1;
+    // Only a clear answer counts: just the letter, or "Picture B" / "Answer: B".
+    const m = r.text.match(/^[\s"'*(\[]*([A-D])[\s"'*)\].!]*$/i) || r.text.match(/\b(?:picture|answer)\s*(?:is\s*)?:?\s*\**([A-D])\b/i);
+    const p = m ? L.indexOf(m[1].toUpperCase()) : -1;
+    return p >= 0 ? order[p] : -1;
   }
   return -1;
 }
@@ -110,33 +159,21 @@ const LEADS_TEXT =
   "Do not list a lead just because the usual layout would have it, and do not list a label at the cut-off edge with no tracing. " +
   'Reply with only a JSON array of the lead names, for example ["I","II","III"].';
 
+// Returns the list of leads, or { err, why } when the model could not be asked or gave no usable answer.
 async function listLeads(key, images, model, hint) {
-  const content = images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
   // 5.6: the crew's chosen printout layout, as a hint only (the models still list what they actually see).
   const h = typeof hint === "string" && hint.trim() ? "\nHint (use it only to help find the labels; still list only the leads you actually see; a lead printed as -aVR counts as aVR): " + hint.trim().slice(0, 400) : "";
-  content.push({ type: "text", text: LEADS_TEXT + h });
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 20000);
+  const r = await ask(key, model, [...imageBlocks(images), { type: "text", text: LEADS_TEXT + h }], 20000); // both models are asked at the same time
+  if (!r.text) return { err: r.err, why: r.why || "" };
+  const m = r.text.match(/\[[^\]]*\]/);
+  if (!m) return { err: "format", why: "no list in the answer" };
   try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model, max_tokens: 600, temperature: 0, messages: [{ role: "user", content }] }),
-      signal: ctl.signal,
-    });
-    if (!r.ok) return { err: r.status };
-    const j = await r.json();
-    const txt = (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join(" ");
-    const m = txt.match(/\[[^\]]*\]/);
-    if (!m) return null;
     const arr = JSON.parse(m[0]);
-    if (!Array.isArray(arr)) return null;
+    if (!Array.isArray(arr)) return { err: "format", why: "no list in the answer" };
     const norm = (x) => LEAD_NAMES.find((n) => n.toLowerCase() === String(x).trim().toLowerCase());
     return [...new Set(arr.map(norm).filter(Boolean))];
   } catch {
-    return null;
-  } finally {
-    clearTimeout(t);
+    return { err: "format", why: "list could not be read" };
   }
 }
 
@@ -151,41 +188,29 @@ const STJ_LOCATE =
 const STJ_READ =
   "This is a close-up of part of a 12-lead ECG printout showing the table titled \"STJ Level\" (it may be slightly sideways). " +
   "The table has 12 rows in this printed order: I, II, III, aVR, aVL, aVF, V1, V2, V3, V4, V5, V6; each row has a value in mm with two decimals, sometimes with a minus sign. " +
-  "IMPORTANT: this printer draws the digit 0 with a slash through it (like \u00d8). A slashed zero is 0, never 8 and never 6. " +
+  "IMPORTANT: this printer draws the digit 0 with a slash through it (like Ø). A slashed zero is 0, never 8 and never 6. A real 8 has two closed loops and no slash. " +
+  "Read every digit on its own; do not guess a digit from the other rows. Keep the minus signs. " +
   "Transcribe every row exactly as printed, keeping the printed order so no row slips. " +
   'Reply with ONLY this JSON: {"I":0.29,"II":0.04,"III":-0.25,"aVR":-0.17,"aVL":0.27,"aVF":-0.10,"V1":0.06,"V2":0.40,"V3":0.37,"V4":0.36,"V5":0.16,"V6":0.15} (example values). ' +
   "Use null for a row you cannot read. If there is no STJ table in this picture, reply {}.";
-async function askJson(key, images, text, model, maxTok) {
-  const content = images.map((im) => ({ type: "image", source: { type: "base64", media_type: im.media_type, data: im.data } }));
-  content.push({ type: "text", text });
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 25000);
-  try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model, max_tokens: maxTok || 400, temperature: 0, messages: [{ role: "user", content }] }),
-      signal: ctl.signal,
-    });
-    if (!r.ok) return { err: r.status };
-    const j = await r.json();
-    const txt = (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join(" ");
-    const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
-    if (a < 0 || b < a) return null;
-    try { return JSON.parse(txt.slice(a, b + 1)); } catch { return null; }
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(t);
-  }
+// Returns the parsed JSON object, or { err, why }.
+async function askJson(key, images, text, model) {
+  const r = await ask(key, model, [...imageBlocks(images), { type: "text", text }], 18000);
+  if (!r.text) return { err: r.err, why: r.why || "" };
+  const a = r.text.indexOf("{"), b = r.text.lastIndexOf("}");
+  if (a < 0 || b < a) return { err: "format", why: "no JSON in the answer" };
+  try { return JSON.parse(r.text.slice(a, b + 1)); } catch { return { err: "format", why: "JSON could not be read" }; }
 }
+const failed = (x) => !x || typeof x !== "object" || x.err !== undefined;
+const errOf = (x, model) => (x && x.err !== undefined ? { model, err: x.err, why: x.why || "" } : null);
 const stjNum = (v) => {
   if (v === null || v === undefined || v === "") return null;
-  const n = parseFloat(String(v).replace(",", ".").replace(/[^0-9.+-]/g, ""));
+  // A typographic minus (−, –) is a minus: without this the sign would be dropped and a depression read as an elevation.
+  const n = parseFloat(String(v).replace(/[\u2212\u2013\u2014]/g, "-").replace(",", ".").replace(/[^0-9.+-]/g, ""));
   return isFinite(n) && Math.abs(n) <= 10 ? Math.round(n * 100) / 100 : null;
 };
 function stjTable(o) {
-  if (!o || typeof o !== "object") return null;
+  if (failed(o)) return null;
   const out = {};
   for (const k of LEAD_NAMES) {
     const key = Object.keys(o).find((x) => x.toLowerCase() === k.toLowerCase());
@@ -195,7 +220,7 @@ function stjTable(o) {
 }
 
 async function streamDirect(key, payload) {
-  const up = await fetch("https://api.anthropic.com/v1/messages", {
+  const up = await fetch(API, {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({ ...payload, stream: true }),
@@ -204,9 +229,45 @@ async function streamDirect(key, payload) {
   return new Response(up.body, { headers: { "content-type": "text/event-stream", "cache-control": "no-cache" } });
 }
 
+// System check: every part the reading depends on, tested with a one-word question (no photo, no patient data).
+async function selfTest(req, key) {
+  const main = mainModel(), first = firstModel(), help = helpModel();
+  const out = {
+    v: VERSION, key: !!key, admin: !!env("ADMIN_CODE"),
+    models: { main, first, help }, effort: { fast: fastEffort(), thorough: fullEffort() },
+    custom: { model: !!env("CLAUDE_MODEL"), first: !!env("CLAUDE_FAST_MODEL"), help: !!env("CLAUDE_ORIENT_MODEL") },
+  };
+  const timed = async (fn) => { const t0 = Date.now(); let r; try { r = await fn(); } catch (e) { r = { ok: false, why: String((e && e.message) || e).slice(0, 160) }; } return { ...r, ms: Date.now() - t0 }; };
+  const store = () => timed(async () => {
+    const st = jobs(), k = "selftest/" + newId();
+    await st.set(k, "1");
+    const v = await st.get(k);
+    await st.delete(k);
+    return { ok: v === "1" };
+  });
+  const background = () => timed(async () => {
+    const r = await Promise.race([
+      fetch(new URL(BG, req.url), { method: "POST", headers: { "content-type": "application/json" }, body: '{"warm":1}' }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("no answer in 8 s")), 8000)),
+    ]);
+    return { ok: r.status === 202 || r.ok, status: r.status };
+  });
+  const ping = (model) => timed(async () => {
+    const r = await ask(key, model, [{ type: "text", text: "Reply with the single word OK." }], 20000);
+    return r.text ? { ok: true, model } : { ok: false, model, http: r.err, why: r.why || "" };
+  });
+  const models = key ? [...new Set([main, first, help])] : [];
+  const [st, bg, ...pings] = await Promise.all([store(), background(), ...models.map(ping)]);
+  out.store = st; out.background = bg; out.pings = pings;
+  return json(out);
+}
+
 export default async (req) => {
   const url = new URL(req.url);
   const code = env("APP_ACCESS_CODE");
+
+  // Which server files are deployed (no code needed: it is only a version number).
+  if (req.method === "GET" && url.searchParams.get("ver")) return json({ v: VERSION });
 
   // Warm-up ping from the app (no id): wake this function and the background function.
   if (req.method === "GET" && !url.searchParams.get("id")) {
@@ -250,13 +311,25 @@ export default async (req) => {
 
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
   const key = env("ANTHROPIC_API_KEY");
-  if (!key) return json({ error: "no_key" }, 500);
 
   const raw = await req.text();
   if (raw.length > 8000000) return json({ error: "too_large" }, 413);
+  // 6.9: a photo upload is stored exactly as it arrived. The photos are megabytes of text and this function has a
+  // small CPU budget, so it does not unpack them; the background reader does (and checks them) when a read starts.
+  if (raw.startsWith('{"upload":true,"images":[{') && raw.endsWith("]}")) {
+    if (!key) return json({ error: "no_key" }, 500);
+    const k = newId();
+    await jobs().set("img/" + k, raw);
+    return json({ img: k });
+  }
   let body;
   try { body = JSON.parse(raw); } catch { return json({ error: "bad_request" }, 400); }
   const { prompt, images, img, effort: reqEffort } = body || {};
+
+  // System check (answers even when the key is missing, so the app can say so).
+  if (body && body.selftest === true) return selfTest(req, key);
+
+  if (!key) return json({ error: "no_key" }, 500);
 
   // Photo upload (once per patient).
   if (body && body.upload === true) {
@@ -270,7 +343,7 @@ export default async (req) => {
   if (body && body.orient === true) {
     if (badImages(images) || images.length < 2 || images.length > 4) return json({ error: "bad_request" }, 400);
     const idx = images.map((_, i) => i);
-    const fast = env("CLAUDE_ORIENT_MODEL") || "claude-haiku-5-5", main = env("CLAUDE_MODEL") || "claude-sonnet-5";
+    const fast = helpModel(), main = mainModel();
     const [a, b] = await Promise.all([pickUpright(key, images, idx, [fast, main]), pickUpright(key, images, idx.slice().reverse(), [main])]);
     return json({ pick: a >= 0 && a === b ? a : -1, a, b });
   }
@@ -278,23 +351,27 @@ export default async (req) => {
   // Which leads are in the photo (asked once per patient, while the photo uploads).
   if (body && body.leads === true) {
     if (badImages(images)) return json({ error: "bad_request" }, 400);
-    const fast = env("CLAUDE_ORIENT_MODEL") || "claude-haiku-5-5", main = env("CLAUDE_MODEL") || "claude-sonnet-5";
+    const fast = helpModel(), main = mainModel();
     const hint = typeof body.hint === "string" ? body.hint : "";
-    let [a, b] = await Promise.all([listLeads(key, images, fast, hint), listLeads(key, images, main, hint)]);
-    if (a && a.err) a = null; // e.g. fast model not on this key: rely on the main model
-    if (b && b.err) b = null;
+    const [ra, rb] = await Promise.all([listLeads(key, images, fast, hint), fast === main ? Promise.resolve(null) : listLeads(key, images, main, hint)]);
+    const a = Array.isArray(ra) ? ra : null, b = Array.isArray(rb) ? rb : null;
     const ok = [a, b].filter(Array.isArray);
-    return json({ leads: ok.length ? [...new Set(ok.flat())] : null, a, b });
+    // "errs" tells the app that a model could not be asked (so "no list" is not mistaken for "no leads").
+    return json({ leads: ok.length ? [...new Set(ok.flat())] : null, a, b, errs: [errOf(ra, fast), errOf(rb, main)].filter(Boolean) });
   }
 
   // 5.2: the printed STJ table. Step 1 (locate) and step 2 (read a close-up, two models must agree).
   if (body && body.stj === true) {
     if (badImages(images)) return json({ error: "bad_request" }, 400);
-    const fast = env("CLAUDE_ORIENT_MODEL") || "claude-haiku-5-5", main = env("CLAUDE_MODEL") || "claude-sonnet-5";
+    const fast = helpModel(), main = mainModel();
     if (body.crop === true) {
-      let [a, b] = await Promise.all([askJson(key, images, STJ_READ, fast, 500), askJson(key, images, STJ_READ, main, 500)]);
-      if (a && a.err) a = await askJson(key, images, STJ_READ, main, 500); // fast model not on this key: ask the main model twice
-      if (b && b.err) b = null;
+      let [a, b] = await Promise.all([askJson(key, images, STJ_READ, fast), askJson(key, images, STJ_READ, main)]);
+      const errs = [errOf(a, fast), errOf(b, main)].filter(Boolean);
+      // One model could not be asked: the other is asked a second time, so two readings are still compared
+      // ("same" tells the app both readings came from one model, which is weaker than two different models).
+      let same = fast === main;
+      if (failed(a) && !failed(b)) { a = await askJson(key, images, STJ_READ, main); same = true; }
+      else if (failed(b) && !failed(a)) { b = await askJson(key, images, STJ_READ, fast); same = true; }
       const ta = stjTable(a), tb = stjTable(b);
       const stj = {};
       let n = 0, agree = 0;
@@ -303,15 +380,19 @@ export default async (req) => {
         if (x !== null || y !== null) n++;
         if (x !== null && y !== null && Math.abs(x - y) <= 0.015) { stj[k] = x; agree++; }
       }
-      return json({ stj, found: n > 0, read: n, agree, a: ta, b: tb });
+      const dead = !ta && !tb;
+      return json({ stj, found: n > 0, read: n, agree, a: ta, b: tb, same, errs, ...(dead && errs.length ? { err: errs[0].err, why: errs[0].why } : {}) });
     }
-    let r = await askJson(key, images, STJ_LOCATE, fast, 200);
+    let r = await askJson(key, images, STJ_LOCATE, fast);
+    const e1 = errOf(r, fast);
     // 5.3: the fast model's "no table" gets a second opinion from the main model before the table is given up.
-    if (!r || r.err || !(Number(r.img) >= 1)) r = await askJson(key, images, STJ_LOCATE, main, 200);
-    const n = r && Number.isInteger(Number(r.img)) ? Number(r.img) : -1;
-    const box = r && Array.isArray(r.box) ? r.box.map(Number) : null;
+    let e2 = null;
+    if (failed(r) || !(Number(r.img) >= 1)) { const r2 = await askJson(key, images, STJ_LOCATE, main); e2 = errOf(r2, main); if (!failed(r2) || failed(r)) r = r2; }
+    if (failed(r)) { const e = e2 || e1 || { err: "empty", why: "" }; return json({ img: -1, err: e.err, why: e.why }); }
+    const n = Number.isInteger(Number(r.img)) ? Number(r.img) : -1;
+    const box = Array.isArray(r.box) ? r.box.map(Number) : null;
     const ok = n >= 1 && n <= images.length && box && box.length === 4 && box.every((v) => isFinite(v) && v >= 0 && v <= 1) && box[2] > box[0] && box[3] > box[1];
-    const rot = [0, 90, 180, 270].includes(Number(r && r.rot)) ? Number(r.rot) : 0;
+    const rot = [0, 90, 180, 270].includes(Number(r.rot)) ? Number(r.rot) : 0;
     return json(ok ? { img: n - 1, box, rot } : { img: -1 });
   }
 
@@ -335,25 +416,26 @@ export default async (req) => {
     { type: "images_ref" },
     { type: "text", text: (dynamicText ? dynamicText + "\n" : "") + "Now measure the attached tracing exactly as instructed above." + (await lessonsBlock()) },
   ];
+  // "fast" = the first read (CLAUDE_FAST_MODEL if set, thinking level CLAUDE_FAST_EFFORT, default low: about
+  // 20-25 s). Risky results (YES from the photo, NO with an OMI pattern, modified Sgarbossa) are re-checked by the
+  // second read on CLAUDE_MODEL with CLAUDE_EFFORT (default medium).
+  const isFast = reqEffort === "fast";
+  const model = isFast ? firstModel() : mainModel();
   const payload = {
-    model: env("CLAUDE_MODEL") || "claude-sonnet-5",
-    max_tokens: 24000,
-    // 5.9: deterministic sampling, so the same photos read the same way twice. If the model refuses the
-    // setting next to "effort", read-background retries once without it.
-    temperature: 0,
-    // The app asks for "low" on a fast read; the thorough read uses the Netlify setting (default medium).
-    // "fast" = the first read. Thinking level is set in Netlify with CLAUDE_FAST_EFFORT (low / medium / high);
-    // default low (about 20-25 s of reading; medium took 30+ s on hard ECGs). Risky results (YES from the photo,
-    // NO with an OMI pattern, modified Sgarbossa) are re-checked by the second read, which uses CLAUDE_EFFORT (default medium).
-    output_config: { effort: reqEffort === "fast" ? (LEVELS.includes(env("CLAUDE_FAST_EFFORT")) ? env("CLAUDE_FAST_EFFORT") : "low") : LEVELS.includes(reqEffort) ? reqEffort : (env("CLAUDE_EFFORT") || "medium") },
+    model,
+    // Thinking counts toward this limit; a deep-thinking model needs the room.
+    max_tokens: 40000,
+    output_config: { effort: isFast ? fastEffort() : level(reqEffort, fullEffort()) },
     messages: [{ role: "user", content }],
   };
+  // If this key can't use the chosen model, the background reader falls back to the built-in default and says so.
+  const alt = model !== DEFAULT_MODEL ? DEFAULT_MODEL : "";
 
   // Start the read as a background job so it survives the phone leaving the app.
   const id = newId();
   const st = jobs();
   try {
-    await st.set("in/" + id, JSON.stringify(byRef ? { payload, img } : { payload, images }));
+    await st.set("in/" + id, JSON.stringify(byRef ? { payload, img, alt } : { payload, images, alt }));
     const r = await fetch(new URL(BG, req.url), {
       method: "POST",
       headers: { "content-type": "application/json", "x-access-code": code },
@@ -365,8 +447,9 @@ export default async (req) => {
     try { await st.delete("in/" + id); } catch {}
   }
   // Background function not available: stream the read directly as before.
-  const ims = byRef ? await st.get("img/" + img, { type: "json" }) : images;
-  if (!ims) return json({ error: "img_missing" }, 409);
+  const saved = byRef ? await st.get("img/" + img, { type: "json" }) : images;
+  const ims = Array.isArray(saved) ? saved : saved && Array.isArray(saved.images) ? saved.images : null;
+  if (!ims || badImages(ims)) return json({ error: "img_missing" }, 409);
   return streamDirect(key, { ...payload, messages: [{ role: "user", content: expandImages(content, ims) }] });
 };
 

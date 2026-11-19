@@ -423,6 +423,7 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .head .r{font-size:1.05rem!important;margin:1px 0 4px!important}
 .head p{font-size:.85rem}
 .head .pill{font-size:.72rem;margin-top:6px}
+.head .hl-note{font-size:.74rem!important;color:rgba(255,255,255,.82)!important;margin:0 0 6px!important;line-height:1.3}
 .stemi{padding:11px 13px!important;border-radius:16px!important}
 .stemi .q{font-size:.72rem!important}
 .stemi .a{font-size:1.2rem!important;margin:1px 0 3px!important}
@@ -492,6 +493,15 @@ nav.bottom button[aria-current="page"]{color:var(--accent);font-weight:700}
 .usagebox.mini p{font-size:.72rem;margin:0}
 .lead .nearb{background:#FFE17A!important;color:#3B2A00!important}
 .usagebox{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.sysrows{margin-top:10px}
+.sysrow{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border-radius:10px;margin-top:5px;font-size:.88rem;background:var(--field)}
+.sysrow>b{flex:none;width:1.2em;text-align:center}
+.sysrow.ok>b{color:var(--ok)}
+.sysrow.bad{background:var(--crit-bg);color:#4d0d15}
+.sysrow.bad>b{color:var(--crit)}
+.sysrow small{display:block;color:var(--soft);font-size:.78rem;margin-top:2px}
+.sysrow.bad small{color:#7a3a42}
+.srvline{flex-basis:100%;font-size:.72rem;opacity:.85}
 .usagebox h3{margin:0 0 4px;font-size:1rem}.usagebox .in{width:100%;margin:6px 0}
 .fullov{position:fixed;inset:0;z-index:50;background:#0B1624;color:#fff;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
 .ov-top b{display:block;font-size:1.1rem}
@@ -1442,7 +1452,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 <div class="sheet setsheet" id="setSheet" role="dialog" aria-modal="true" aria-labelledby="setT" hidden>
   <div class="grab"></div>
   <h2 id="setT">Settings</h2>
-  <p class="sh-sub">Choose which parts of the result to show. The STEMI decision, warnings and critical rhythm alerts always show.</p>
+  <p class="sh-sub">Choose which parts of the result to show. The STEMI decision, warnings and critical rhythm alerts always show. <button type="button" class="linkbtn" id="setChk" hidden>Run system check ↓</button></p>
   <div class="setlist" id="setList"></div>
   <div class="actions"><button type="button" class="btn ghost" id="setAll">Show all</button><button type="button" class="btn" data-close>Done</button></div>
 </div>
@@ -1547,7 +1557,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="6.4";
+  const APP_VERSION="7.1";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -1767,14 +1777,17 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     return new Promise((res,rej)=>{
       const u=URL.createObjectURL(file),img=new Image();
       // Small images (screenshots, web pictures) are enlarged up to 2.5x so small ST shifts span more pixels.
-      img.onload=()=>{const sc=Math.min(2.5,M/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
+      img.onload=()=>{
+        // 6.9: a zoomed part that is already the right size is sent as it is (no second JPEG compression).
+        if(file.name==="zoom.jpg"&&Math.max(img.width,img.height)<=M){URL.revokeObjectURL(u);const fr=new FileReader();fr.onload=()=>res({media_type:"image/jpeg",data:String(fr.result).split(",")[1]});fr.onerror=()=>rej({code:"image_rejected"});fr.readAsDataURL(file);return;}
+        const sc=Math.min(2.5,M/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);
         const cx=c.getContext("2d");cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality="high";cx.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res({media_type:"image/jpeg",data:c.toDataURL("image/jpeg",Q).split(",")[1]});};
       img.onerror=()=>{URL.revokeObjectURL(u);rej({code:"image_rejected"});};img.src=u;
     });
   }
   // Netlify accepts about 6 MB per request, so shrink until all photos fit in ~4.2 MB.
   async function shrinkAll(files){
-    const steps=[[1400,0.8],[1300,0.75],[1200,0.7],[1000,0.65]];
+    const steps=[[1568,0.85],[1400,0.8],[1300,0.75],[1200,0.7],[1000,0.65]];
     let out=[];
     for(const [M,Q] of steps){out=[];for(const f of files)out.push(await shrink(f,M,Q));
       if(out.reduce((n,x)=>n+x.data.length,0)<4200000)return out;}
@@ -1788,12 +1801,19 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const vis=()=>{if(document.visibilityState==="visible")done();};t=setTimeout(done,ms);document.addEventListener("visibilitychange",vis);signal&&signal.addEventListener("abort",done);});
   const whenVisible=signal=>document.visibilityState==="visible"?Promise.resolve():new Promise(res=>{const f=()=>{if(document.visibilityState==="visible"||(signal&&signal.aborted)){document.removeEventListener("visibilitychange",f);res();}};document.addEventListener("visibilitychange",f);signal&&signal.addEventListener("abort",f);});
   function upstreamMsg(st,detail){const d=String(detail||"").toLowerCase();
-    if(st===401)return "API key rejected (401). Re-copy the full sk-ant key into ANTHROPIC_API_KEY in Netlify, then trigger a new deploy.";
+    if(st===401)return "API key rejected (401): the key is wrong or has EXPIRED (a key can carry an expiry date, and an expired key cannot be switched back on). Create a new key at platform.claude.com with Expires set to 'Never', put it in ANTHROPIC_API_KEY in Netlify, then trigger a new deploy.";
+    if(st===400&&/temperature|top_p|top_k/.test(d))return "The server files are old: they send a setting the AI service no longer accepts. Upload the new netlify folder (read.js and read-background.mjs) to GitHub.";
     if(/credit|billing|balance/.test(d))return "Not enough API credit. Add credit at platform.claude.com.";
     if(st===404||/model/.test(d))return "Model not available on this API key ("+st+"). Check CLAUDE_MODEL in Netlify or remove it.";
     if(st===429||st===529)return "The AI service is busy. Wait a minute and try again.";
     if(st===413||/too large|size/.test(d))return "Photo too large. Retake it a little further away.";
     return "AI service error "+st+": "+String(detail||"").replace(/[{}"]/g," ").slice(0,160);}
+  // 6.5: which model read it, how hard it was asked to think and how many tokens it used (reported by the server).
+  function withSrv(rep,s){try{if(rep&&typeof rep==="object"&&s&&s.model)rep._srv={model:String(s.model),asked:String(s.asked||""),effort:String(s.effort||""),usage:s.usage&&typeof s.usage==="object"?{in:Number(s.usage.in)||0,out:Number(s.usage.out)||0}:null,note:Array.isArray(s.note)?s.note.map(String):[]};}catch(e){}return rep;}
+  // Why a side check or a model could not be asked, in plain words.
+  function helpWhy(e){const c=e&&e.err,w=String((e&&e.why)||"");if(c===401)return "the API key was rejected (expired or wrong)";if(/credit|billing|balance/i.test(w))return "no API credit left";
+    if(c===404)return "model "+String((e&&e.model)||"")+" is not available on this API key";if(c===429||c===529)return "the AI service was busy";if(c===400)return "the AI service refused the request"+(w?": "+w.slice(0,110):"");
+    if(c==="timeout")return "the AI service took too long";if(c==="network")return "the server could not reach the AI service";return "no usable answer";}
   function parseReport(text){const a=text.indexOf("{"),b=text.lastIndexOf("}");if(a<0||b<a)throw{code:text?"invalid_json":"empty_completion"};
     try{return JSON.parse(text.slice(a,b+1));}catch(e){throw{code:"invalid_json"};}}
   // Photos are uploaded ONCE per patient (fast read, double-check and thorough read all reuse them),
@@ -1903,12 +1923,12 @@ nav.bottom button[aria-current="page"]{font-weight:700}
         if(s.status==="running"&&s.phase==="writing"&&!wrote){wrote=true;onText&&onText({text:"",delta:""});}
         if(s.status==="done"){fetch(q,{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});
           const ms=s.ms||{};onTiming&&onTiming({up:upMs,queue:ms.queue||0,ai:ms.ai||0,total:ms.total?upMs+ms.total:Date.now()-tStart,away:away+(hidAt?Date.now()-hidAt:0),wait:Date.now()-tStart});
-          return parseReport(s.text||"");}
+          return withSrv(parseReport(s.text||""),s);}
         if(s.status==="lost")throw{code:"server",message:"The read didn't start on the server. Tap Analyze ECG again."};
         if(s.status==="error"){
           if(s.error==="cancelled")throw{code:"cancelled"};
           if(s.error==="upstream")throw{code:"upstream",message:upstreamMsg(s.http,s.detail)};
-          if(["no_key","rate_limited","timeout"].includes(s.error))throw{code:s.error};
+          if(["no_key","rate_limited","timeout","refused","too_long"].includes(s.error))throw{code:s.error};
           throw{code:"server",message:"The analysis server hit an error"+(s.detail?" ("+String(s.detail).slice(0,80)+")":"")+". Try again."};}
         if(Date.now()-t0>420000)throw{code:"timeout"};
       }
@@ -2627,11 +2647,15 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       out.pages.push({p,pxmm:g.pxmm,how:g.how,tilt,rows:rows.map(r=>r.y),xs,xe});}
     return out;}
   window.__digiTest={DG,gridCal:img=>gridCal(img),paperArea:img=>paperArea(img),digitizeReport};
+  function pixLog(d){try{const P=d._pix,ks=(d._stjVerified||[]);if(!P||!P.leads||ks.length<3||!isNetlify)return;const st=d.stemi||{};if(typeof st.J!=="function")return;
+      let n=0,ok=0,sum=0,mx=0;ks.forEach(k=>{const p=P.leads[k],j=st.J(k);if(!p||j===null)return;n++;if(p.ok&&typeof p.st==="number"){ok++;const e=Math.abs(p.st-j);sum+=e;if(e>mx)mx=e;}});
+      if(!n)return;d._pixVs={n,ok,mean:ok?Math.round(sum/ok*100)/100:0,max:Math.round(mx*100)/100};
+      let tries=0;const send=()=>{if(d._logId)api("POST",{verdict:"pix",id:d._logId,px:[n,ok,d._pixVs.mean,d._pixVs.max]}).catch(()=>{});else if(++tries<8)setTimeout(send,1500);};send();}catch(e){}}
   function pixRun(d){if(!d||d._pix||d._pixBusy||!files.length||!d.leads)return;const lay=layGet();if(!lay)return;d._pixBusy=true;
-    setTimeout(async()=>{let r;try{r=await digitizeReport(d);}catch(e){r={skip:"Pixel measure could not run on this photo."};}d._pixBusy=false;d._pix=r;
+    setTimeout(async()=>{let r;try{r=await digitizeReport(d);}catch(e){r={skip:"Pixel measure could not run on this photo."};}d._pixBusy=false;d._pix=r;pixLog(d);
       if(lastReport!==d)return;const h=[...report.querySelectorAll(".card>h3")].find(x=>/^Lead-by-lead/.test(x.textContent));if(!h)return;const c=h.parentNode;
       while(c.children.length>1)c.removeChild(c.lastChild);c.appendChild(leadMap(d));try{applySections(d);}catch(e){}},80);}
-  window.__pixRun=pixRun;
+  window.__pixRun=pixRun;window.__last=()=>lastReport;
 
   // ---------- 5.9: at the cut-off on a doubtful tracing = consult, not YES ----------
   // A YES that rests only on photo reads sitting exactly on the threshold (no printed STJ numbers), on a
@@ -2708,6 +2732,34 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 
   // ---------- 5.7: at a glance (rhythm / conduction / other), read ID and handover line ----------
   const RC_TXT={sinus:"Sinus rhythm",sinus_brady:"Sinus bradycardia",sinus_tach:"Sinus tachycardia",sinus_arrhythmia:"Sinus arrhythmia",afib:"Atrial fibrillation",aflutter:"Atrial flutter",svt:"SVT",junctional:"Junctional rhythm",first_degree_block:"Sinus with 1st-degree AV block",mobitz1:"2nd-degree AV block, Mobitz I",mobitz2:"2nd-degree AV block, Mobitz II",complete_block:"Complete AV block",vt_mono:"Monomorphic VT",vt_poly_torsades:"Polymorphic VT / torsades",vf:"Ventricular fibrillation",idioventricular:"Idioventricular rhythm",paced:"Paced rhythm",asystole:"Asystole",undetermined:"Rhythm undetermined"};
+  // ---------- 7.0: the header line must agree with the final numbers ----------
+  // The reader writes its one-line wording from its own look at the photo. After that the app may replace photo values with
+  // the monitor's confirmed STJ numbers, ignore leads that are not in the photo, or apply a cross-check. When the final answer
+  // is NO but the wording says ST elevation / STEMI (or the answer is YES and the wording says there is none), the header is
+  // written from the final numbers and the reader's wording is shown underneath as what it was. Nothing in the decision changes.
+  function headline(d){
+    const raw=S(d&&d.primary&&d.primary.rhythm).trim(),st=d&&d.stemi;
+    if(!raw||!st||typeof st.J!=="function"||typeof st.thr!=="function")return {text:raw,note:""};
+    const J=st.J,thr=st.thr,c=d.conduction||{},q=t=>"“"+t+"”",mm=k=>k+" "+(J(k)>0?"+":"")+J(k);
+    const STE=/st[- ]?(segment[- ])?elevat\w*|\bste\b|\bstemi\b|\bomi\b|acute[^,;.]{0,25}\b(mi|infarct\w*)|\binjury\b|coronary occlusion/ig;
+    const NEG_B=/\b(no|not|without|absent|absence of|free of|negative for|rules? out|ruled out|excludes?|excluded)\b(\s+(?!with\b|and\b|but\b)[\w-]+){0,3}\s*$/i;
+    const NEG_A=/^[\w -]{0,40}?\b(not (seen|present|met|meeting|significant)|absent|below (the |this patient's )?threshold|excluded|ruled out|unlikely)\b/i;
+    let claim=false,m;STE.lastIndex=0;
+    while((m=STE.exec(raw))){const before=raw.slice(Math.max(0,m.index-48),m.index),after=raw.slice(m.index+m[0].length,m.index+m[0].length+60);if(!NEG_B.test(before)&&!NEG_A.test(after)){claim=true;break;}}
+    const saysNone=!claim&&/\bnormal ecg\b|\bno (significant |acute |definite |evidence of )*st[- ]?(segment[- ])?(elevation|deviation|changes?)\b|\bwithin normal limits\b|\bno acute (ischa?emi\w*|mi\b|infarct\w*)/i.test(raw);
+    const ste=LEADS.filter(k=>J(k)!==null&&J(k)>=thr(k)),sub=LEADS.filter(k=>J(k)!==null&&J(k)>=0.5&&J(k)<thr(k));
+    const rc=S(d.rhythm_class).toLowerCase(),rhythm=RC_TXT[rc]||"Rhythm: see below",wide=/LBBB|paced/i.test(S(c.bbb));
+    const src=(d._stjVerified&&d._stjVerified.length)?" (with the monitor's confirmed STJ values)":"";
+    if(st.decision==="not_met"&&claim&&!wide)return {changed:"ste",
+      text:rhythm+", "+(sub.length?"ST elevation below this patient's threshold ("+sub.map(mm).join(", ")+" mm)":"no ST elevation meeting the criteria"),
+      note:"The reader's own wording was "+q(raw.slice(0,140))+". The final numbers"+src+" do not show ST elevation that meets the criteria, so the line above is written from the numbers."};
+    if(st.decision==="met"&&saysNone&&ste.length&&!wide)return {changed:"none",
+      text:rhythm+", ST elevation "+ste.map(mm).join(", ")+" mm",
+      note:"The reader's own wording was "+q(raw.slice(0,140))+". The final numbers"+src+" meet the criteria, so the line above is written from the numbers."};
+    if(st._mon==="normal")return {text:raw,note:"This is the photo read's wording. The monitor's own analysis printed "+q("Normal ECG")+": see the decision below."};
+    if(st._mon==="stemi")return {text:raw,note:"This is the photo read's wording. The monitor's own analysis printed "+q(S(d._mon&&d._mon.stemi&&d._mon.stemi.text)||"STEMI")+": see the decision below."};
+    return {text:raw,note:""};}
+  window.__headline=d=>headline(d||lastReport);
   function glanceRows(d){const g=el("div","glance");const row=(k,v)=>{g.appendChild(el("span","k",k));g.appendChild(el("span","v",v));};
     const rc=S(d.rhythm_class).toLowerCase(),rate=Number(d.rate_bpm)||null;row("Rhythm",(RC_TXT[rc]||S(d.rhythm_class)||"—")+(rate?" · "+rate+"/min":""));
     const c=d.conduction||{},q=Number(c.qrs_ms)||null,bbb=S(c.bbb),bb=bbb&&!/^none$/i.test(bbb)?bbb:"";
@@ -2722,7 +2774,17 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     const c=d.conduction||{},rate=Number(d.rate_bpm)||null,rc=RC_TXT[S(d.rhythm_class).toLowerCase()]||S(d.rhythm_class)||"";const nv=(d._stjVerified||[]).length;
     const stj=nv?"printed STJ verified "+nv+"/12":(d.printed&&d.printed.stj&&Object.keys(d.printed.stj).length?"printed STJ copied, not verified":"photo measurement");
     return "EMS Quick ECG Guide read #"+d._rid+" · "+fmtAt(d._at)+" · Patient "+($("age").value||"?")+" "+($("sex").value||"").slice(0,1)+" · Triage: "+omniTriage(d).label.replace(/^[^A-Za-z]+/,"")+" · Decision: "+dec+(st.criterion?" ("+S(st.criterion)+")":"")+" · Rhythm: "+(rc||"—")+(rate?" "+rate+"/min":"")+(c.qrs_ms?", QRS "+c.qrs_ms+" ms":"")+(S(c.bbb)&&!/^none$/i.test(S(c.bbb))?", "+S(c.bbb):"")+" · J-points (mm at 10 mm/mV): "+js+" · "+stj+(d._conf?" · Confidence "+d._conf.score+"% ("+d._conf.level+")":"")+" · Decision support only; UMOC decides · App v"+APP_VERSION;}
+  // 6.5: list prices in US$ per million tokens (input, output), November 2026. Only for the "about $ for this read" hint.
+  const PRICE={"claude-fable-5-2":[8,40],"claude-opus-5-5":[4,20],"claude-sonnet-5-5":[2,10],"claude-sonnet-5":[2,10]};
+  function srvText(d){const a=[d._srv,d._srv2].filter(x=>x&&x.model);if(!a.length)return "";const tok=n=>n>=1000?(Math.round(n/100)/10)+"k":String(n);
+    // The service may answer with a dated model name (claude-sonnet-5-20260601): match the longest known name it starts with.
+    const priceOf=m=>{const k=Object.keys(PRICE).sort((x,y)=>y.length-x.length).find(k=>m===k||m.startsWith(k+"-"));return k?PRICE[k]:null;};
+    let cost=0,known=true;a.forEach(x=>{const p=priceOf(x.model);if(!p||!x.usage){known=false;return;}cost+=x.usage.in/1e6*p[0]+x.usage.out/1e6*p[1];});
+    const one=x=>x.model.replace(/^claude-/,"").replace(/-20\d{6}$/,"")+(x.effort?" · thinking "+x.effort:"")+(x.usage?" · "+tok(x.usage.in)+" tokens in, "+tok(x.usage.out)+" out":"");
+    // An estimate at list prices for this read only; the short side checks (leads in the photo, STJ close-up, which way is up) are not counted.
+    return "Read by "+a.map(one).join(" + ")+(known&&cost>0?" · about $"+(cost<0.095?cost.toFixed(3):cost.toFixed(2))+" for this read (side checks not counted)":"");}
   function ridRow(d){ensureRid(d);const r=el("div","rid");r.appendChild(el("span",null,"Read"));r.appendChild(el("b",null,"#"+d._rid));r.appendChild(el("span",null,fmtAt(d._at)));
+    {const t=srvText(d);if(t)r.appendChild(el("span","srvline",t));}
     const cp=el("button",null,"Copy handover");cp.type="button";cp.onclick=()=>{const t=handoverText(d);const done=()=>toast("Handover line copied (no patient identifiers)");
       if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(()=>{window.prompt("Copy this handover line:",t);});else window.prompt("Copy this handover line:",t);window.__track&&window.__track("handover");};r.appendChild(cp);
     if(navigator.share){const sh=el("button",null,"Share");sh.type="button";sh.onclick=()=>{navigator.share({text:handoverText(d)}).catch(()=>{});};r.appendChild(sh);}
@@ -2904,7 +2966,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 
   refreshHook=refresh;gate();
   reEvalHook=()=>{if(!lastReport||busy||!patientOK())return;
-    applyDevice(lastReport);lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});applyCutoffRule(lastReport);lastReport._lowv=lowVoltageNote(lastReport);lastReport._conf=computeConfidence(lastReport);lastReport._rhythm=rhythmAssess(lastReport,{age:parseInt($("age").value,10)});if(lastReport._fast)lastReport.evidence=buildEvidence(lastReport);
+    applyDevice(lastReport);lastReport.stemi=evaluate(lastReport,{age:parseInt($("age").value,10),sex:$("sex").value});stjAltDecide(lastReport);applyCutoffRule(lastReport);monitorGuard(lastReport);lastReport._lowv=lowVoltageNote(lastReport);lastReport._conf=computeConfidence(lastReport);lastReport._rhythm=rhythmAssess(lastReport,{age:parseInt($("age").value,10)});if(lastReport._fast)lastReport.evidence=buildEvidence(lastReport);
     const y=window.scrollY;render(lastReport);window.scrollTo({top:y});
     setStatus("Decision updated using the same measurements. No new read needed.");};
   try{$("dblChk").checked=store.get("eqg-dbl")==="1";}catch(e){}
@@ -2914,7 +2976,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   function unavailable(m){$("unavail").textContent=m;$("unavail").hidden=false;refresh();}
   (async()=>{
     const inClaude=!!(window.claude&&typeof window.claude.use==="function");
-    if(!inClaude){isNetlify=true;sample=netlifySample();imagesOK=true;maxCount=5;refresh();setTimeout(()=>{restoreSession().catch(()=>{}).finally(()=>{sessReady=true;sessPatient();sessPhotos();track("open");askName();});},0);return;}
+    if(!inClaude){isNetlify=true;sample=netlifySample();imagesOK=true;maxCount=5;refresh();try{srvVerCheck();}catch(e){}setTimeout(()=>{restoreSession().catch(()=>{}).finally(()=>{sessReady=true;sessPatient();sessPhotos();track("open");askName();});},0);return;}
     try{sample=await window.claude.use("sample");}catch(e){sample=null;}
     if(!sample){unavailable("The analysis engine isn't available here. Open the app from Claude while signed in.");return;}
     try{const lim=await sample.limits();imagesOK=!!lim?.images;if(imagesOK){maxCount=Math.max(1,Math.min(lim.images.maxCount||5,5));$("fileInput").accept=lim.images.mediaTypes.join(",");}}catch(e){imagesOK=false;}
@@ -2963,7 +3025,7 @@ HOW TO MEASURE (follow exactly, lead by lead):
 8. Q waves: none, q (small) or QS. QRS polarity: "qrs" = positive (mainly upright), negative (mainly downward) or isoelectric, and "qrs_mm" = height of the main deflection in small boxes (R height if positive, S depth if negative). In V2 and V3 also report "s_wave" (true if an S wave follows the R) and "j_wave" (true if there is a notch or slur at the J-point).
 9. Leads not visible in the photo (for example, when only part of the printout is photographed) must be reported with "present": false and j_mm null. Never guess a lead you cannot see.
 10. Only list reciprocal change, tombstone morphology, or any finding if your own measurements show it. The headline and summary MUST agree with your j_mm values: do not write "STEMI" unless contiguous leads meet the patient's threshold.
-11. Monitor printout: copy any printed data (HR, PR, QRS, QT/QTc, axes, age, sex, "STJ Level" numbers, interpretation statements) exactly into "printed". LIFEPAK printers draw the digit 0 with a slash through it (like \u00d8): a slashed zero is 0, never 8 or 6 (0.04 is 0.04, not 0.84). Copy the STJ rows in their printed order (I, II, III, aVR, aVL, aVF, V1-V6) so no row slips. A printed STJ number may be used for a lead's J-point ONLY when that lead's waveform in the photo is unreadable. NEVER use the printed interpretation text (e.g. "inferior/lateral ST-T abnormality", "LVH with repolarization abnormality") to decide what any lead looks like: machine statements are often wrong and describe lead groups loosely. Every lead's J-point and T wave must come from looking at that lead's own waveform, never from the printed words.
+11. Monitor printout: copy any printed data (HR, PR, QRS, QT/QTc, axes, age, sex, "STJ Level" numbers, interpretation statements) exactly into "printed". Copy EVERY interpretation line the monitor printed, each as its own item and word for word, including the header line ("Normal ECG" / "Abnormal ECG") and any line in asterisks such as "*** MEETS ST ELEVATION MI CRITERIA ***"; never add a statement that is not printed. LIFEPAK printers draw the digit 0 with a slash through it (like \u00d8): a slashed zero is 0, never 8 or 6 (0.04 is 0.04, not 0.84). Copy the STJ rows in their printed order (I, II, III, aVR, aVL, aVF, V1-V6) so no row slips. A printed STJ number may be used for a lead's J-point ONLY when that lead's waveform in the photo is unreadable. NEVER use the printed interpretation text (e.g. "inferior/lateral ST-T abnormality", "LVH with repolarization abnormality") to decide what any lead looks like: machine statements are often wrong and describe lead groups loosely. Every lead's J-point and T wave must come from looking at that lead's own waveform, never from the printed words.
 ${fast?"12. For each lead, look at EVERY complete beat in that lead's strip (rule 2b; usually 2-3) and report the median of what they show.":"12. For each lead, look at EVERY complete beat in that lead's strip (rule 2b; usually 2-3) and report the median of what they show. First write in \"t_seen\" where the T wave goes after the QRS (for example \"dips below baseline after each QRS\" or \"small hump above baseline\"), then set \"t\" from that description."}
 13. FINAL CHECK before answering: go through all 12 leads again in grid order and confirm (a) the label matches the grid position (column 1 = I, II, III), (b) the J-point value, (c) the T-wave polarity${fast?"":" matches your t_seen"}, (d) any lead whose J-point is 1 mm or more above BOTH of its neighbours in the same column or territory while they sit at 0 (for example V4 +1.5 with V3 0 and V5 0) is suspicious for a lead-change artifact or a cut-off beat: re-measure it on a complete beat before reporting it. Fix any mismatch. Do not copy a pattern from one lead to its neighbours; each lead is judged on its own.
 
@@ -3031,33 +3093,100 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   // than reading small T waves from a photo. When a P-QRS-T axis line is printed, use the
   // T axis to set clear-cut limb-lead T polarity (hexaxial projection).
   // Printed STJ Level values are measured by the monitor from the signal itself.
+  // 6.7: Einthoven's law as a checksum on the printed limb-lead STJ numbers. The monitor records leads I and II;
+  // III, aVR, aVL and aVF follow from them (III = II - I, aVR = -(I+II)/2, aVL = I - II/2, aVF = II - I/2), so the
+  // six printed numbers must fit together to within rounding. One misread digit breaks the sum (the LIFEPAK's
+  // slashed zero read as 8 turned II 0.04 into 0.84 and aVF -0.07 into -0.97 on this service's own printouts).
+  // When at least four of the numbers fit, the others are corrected from them; when they don't fit at all, none of
+  // them is treated as the monitor's exact number.
+  const EIN={I:[1,0],II:[0,1],III:[-1,1],aVR:[-0.5,-0.5],aVL:[1,-0.5],aVF:[-0.5,1]},EIN_TOL=0.03;
+  function einthoven(vals){const ks=Object.keys(EIN).filter(k=>typeof vals[k]==="number"&&isFinite(vals[k]));if(ks.length<4)return {n:ks.length,ok:false,why:"few"};
+    const pred=(a,b,k)=>EIN[k][0]*a+EIN[k][1]*b;let best=null;
+    for(let i=0;i<ks.length;i++)for(let j=i+1;j<ks.length;j++){const [a1,b1]=EIN[ks[i]],[a2,b2]=EIN[ks[j]],det=a1*b2-a2*b1;if(Math.abs(det)<1e-9)continue;
+      const x=(vals[ks[i]]*b2-vals[ks[j]]*b1)/det,y=(a1*vals[ks[j]]-a2*vals[ks[i]])/det;
+      const inl=ks.filter(k=>Math.abs(pred(x,y,k)-vals[k])<=EIN_TOL),err=inl.reduce((s,k)=>s+Math.abs(pred(x,y,k)-vals[k]),0);
+      if(!best||inl.length>best.inl.length||(inl.length===best.inl.length&&err<best.err))best={x,y,inl,err};}
+    if(!best||best.inl.length<4)return {n:ks.length,ok:false,why:"inconsistent"};
+    // least squares over the numbers that fit, so the result does not hang on two rounded values
+    {let s11=0,s12=0,s22=0,t1=0,t2=0;best.inl.forEach(k=>{const [a,b]=EIN[k];s11+=a*a;s12+=a*b;s22+=b*b;t1+=a*vals[k];t2+=b*vals[k];});const det=s11*s22-s12*s12;
+      if(Math.abs(det)>1e-9){best.x=(t1*s22-t2*s12)/det;best.y=(s11*t2-s12*t1)/det;}}
+    const fit={};Object.keys(EIN).forEach(k=>{fit[k]=Math.round(pred(best.x,best.y,k)*100)/100+0;});
+    const inl=ks.filter(k=>Math.abs(pred(best.x,best.y,k)-vals[k])<=EIN_TOL);if(inl.length<4)return {n:ks.length,ok:false,why:"inconsistent"};
+    return {n:ks.length,ok:true,fit,inl,out:ks.filter(k=>!inl.includes(k)),miss:Object.keys(EIN).filter(k=>!ks.includes(k))};}
+  window.__einthoven=einthoven;
   function applyMonitorSTJ(d){
-    if(!d.leads)return;const pr=d.printed||(d.printed={});const ai=(pr.stj&&typeof pr.stj==="object")?pr.stj:{};
-    const num=x=>{if(x===undefined||x===null||x==="")return null;const v=parseFloat(String(x).replace(",","."));return isFinite(v)&&Math.abs(v)<=10?v:null;};
+    if(!d.leads)return;const pr=d.printed||(d.printed={});const aiRaw=(pr.stj_ai&&typeof pr.stj_ai==="object")?pr.stj_ai:((pr.stj&&typeof pr.stj==="object")?pr.stj:{});
+    // Lead names in any letter case ("avr"); a typographic minus sign (−, –) counts as a minus, so a value never loses its sign.
+    const ai={};Object.keys(aiRaw).forEach(x=>{const k=LEADS.find(n=>n.toLowerCase()===String(x).trim().toLowerCase());if(k&&!(k in ai))ai[k]=aiRaw[x];});
+    const num=x=>{if(x===undefined||x===null||x==="")return null;const v=parseFloat(String(x).replace(/[\u2212\u2013\u2014]/g,"-").replace(",",".").replace(/^\s*([+-])\s+/,"$1"));return isFinite(v)&&Math.abs(v)<=10?v:null;};
     // 5.2: the table read on its own (two readers must agree) wins over the main read's copy of it.
-    const v=d._stjv&&d._stjv.found&&d._stjv.stj?d._stjv:null;const table={},src={},unclear=[],fixed=[];
+    const v=d._stjv&&d._stjv.found&&d._stjv.stj?d._stjv:null;const table={},src={},fixed=[];let unclear=[];
     LEADS.forEach(k=>{const a=num(ai[k]);
       if(v){if(typeof v.stj[k]==="number"){table[k]=v.stj[k];src[k]="verified";if(a!==null&&Math.abs(a-v.stj[k])>0.015)fixed.push(k+" "+a+" → "+v.stj[k]);}
         else if((v.unclear||[]).includes(k)){
           // 5.3: the two readers disagree. The main read's own copy is the tie-breaker: a number two of the three read the same is used.
           const ra=num(v.a&&v.a[k]),rb=num(v.b&&v.b[k]);const tie=a!==null?[ra,rb].find(x=>x!==null&&Math.abs(x-a)<=0.015):undefined;
-          if(tie!==undefined){table[k]=tie;src[k]="verified";}
-          else{unclear.push(k);const o=d.leads[k];if(o&&o.present!==false){o.stj_unclear=true;o.note=((o.note?S(o.note)+"; ":"")+"printed STJ unclear (three readers, three numbers): photo value used").slice(0,160);}}}
+          if(tie!==undefined){table[k]=tie;src[k]="verified";}else unclear.push(k);}
         else if(a!==null){table[k]=a;src[k]="ai";}}
       else if(a!==null){table[k]=a;src[k]="ai";}});
-    if(!Object.keys(table).length&&!unclear.length){d._stjUsed=[];d._stjCheck=[];d._stjUnclear=[];d._stjFixed=[];d._stjVerified=[];return;}
+    // 6.7: the six limb numbers must add up (Einthoven's law).
+    const E=einthoven(table);const mathFixed=[];d._stjMath=E.ok?"ok":E.why;
+    if(E.ok){E.inl.forEach(k=>{if(src[k]==="ai")src[k]="math";});
+      E.out.forEach(k=>{mathFixed.push(k+" "+table[k]+" → "+E.fit[k]);table[k]=E.fit[k];src[k]="math";});
+      E.miss.forEach(k=>{table[k]=E.fit[k];src[k]="math";});unclear=unclear.filter(k=>!(k in EIN));}
+    else if(E.why==="inconsistent")Object.keys(EIN).forEach(k=>{if(k in table)src[k]="ai";});
+    d._stjFixed=fixed;d._stjMathFixed=mathFixed;
+    if(!Object.keys(table).length&&!unclear.length){d._stjUsed=[];d._stjCheck=[];d._stjUnclear=[];d._stjVerified=[];d._stjUnverified=[];return;}
     const cal=Number(d.calibration&&d.calibration.mm_per_mv);const f=(cal>=3&&cal<=25)?10/cal:1;const used=[],chk=[];
-    Object.keys(table).forEach(k=>{const val=table[k];const o=d.leads[k]||(d.leads[k]={present:true});const cur=typeof o.j_mm==="number"?o.j_mm*f:null;
-      if(cur===null||Math.abs(cur-val)>0.5)used.push(k+" "+(val>0?"+":"")+val);
-      // Big gap between a number the main read copied (not verified) and the trace: the small print may have been misread.
-      if(src[k]==="ai"&&cur!==null&&Math.abs(cur-val)>=0.75){chk.push(k+" (read as "+(val>0?"+":"")+val+" mm, trace looks about "+(Math.round(cur*2)/2)+" mm)");o.stj_check=true;}
-      o.present=true;o.j_mm=val/f;o.stj_exact=true;o.stj_src=src[k];o.note=((o.note?S(o.note)+"; ":"")+"J from printed STJ "+val+" mm"+(src[k]==="verified"?" (verified)":"")).slice(0,160);});
+    const sure=k=>src[k]==="verified"||src[k]==="math",sg=x=>(x>0?"+":"")+x,add=(o,t)=>{o.note=((o.note?S(o.note)+"; ":"")+t).slice(0,160);};
+    unclear.forEach(k=>{const o=d.leads[k];if(o&&o.present!==false){o.stj_unclear=true;add(o,"printed STJ unclear (three readers, three numbers): photo value used");}});
+    Object.keys(table).forEach(k=>{const val=table[k];const o=d.leads[k]||(d.leads[k]={present:false,j_mm:null});const cur=(o.present!==false&&typeof o.j_mm==="number"&&isFinite(o.j_mm))?o.j_mm*f:null;
+      if(sure(k)){
+        if(cur===null||Math.abs(cur-val)>0.5)used.push(k+" "+sg(val));
+        if(cur!==null&&o.j_photo===undefined)o.j_photo=Math.round(cur*100)/100;
+        o.present=true;o.j_mm=val/f;o.stj_exact=true;o.stj_val=true;o.stj_src=src[k];
+        add(o,"J from printed STJ "+val+" mm"+(src[k]==="verified"?" (verified)":mathFixed.some(x=>x.startsWith(k+" "))?" (corrected: the limb numbers must add up)":" (limb numbers add up)"));return;}
+      // 6.7: copied by the main read only and not confirmed. It is NOT the monitor's exact number: the app treats it like a photo value.
+      o.stj_src="ai";o.stj_exact=false;
+      if(cur===null)return; // lead not in the photo: an unconfirmed number is not enough to bring it in
+      if(Math.abs(cur-val)<0.75){if(o.stj_trace===undefined)o.stj_trace=Math.round(cur*2)/2;o.j_mm=val/f;o.stj_val=true;add(o,"printed STJ "+val+" mm (not confirmed; agrees with the trace)");}
+      else{chk.push(k+" (read as "+sg(val)+" mm, trace looks about "+(Math.round(cur*2)/2)+" mm)");o.stj_check=true;o.stj_alt=val;add(o,"printed STJ read as "+val+" mm, trace looks about "+(Math.round(cur*2)/2)+" mm: not confirmed");}});
     pr.stj_ai=ai;pr.stj=Object.assign({},table);unclear.forEach(k=>{pr.stj[k]="?";});
-    d._stjUsed=used;d._stjCheck=chk;d._stjUnclear=unclear;d._stjFixed=fixed;d._stjVerified=Object.keys(table).filter(k=>src[k]==="verified");
+    d._stjUsed=used;d._stjCheck=chk;d._stjUnclear=unclear;d._stjVerified=Object.keys(table).filter(sure);d._stjUnverified=Object.keys(table).filter(k=>!sure(k));
+    // 6.7: how far the photo read was from the monitor's own confirmed numbers on this printout (a built-in accuracy check).
+    {const ks=d._stjVerified.filter(k=>typeof d.leads[k].j_photo==="number");if(ks.length>=3){let sum=0,mx=0,ml="";ks.forEach(k=>{const e=Math.abs(d.leads[k].j_photo-table[k]);sum+=e;if(e>mx){mx=e;ml=k;}});
+      d._photoVs={n:ks.length,mean:Math.round(sum/ks.length*100)/100,max:Math.round(mx*100)/100,lead:ml};}else d._photoVs=null;}
   }
+  // 6.7: printed numbers the close-up check could not confirm. Two cases, and in both the app asks: would the answer
+  // change if the other value were the right one? If so the result is "consult" and the crew reads the paper.
+  //  (a) the printed number (as read) is far from the trace: the report keeps the trace value;
+  //  (b) the printed number is close to the trace: the report uses the printed number, but it is still unconfirmed
+  //      (the LIFEPAK's slashed zero read as 6 turns 2.04 into 2.64, which is "close" and crosses a 2.5 mm threshold).
+  function stjAltDecide(d){const st=d.stemi;if(!st||st._stjAlt)return false;const L=d.leads||{};
+    const ka=LEADS.filter(k=>L[k]&&typeof L[k].stj_alt==="number");
+    const kb=LEADS.filter(k=>L[k]&&!L[k].stj_exact&&L[k].stj_val&&typeof L[k].stj_trace==="number");
+    if(!ka.length&&!kb.length)return false;
+    try{const cal=Number(d.calibration&&d.calibration.mm_per_mv);const f=(cal>=3&&cal<=25)?10/cal:1;
+      const pt={age:parseInt($("age").value,10),sex:$("sex").value},rank={not_met:0,consult:1,met:2},was=st.decision;
+      const run=set=>{const c=JSON.parse(JSON.stringify(d));set(c);return evaluate(c,pt).decision;};
+      const altA=ka.length?run(c=>ka.forEach(k=>{c.leads[k].j_mm=L[k].stj_alt/f;c.leads[k].stj_val=true;})):was;
+      const altB=kb.length?run(c=>kb.forEach(k=>{c.leads[k].j_mm=L[k].stj_trace/f;c.leads[k].stj_val=false;})):was;
+      const hitA=rank[altA]!==rank[was],hitB=rank[altB]!==rank[was];if(!hitA&&!hitB)return false;
+      const mm=x=>(x>0?"+":"")+x+" mm",D=x=>DEC_TXT[x]||x,parts=[];
+      if(hitA)parts.push("the printed number and the trace disagree in "+ka.map(k=>k+" (printed number read as "+mm(L[k].stj_alt)+", trace looks about "+mm(st.J(k))+")").join(", ")+": with the trace values the result would be "+D(was)+", with the printed numbers as read, "+D(altA));
+      // name only the leads that matter: those whose value sits on the other side of its threshold, else those that differ most
+      const flip=kb.filter(k=>{const t=typeof st.thr==="function"?st.thr(k):1,j=st.J(k);return j!==null&&(j>=t)!==(L[k].stj_trace>=t);}),far=kb.filter(k=>st.J(k)!==null&&Math.abs(st.J(k)-L[k].stj_trace)>=0.25);
+      const lb=flip.length?flip:far.length?far:kb;
+      if(hitB)parts.push("the answer depends on the printed numbers used for "+lb.map(k=>k+" ("+mm(st.J(k))+" as read, trace looks about "+mm(L[k].stj_trace)+")").join(", ")+": with the numbers as read the result would be "+D(was)+", with the trace values, "+D(altB));
+      const ks=[...new Set([...(hitA?ka:[]),...(hitB?lb:[])])];st._stjAlt={leads:ks,alt:hitA?altA:altB,was};
+      const why="The close-up check could not confirm the printed STJ numbers, and "+parts.join("; also ")+". Read the STJ table on the paper yourself and call UMOC to discuss.";
+      // A result that is already "consult" keeps its own reason; the note and the check line are added to it.
+      if(was!=="consult"){st.decision="consult";st.criterion="Printed STJ numbers not confirmed";st.reasoning=why.replace(/^The close-up check could not confirm the printed STJ numbers, and t/,"The close-up check could not confirm the printed STJ numbers. T");}
+      st.warnings=["Printed STJ numbers could not be confirmed and would change the result ("+ks.join(", ")+"). Read them on the paper."].concat(st.warnings||[]);
+      (st.checks=st.checks||[]).push({ok:null,t:"(Printed STJ) Not confirmed in "+ks.join(", ")+", and the answer depends on them: the result is 'consult' until the table is read on the paper."});return true;}catch(e){return false;}}
   // Double-check: merge two independent reads; disagreements lower confidence and are shown.
   function mergeReads(a,b){
-    const m=JSON.parse(JSON.stringify(a));m._double=true;m._disagree=[];
+    const m=JSON.parse(JSON.stringify(a));m._double=true;m._disagree=[];m._srv2=b._srv||null;
     LEADS.forEach(k=>{const x=(a.leads||{})[k]||{},y=(b.leads||{})[k]||{};const o=m.leads[k]||(m.leads[k]={});
       const xj=typeof x.j_mm==="number"?x.j_mm:null,yj=typeof y.j_mm==="number"?y.j_mm:null;
       if(xj!==null&&yj!==null){o.j_mm=Math.round((xj+yj))/2;if(Math.abs(xj-yj)>0.5)m._disagree.push(k+" J "+xj+" vs "+yj);}
@@ -3084,8 +3213,17 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if(/Borderline|Possible|suspected/i.test(S(st.criterion))){sc-=20;why.push("Values near the threshold");}
     const self=S(d.primary&&d.primary.confidence).toLowerCase();if(self==="low"){sc-=15;why.push("AI unsure of its own read");}else if(self==="moderate")sc-=5;
     const stj=!!(d._stjUsed!==undefined&&(d.printed||{}).stj&&Object.keys(d.printed.stj).some(k=>typeof d.printed.stj[k]==="number"));
-    const nv=(d._stjVerified||[]).length;
-    if(stj){sc+=nv>=6?10:5;why.push(nv>=6?"J-points from the monitor's STJ table, verified by two readers":nv?"J-points from the monitor's STJ table ("+nv+" verified by two readers)":"J-points from the monitor's STJ table as copied by the AI, NOT verified"+(d._stjv&&d._stjv.old?" (server file read.js is old)":d._stjv&&d._stjv.reason?" ("+d._stjv.reason+")":""));}
+    const nv=(d._stjVerified||[]).length,nu=(d._stjUnverified||[]).length;
+    if(stj){const whyNot=d._stjv&&d._stjv.old?" (server file read.js is old)":d._stjv&&d._stjv.reason?" ("+d._stjv.reason+")":"";
+      if(nv&&!nu){sc+=nv>=6?10:5;why.push("J-points from the monitor's STJ table, "+(d._stjv&&d._stjv.found?"read from a close-up by two readers"+(d._stjv.same?" (both by one model)":""):"copied by the main read")+(d._stjMath==="ok"?"; the limb-lead numbers add up (Einthoven's law)":""));}
+      else if(nv){sc-=Math.min(15,3*nu);why.push("Printed STJ table: "+nv+" numbers confirmed"+(d._stjMath==="ok"?" (the limb leads add up, Einthoven's law)":"")+", "+nu+" not confirmed"+whyNot+" and treated as photo values");}
+      else{sc-=10;why.push("Printed STJ numbers could NOT be confirmed"+whyNot+": treated as photo values, not as the monitor's exact numbers");}}
+    if(d._stjMathFixed&&d._stjMathFixed.length)why.push("Limb-lead STJ numbers that did not add up were corrected by Einthoven's law: "+d._stjMathFixed.join(", "));
+    if(d._stjMath==="inconsistent"){sc-=10;why.push("Printed limb-lead STJ numbers, as read, do not add up (Einthoven's law): at least one was probably misread, so none is treated as exact");}
+    if(d._invFail){sc-=5;why.push("The separate lead check did not run ("+d._invFail+"): only the reading's own lead list was used");}
+    if(d._monSet&&d._monSet.length)why.push("From the monitor's own statement: "+d._monSet.join(", "));
+    const monClash=!!(d.stemi&&/^(stemi|normal)$/.test(S(d.stemi._mon)));if(monClash)why.push("The monitor's own statement and the photo read disagree: check the paper");
+    let hlClash=false;try{hlClash=!!headline(d).changed;}catch(e){}if(hlClash)why.push("The reader's own one-line wording did not match the final numbers, so the header was written from the numbers");
     if(d._stjUnclear&&d._stjUnclear.length){sc-=Math.min(15,5*d._stjUnclear.length);why.push("Printed STJ unclear in "+d._stjUnclear.join(", ")+" (readers disagree): photo values used");}
     if(d._axisNote){why.push("Limb-lead T waves set from the monitor's T axis");}
     if(d._lowv){sc-=20;why.push("ST elevation only in leads with small complexes");}
@@ -3098,12 +3236,12 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       if(ns&&d._disagree.length)why.push(ns+" photo difference"+(ns>1?"s":"")+" settled by the monitor's own measurement (not counted)");}
     // One read can't confirm itself, so it has a lower ceiling than two reads that agree (95%):
     // 85% when the J-points come from the monitor's own STJ numbers, 75% when they come only from the photo.
-    let cap=95;if(!d._double){cap=stj?(nv>=6?85:80):75;why.push("Single read: highest possible is "+cap+"% (Double-check can reach 95%)");}
+    let cap=95;if(!d._double){cap=(stj&&nv&&!nu)?(nv>=6?85:80):75;why.push("Single read: highest possible is "+cap+"% (Double-check can reach 95%)");}
     // LBBB / paced: the J-point is hard to place in a wide QRS from a photo, and harder still when fast
     // (short baseline between beats). Lower ceiling (4.0).
     {const wide=/LBBB|paced/i.test(S((d.conduction||{}).bbb)),rate=Number(d.rate_bpm)||0;
       if(wide){const c2=rate>100?55:65;if(c2<cap){cap=c2;why.push((/paced/i.test(S((d.conduction||{}).bbb))?"Paced rhythm":"LBBB")+(rate>100?" with a fast rate ("+rate+"/min)":"")+": ST is hard to measure from a photo in a wide QRS; highest possible is "+cap+"%");}}}
-    sc=Math.max(5,Math.min(cap,sc));
+    sc=Math.max(5,Math.min(cap,sc));if(monClash)sc=Math.max(5,sc-25);if(hlClash)sc=Math.max(5,sc-10); // taken off AFTER the ceiling, so it always shows
     // 5.0: second look at the leads near or over their threshold (complete beats only). A disagreement is taken off
     // AFTER the single-read ceiling, so it always shows in the score.
     {const lk=d._look;const mm=v=>(v>0?"+":"")+v+" mm";
@@ -3133,10 +3271,10 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   function cropPart(file,x0,x1,y0,y1,maxSide){
     y0=y0||0;y1=y1||1;
     return new Promise((res,rej)=>{const u=URL.createObjectURL(file),img=new Image();
-      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0)),sy=Math.round(img.height*y0),sh=Math.round(img.height*(y1-y0));const M=maxSide||1200,sc=Math.min(3,M/Math.max(sw,sh));
+      img.onload=()=>{const sx=Math.round(img.width*x0),sw=Math.round(img.width*(x1-x0)),sy=Math.round(img.height*y0),sh=Math.round(img.height*(y1-y0));const M=maxSide||1568,sc=Math.min(3,M/Math.max(sw,sh));
         const c=document.createElement("canvas");c.width=Math.round(sw*sc);c.height=Math.round(sh*sc);
         {const cx=c.getContext("2d");cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality="high";cx.drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);}URL.revokeObjectURL(u);
-        c.toBlob(b=>b?res(new File([b],"zoom.jpg",{type:"image/jpeg"})):rej(new Error("crop")),"image/jpeg",0.82);};
+        c.toBlob(b=>b?res(new File([b],"zoom.jpg",{type:"image/jpeg"})):rej(new Error("crop")),"image/jpeg",0.9);};
       img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("crop"));};img.src=u;});
   }
   function imgSize(file){return new Promise(res=>{const u=URL.createObjectURL(file),img=new Image();img.onload=()=>{URL.revokeObjectURL(u);res({w:img.width,h:img.height});};img.onerror=()=>{URL.revokeObjectURL(u);res({w:1,h:1});};img.src=u;});}
@@ -3161,7 +3299,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     // trimmed to the paper, so every printed page is read at about twice the resolution.
     if(list.length===2){try{const imgs=[],desc=[];let n=0;
       for(let i=0;i<2;i++){const f=list[i],pr=await paperRows(f),pw=pr.w,ph=pr.h*(pr.y1-pr.y0);
-        if(pw/ph>1.6){imgs.push(await cropPart(f,0,0.53,pr.y0,pr.y1,1400));imgs.push(await cropPart(f,0.47,1,pr.y0,pr.y1,1400));desc.push("images "+(n+1)+" and "+(n+2)+" are the LEFT and RIGHT halves of photo "+(i+1));n+=2;}
+        if(pw/ph>1.6){imgs.push(await cropPart(f,0,0.53,pr.y0,pr.y1,1568));imgs.push(await cropPart(f,0.47,1,pr.y0,pr.y1,1568));desc.push("images "+(n+1)+" and "+(n+2)+" are the LEFT and RIGHT halves of photo "+(i+1));n+=2;}
         else{imgs.push(f);desc.push("image "+(n+1)+" is photo "+(i+1)+" in full");n+=1;}}
       if(n>2)return {imgs,zoom:desc.join("; ")+" (halves overlap slightly; each half usually shows one printed page with its own lead labels; read every lead from the page that shows its label)"};
     }catch(e){}return {imgs:list,zoom:""};}
@@ -3188,20 +3326,20 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const pa=Array.isArray(c.pa)?c.pa:[];const P={};[["rate",0],["regularity",1],["p_waves",2],["pr",3],["qrs",4],["qt",5],["axis",6]].forEach(([k,i])=>{P[k]={value:S(pa[i]),note:""};});
     const al=Array.isArray(c.al)?c.al:[];const qa=Array.isArray(c.qa)?c.qa:[1,""];
     const pm=c.pm&&typeof c.pm==="object"?c.pm:{};
-    return {visible_leads:Array.isArray(c.vis)?c.vis:null,is_ecg:c.ok!==0&&c.ok!==false,same_patient:c.same===0||c.same===false?false:(c.same==="u"?"unconfirmed":true),same_patient_reason:S(c.same_why),images_used:S(c.used),serial_changes:Array.isArray(c.ser)?c.ser:[],
+    return {_srv:c._srv||null,visible_leads:Array.isArray(c.vis)?c.vis:null,is_ecg:c.ok!==0&&c.ok!==false,same_patient:c.same===0||c.same===false?false:(c.same==="u"?"unconfirmed":true),same_patient_reason:S(c.same_why),images_used:S(c.used),serial_changes:Array.isArray(c.ser)?c.ser:[],
       quality:{adequate:!(qa[0]===0||qa[0]===false),summary:S(qa[1]),limitations:[]},_rot:[90,180,270].includes(Number(c.rot))?Number(c.rot):0,
       calibration:{visible:n(c.cal)!==null,mm_per_mv:n(c.cal)||10,paper_speed:(n(c.speed)||25)+" mm/s"},
       primary:{rhythm:S(c.dx),confidence:{h:"high",m:"moderate",l:"low"}[S(c.conf).toLowerCase()]||"moderate",summary:""},
       parameters:P,conduction:{qrs_ms:n(c.qrs_ms)||0,bbb:S(c.bbb)||"none",lvh:c.lvh===1||c.lvh===true},
       rhythm_class:S(c.rc)||"undetermined",rate_bpm:n(c.rate),
       flags:{qtc_ms:n(fl[0]),delta_wave:b(1),brugada:b(2),hyperk:b(3),pericarditis:b(4),early_repol:b(5),pacer_spikes:b(6),capture_failure:b(7),diffuse_std_avr:b(8)},
-      leads,extra_leads:xl,printed:{interpretation:Array.isArray(pm.interp)?pm.interp:[],stj:pm.stj&&typeof pm.stj==="object"?pm.stj:{},hr:S(pm.hr),pr:S(pm.pr),qrs:S(pm.qrs),qtc:S(pm.qtc),axes:S(pm.axes),age:S(pm.age),sex:S(pm.sex)},
+      leads,extra_leads:xl,printed:{interpretation:Array.isArray(pm.interp)?pm.interp:(typeof pm.interp==="string"&&pm.interp.trim()?pm.interp.split(/\r?\n|\s*\|\s*/).map(x=>x.trim()).filter(Boolean):[]),stj:pm.stj&&typeof pm.stj==="object"?pm.stj:{},hr:S(pm.hr),pr:S(pm.pr),qrs:S(pm.qrs),qtc:S(pm.qtc),axes:S(pm.axes),age:S(pm.age),sex:S(pm.sex)},
       omi_patterns:Array.isArray(c.omi)?c.omi:[],evidence:[],alert:{level:S(al[0])||"none",headline:S(al[1]),details:[]},differential:[],field:[],_fast:true};
   }
   // Evidence lines built by the app from the measurements (replaces the AI's prose in fast mode).
   function buildEvidence(d){
     const st=d.stemi||{},J=st.J||(()=>null),thr=st.thr||(()=>1),L=d.leads||{},ev=[];
-    const edge=st.edge||[];const ste=LEADS.filter(k=>J(k)!==null&&J(k)>=thr(k)&&!edge.includes(k)),sub=LEADS.filter(k=>J(k)!==null&&J(k)>0&&J(k)<thr(k)),dep=LEADS.filter(k=>J(k)!==null&&J(k)<=-0.5);
+    const edge=st.edge||[];const ste=LEADS.filter(k=>J(k)!==null&&J(k)>=thr(k)&&!edge.includes(k)),sub=LEADS.filter(k=>J(k)!==null&&J(k)>=0.5&&J(k)<thr(k)),dep=LEADS.filter(k=>J(k)!==null&&J(k)<=-0.5);
     if(ste.length)ev.push({claim:"ST elevation at threshold: "+ste.map(k=>k+" +"+J(k)+" mm").join(", "),leads:ste,criterion:"meets this patient's threshold"});
     if(edge.length)ev.push({claim:"Exactly at the cut-off in a lone lead: "+edge.map(k=>k+" +"+J(k)+" mm").join(", "),leads:edge,criterion:"no neighbouring lead elevated; a photo can't measure to half a box"});
     if(sub.length)ev.push({claim:"ST elevation below threshold: "+sub.map(k=>k+" +"+J(k)).join(", "),leads:sub,criterion:"below threshold"});
@@ -3262,6 +3400,47 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     if((st.missing||[]).filter(k=>k!=="aVR").length)out.push("Photograph the full 12-lead: some leads were not in the photo.");
     return out;
   }
+  // ---------- 6.8: the monitor's own printed statement as a cross-check ----------
+  // The monitor analyses the real electrical signal; the app reads a photo of it. The statement is "unconfirmed" and
+  // never activates or cancels anything by itself. But the result must not flatly contradict it: a photo-read YES on a
+  // printout the monitor calls "Normal ECG", or a NO on one where it reports STEMI, becomes "consult, check the paper".
+  // Left bundle branch block, paced rhythm, RBBB and LV hypertrophy stated plainly by the monitor are treated as
+  // present even when the photo read missed them (the protocol's standard criteria need them to be absent).
+  function monFlags(d){const lines=arr((d.printed||{}).interpretation).map(x=>x.replace(/[*•]+/g," ").replace(/\s+/g," ").trim()).filter(Boolean);if(!lines.length)return null;
+    const all=lines.join(" | ");const soft=/\b(possibl[ey]|probabl[ey]|borderline|consider|cannot rule out|can ?not be ruled out|minimal|may be|suspect(ed)?|non-?specific|age undetermined|old)\b/i;
+    // "force": the monitor's own STEMI banner is a plain statement even though it contains a word like "suspected".
+    const pick=(re,not,force)=>{const m=lines.filter(x=>re.test(x)&&!(not&&not.test(x)));if(!m.length)return null;const hard=m.filter(x=>!soft.test(x)||(force&&force.test(x)));return {text:(hard[0]||m[0]).slice(0,90),hard:hard.length>0};};
+    return {all:all.slice(0,400),
+      normal:/(^|[^a-z])normal ecg/i.test(all)&&!/abnormal|borderline|otherwise normal/i.test(all),
+      stemi:pick(/meets st[- ]elevation mi|st[- ]elevation mi criteria|acute mi\b|\bstemi\b|acute[^|]{0,30}infarct|st elevation[^|]{0,40}(infarct|injury)/i,/\b(no|not|non|without|negative|absent|absence|excluded|ruled out|subacute)\b/i,/meets st[- ]elevation mi|st[- ]elevation mi criteria|acute mi suspected/i),
+      lvh:pick(/left ventricular hypertrophy|\blvh\b/i),
+      lbbb:pick(/left bundle branch block|\blbbb\b/i,/incomplete/i),
+      rbbb:pick(/right bundle branch block|\brbbb\b/i,/incomplete/i),
+      paced:pick(/pacemaker|paced rhythm|ventricular pacing|electronic[^|]{0,20}pac/i),
+      er:pick(/early repolari[sz]ation/i),peri:pick(/pericarditis/i)};}
+  window.__monFlags=monFlags;
+  // Before the criteria run. Runs once per read, before the crew's Pacemaker / ICD setting is applied.
+  function applyMonitorStatement(d){if(!d||d._monDone)return;d._monDone=true;const m=monFlags(d);d._mon=m;d._monSet=[];if(!m)return;
+    const c=d.conduction=d.conduction||{};const bbb=S(c.bbb)||"none";
+    if(m.lbbb&&m.lbbb.hard&&!/LBBB|paced/i.test(bbb)){c.bbb="LBBB";d._monSet.push("left bundle branch block");}
+    else if(m.paced&&m.paced.hard&&!/LBBB|paced/i.test(bbb)){c.bbb="paced";d._monSet.push("a paced rhythm");}
+    else if(m.rbbb&&m.rbbb.hard&&/^(none)?$/i.test(bbb)){c.bbb="RBBB";d._monSet.push("right bundle branch block");}
+    if(m.lvh&&m.lvh.hard&&c.lvh!==true){c.lvh=true;d._monSet.push("LV hypertrophy");}
+    if(d._monSet.length)d._monNote="The monitor's own analysis printed "+d._monSet.join(" and ")+", which the photo read did not report. The monitor measures the real signal, so the STEMI check treats it as present.";}
+  // After the criteria: the result must not flatly contradict the monitor's own statement.
+  function monitorGuard(d){const m=d&&d._mon,st=d&&d.stemi;if(!m||!st||st._mon)return false;const L=d.leads||{},q=t=>"“"+t+"”";
+    if(m.stemi&&m.stemi.hard&&st.decision==="not_met"){st._mon="stemi";st.decision="consult";st.criterion="The monitor's own analysis reports STEMI";
+      st.reasoning="The monitor printed "+q(m.stemi.text)+", but this photo read did not measure ST elevation that meets the criteria. The monitor measures the real signal and a photo read can miss it: look at the paper now. If you see ST elevation, treat it as STEMI and call UMOC.";
+      st.warnings=["The monitor's own analysis and this photo read disagree. Do not rely on a NO: check the paper and call UMOC."].concat(st.warnings||[]);
+      (st.checks=st.checks||[]).push({ok:null,t:"(Monitor) The monitor printed "+q(m.stemi.text)+". The photo read alone is not accepted as a NO: check the paper, call UMOC."});return true;}
+    if(m.normal&&st.decision==="met"&&!/^\((ii|iii)\)/.test(S(st.criterion))){const met=st.metLeads||[];
+      if(met.length&&met.every(k=>L[k]&&L[k].stj_exact)){st._mon="normal_note";st.warnings=["The monitor's own statement is "+q("Normal ECG")+", while its printed STJ numbers meet the activation criteria in "+met.join(", ")+". Tell UMOC both."].concat(st.warnings||[]);return false;}
+      st._mon="normal";st.decision="consult";st.criterion="The monitor's own analysis says Normal ECG";
+      st.reasoning="This photo read measured ST changes meeting the criteria"+(met.length?" in "+met.join(", "):"")+", but the monitor itself printed "+q("Normal ECG")+". The monitor measures the real signal, and a photo read can be out by half a millimetre or more: check "+(met.length?"these leads":"the leads")+" on the paper. If you see ST elevation, treat it as STEMI and call UMOC.";
+      st.warnings=["The monitor's own analysis and this photo read disagree about ST elevation. Check the paper before activating."].concat(st.warnings||[]);
+      (st.checks=st.checks||[]).push({ok:null,t:"(Monitor) The monitor printed "+q("Normal ECG")+". A photo read alone is not accepted as a YES against it: check "+(met.length?met.join(", "):"the leads")+" on the paper."});return true;}
+    if(m.stemi&&!m.stemi.hard&&st.decision==="not_met"){st._mon="stemi_soft";st.warnings=(st.warnings||[]).concat(["The monitor's statement mentions "+q(m.stemi.text)+". This read found no criterion met: look at those leads on the paper."]);}
+    return false;}
   // ---------- Service protocol: ESC 2023 STEMI activation table, applied in code ----------
   const CONTIG=[["II","III"],["III","aVF"],["II","aVF"],["I","aVL"],["I","V5"],["I","V6"],["aVL","V5"],["aVL","V6"],["V5","V6"],["V1","V2"],["V2","V3"],["V3","V4"],["V4","V5"]];
   const TERR={II:"inferior",III:"inferior",aVF:"inferior",I:"lateral",aVL:"lateral",V5:"lateral",V6:"lateral",V1:"septal",V2:"septal",V3:"anterior",V4:"anterior"};
@@ -3278,7 +3457,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     const L=d.leads||{};
     // Photo readings are rounded to the nearest 0.5 mm (a photo can't be read more finely). The monitor's own
     // printed STJ numbers are exact and are NOT rounded (4.4): 0.98 mm stays 0.98 and does not meet ≥1 mm.
-    const J=k=>{const o=L[k];if(!o||o.present===false||typeof o.j_mm!=="number"||!isFinite(o.j_mm))return null;return o.stj_exact?Math.round(o.j_mm*f*100)/100:Math.round(o.j_mm*f*2)/2;};
+    const J=k=>{const o=L[k];if(!o||o.present===false||typeof o.j_mm!=="number"||!isFinite(o.j_mm))return null;return (o.stj_exact||o.stj_val)?Math.round(o.j_mm*f*100)/100:Math.round(o.j_mm*f*2)/2;};
     const exact=k=>!!(L[k]&&L[k].stj_exact);r.exact=exact;
     const X=k=>{const o=d.extra_leads&&d.extra_leads[k];if(!o||o.present===false||typeof o.j_mm!=="number")return null;return Math.round(o.j_mm*f*2)/2;};
     r.J=J;
@@ -3475,7 +3654,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
   // monitor's T axis decided, don't count as a disagreement: the monitor's own measurement is what gets used.
   function settleDisagreements(d){
     if(!d._double||!Array.isArray(d._disagree))return;
-    const stj=(d.printed||{}).stj||{};const hasStj=k=>{const v=parseFloat(String(stj[k]??"").replace(",","."));return isFinite(v)&&Math.abs(v)<=10;};
+    const hasStj=k=>!!((d.leads||{})[k]&&d.leads[k].stj_exact);
     const ax=new Set(d._axisFixed||[]);const keep=[],settled=[];
     d._disagree.forEach(t=>{const m=String(t).match(/^(\w+) (J|T) /);if(m&&((m[2]==="J"&&hasStj(m[1]))||(m[2]==="T"&&ax.has(m[1]))))settled.push(t);else keep.push(t);});
     d._disagree=keep;d._settled=settled;
@@ -3497,6 +3676,7 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
       const seen=Array.isArray(d.visible_leads)?d.visible_leads.map(normLead).filter(Boolean):LEADS,have=new Set((inv||[]).map(normLead));
       if(!inv||seen.some(k=>!have.has(k))){const up=await withinMs(leadInventory(list,rot),6000);
         if(Array.isArray(up)&&up.length){inv=[...new Set([...(inv||[]),...up])];d._invUpright=true;}}}
+    if(d)d._invFail=(!inv&&isNetlify)?((invCache&&invCache.fail&&(invCache.fail[0]||invCache.fail[rot]))||"it did not finish in time"):"";
     return inv;}
   // 5.4: the printed-table check normally finishes while the photo uploads. If the main read copied STJ numbers
   // and the check is still running, wait for it (up to 25 s) rather than fall back to the main read's copy.
@@ -3518,16 +3698,16 @@ Each lead is an array [j, t, shape, q, s, jw, pol, qrsmm] or null if that lead i
     {const L=data.leads||{},inv=data._invented||[];data._viaStj=inv.filter(k=>L[k]&&L[k].stj_exact);data._invented=inv.filter(k=>!(L[k]&&L[k].stj_exact));
       data._viaStj.forEach(k=>{L[k].note=S(L[k].note).replace(/^not in photo;\s*/,"lead check missed it; ");});}
     if(data._invented.length&&data.primary&&S(data.primary.rhythm))data.primary.rhythm=S(data.primary.rhythm)+" (⚠ "+data._invented.join(", ")+" not in photo: ignored)";
-    applyMonitorAxis(data);settleDisagreements(data);applyDevice(data);data._lowv=null;
-    data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});applyCutoffRule(data);data._lowv=lowVoltageNote(data);data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
+    applyMonitorAxis(data);settleDisagreements(data);applyMonitorStatement(data);applyDevice(data);data._lowv=null;
+    data.stemi=evaluate(data,{age:parseInt($("age").value,10),sex:$("sex").value});stjAltDecide(data);applyCutoffRule(data);monitorGuard(data);data._lowv=lowVoltageNote(data);data._conf=computeConfidence(data);data._rhythm=rhythmAssess(data,{age:parseInt($("age").value,10)});
     if(data._fast)data.evidence=buildEvidence(data);data._mode=mode;data._secs=Math.round((Date.now()-t0)/1000);return data;
   }
-  function logRead(data){if(!isNetlify)return;const st=data.stemi||{};api("POST",{verdict:"log",entry:{rid:data._rid||"",decision:st.decision,criterion:(data._mode==="thorough"?"[thorough] ":"")+S(st.criterion),conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:data._secs||0,missing:(st.missing||[]).length}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
+  function logRead(data){if(!isNetlify)return;const st=data.stemi||{};api("POST",{verdict:"log",entry:{rid:data._rid||"",decision:st.decision,criterion:(data._mode==="thorough"?"[thorough] ":"")+S(st.criterion),conf:data._conf?data._conf.score:0,omi:(st.omi||[]).map(x=>(x.confirmed?"":"?")+x.n),double:!!data._double,secs:data._secs||0,missing:(st.missing||[]).length,model:data._srv?data._srv.model:"",effort:data._srv?data._srv.effort:"",pv:data._photoVs?[data._photoVs.n,data._photoVs.mean,data._photoVs.max]:null,mon:S(st._mon)}}).then(j=>{data._logId=j.id;}).catch(()=>{});}
   // Automatic thorough read only for the riskiest miss: the fast read says NO, but it saw an OMI pattern.
   // A YES that rests only on J-points read from the photo (not on the monitor's printed STJ numbers)
   // is checked by a second, deeper read before it is trusted.
-  function yesFromPhoto(d){const st=d.stemi||{};if(st.decision!=="met")return false;const stj=(d.printed||{}).stj||{};
-    const ls=st.metLeads&&st.metLeads.length?st.metLeads:LEADS;return !ls.every(k=>isFinite(parseFloat(String(stj[k]??"").replace(",","."))));}
+  function yesFromPhoto(d){const st=d.stemi||{};if(st.decision!=="met")return false;const L=d.leads||{};
+    const ls=st.metLeads&&st.metLeads.length?st.metLeads:LEADS;return !ls.every(k=>L[k]&&L[k].stj_exact);}
   // Automatic thorough read: (1) NO STEMI but an OMI pattern seen; (2) YES STEMI based only on the photo.
   function needsThorough(d){const st=d.stemi||{};const sgbOpen=!!st.sgbCandidate&&!(st.omi||[]).some(x=>x.confirmed&&/Sgarbossa/.test(x.n));
     return (st.decision==="not_met"&&!!(st.omi&&st.omi.length))||yesFromPhoto(d)||sgbOpen||!!st.smallOpen||!!st.cutoff;}
@@ -3663,14 +3843,18 @@ ${dyn}`;}
   // deg: look at the photos turned clockwise by deg (4.9: used to re-check a sideways or upside-down photo the right way up).
   function leadInventory(list,deg){deg=[90,180,270].includes(deg)?deg:0;
     if(!isNetlify)return Promise.resolve(null);
-    if(!invCache||!sameFiles(invCache.list,list))invCache={list:list.slice(),byDeg:{}};
+    if(!invCache||!sameFiles(invCache.list,list))invCache={list:list.slice(),byDeg:{},fail:{}};
     if(invCache.byDeg[deg])return invCache.byDeg[deg];
     const code=store.get("eqg-code");if(!code)return Promise.resolve(null);
+    const me=invCache;
     const p=(async()=>{try{const images=[];for(const f of list){const img=await loadImg(f);images.push(turnedJpeg(img,deg,1400));}
-      const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),30000);
+      const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),40000);
       try{const r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify({leads:true,images,hint:layHint()}),signal:ctl.signal});
-        if(!r.ok)return null;const j=await r.json().catch(()=>({}));return Array.isArray(j.leads)&&j.leads.length?j.leads:null;}finally{clearTimeout(t);}}
-      catch(e){return null;}})();
+        if(!r.ok){me.fail[deg]="the server answered "+r.status;return null;}const j=await r.json().catch(()=>({}));
+        if(Array.isArray(j.leads)&&j.leads.length)return j.leads;
+        // 6.5: the server says why a model could not be asked, so "could not check" is not mistaken for "no leads".
+        me.fail[deg]=Array.isArray(j.errs)&&j.errs.length?helpWhy(j.errs[0]):"no usable answer";return null;}finally{clearTimeout(t);}}
+      catch(e){me.fail[deg]="no connection, or the check took too long";return null;}})();
     invCache.byDeg[deg]=p;return p;}
   const withinMs=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
   // 5.2: the printed STJ table, read on its own. The main read copies the table from a photo shrunk to 1400 px,
@@ -3679,9 +3863,9 @@ ${dyn}`;}
   // when both read the same thing. Runs while the photo uploads, like the lead check.
   let stjCache=null;
   function cropTurn(file,box,rot,M){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),img=new Image();
-    img.onload=()=>{URL.revokeObjectURL(u);try{let [x0,y0,x1,y1]=box;const mw=(x1-x0)*0.08,mh=(y1-y0)*0.08;x0=Math.max(0,x0-mw);x1=Math.min(1,x1+mw);y0=Math.max(0,y0-mh);y1=Math.min(1,y1+mh);
+    img.onload=()=>{URL.revokeObjectURL(u);try{let [x0,y0,x1,y1]=box;const mw=(x1-x0)*0.2,mh=(y1-y0)*0.2;x0=Math.max(0,x0-mw);x1=Math.min(1,x1+mw);y0=Math.max(0,y0-mh);y1=Math.min(1,y1+mh);
       const sx=Math.round(img.width*x0),sy=Math.round(img.height*y0),sw=Math.max(1,Math.round(img.width*(x1-x0))),sh=Math.max(1,Math.round(img.height*(y1-y0)));
-      const sc=Math.min(2,(M||1400)/Math.max(sw,sh)),w=Math.round(sw*sc),h=Math.round(sh*sc),side=rot%180!==0;
+      const sc=Math.min(4,(M||1400)/Math.max(sw,sh)),w=Math.round(sw*sc),h=Math.round(sh*sc),side=rot%180!==0;
       const c=document.createElement("canvas");c.width=side?h:w;c.height=side?w:h;const x=c.getContext("2d");x.imageSmoothingEnabled=true;x.imageSmoothingQuality="high";
       x.translate(c.width/2,c.height/2);x.rotate(rot*Math.PI/180);x.drawImage(img,sx,sy,sw,sh,-w/2,-h/2,w,h);
       res({media_type:"image/jpeg",data:c.toDataURL("image/jpeg",0.85).split(",")[1]});}catch(e){rej(e);}};
@@ -3692,21 +3876,24 @@ ${dyn}`;}
     const code=store.get("eqg-code");if(!code)return Promise.resolve(null);
     const post=async(body,ms)=>{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),ms);
       try{const r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:JSON.stringify(body),signal:ctl.signal});
-        if(!r.ok)return {err:r.status};return await r.json().catch(()=>null);}catch(e){return null;}finally{clearTimeout(t);}};
+        if(!r.ok)return {http:r.status};return await r.json().catch(()=>null);}catch(e){return null;}finally{clearTimeout(t);}};
     const p=(async()=>{try{
       const images=[];for(const f of list){const img=await loadImg(f);images.push(turnedJpeg(img,0,1400));}
-      const loc=await post({stj:true,images},30000);
+      const loc=await post({stj:true,images},40000);
       // An old server (read.js before 5.2) answers 400 to this request: say so, instead of quietly using the main read's copy.
-      if(loc&&(loc.err===400||loc.err===404||loc.error==="bad_request"))return {found:false,old:true,reason:"the server file read.js is still the old version"};
-      if(!loc||typeof loc!=="object"||loc.error||loc.err)return {found:false,failed:true,reason:"no answer from the server"};
-      if(!(Number(loc.img)>=0))return {found:false,reason:"no STJ table found in the photo"};
-      const crop=await cropTurn(list[Number(loc.img)],loc.box,Number(loc.rot)||0,1400);
-      const rd=await post({stj:true,crop:true,images:[crop]},30000);
-      if(!rd||typeof rd!=="object"||rd.error||rd.err)return {found:false,failed:true,reason:"the close-up could not be read"};
+      if(loc&&(loc.http===400||loc.http===404||loc.error==="bad_request"))return {found:false,old:true,reason:"the server file read.js is still the old version"};
+      if(!loc||typeof loc!=="object"||loc.error||loc.http)return {found:false,failed:true,reason:"no answer from the server"};
+      // 6.5: the server says when the AI service could not be asked, so "could not check" is not mistaken for "no table".
+      if(loc.err!==undefined)return {found:false,failed:true,reason:"the STJ check could not run: "+helpWhy(loc)};
+      if(!(Number(loc.img)>=0))return {found:false,none:true,reason:"no STJ table found in the photo"};
+      const crop=await cropTurn(list[Number(loc.img)],loc.box,Number(loc.rot)||0,1568);
+      const rd=await post({stj:true,crop:true,images:[crop]},40000);
+      if(!rd||typeof rd!=="object"||rd.error||rd.http)return {found:false,failed:true,reason:"the close-up could not be read"};
+      if(rd.err!==undefined&&!rd.found)return {found:false,failed:true,reason:"the STJ close-up could not be read: "+helpWhy(rd)};
       if(!rd.found)return {found:false,reason:"no STJ numbers readable in the close-up"};
       const stj={};LEADS.forEach(k=>{if(typeof rd.stj[k]==="number"&&isFinite(rd.stj[k]))stj[k]=rd.stj[k];});
       const unclear=LEADS.filter(k=>!(k in stj)&&((rd.a&&rd.a[k]!=null)||(rd.b&&rd.b[k]!=null)));
-      return {found:true,stj,unclear,a:rd.a||null,b:rd.b||null};
+      return {found:true,stj,unclear,a:rd.a||null,b:rd.b||null,same:!!rd.same};
     }catch(e){return null;}})();
     stjCache={list:list.slice(),p};return p;}
   // Warm the analysis server and prepare the photos before Analyze is tapped.
@@ -3760,14 +3947,14 @@ ${dyn}`;}
     }catch(e){
       clearInterval(timer);if(!(e&&e.code==="cancelled"))track("error",{msg:String((e&&e.code)||"error")});
       const c=e&&e.code;
-      const m={timeout:"The read took too long or the connection was cut off. Check your signal and tap Analyze ECG again.",bad_code:"Access code incorrect. Tap Analyze ECG to enter it again.",no_key:"The server has no API key. Add ANTHROPIC_API_KEY in Netlify site settings.",no_function:"The analysis server isn't deployed yet (netlify/edge-functions/read.js). Check the files on GitHub.",network:"No connection to the analysis server. Check signal and try again.",server:"The analysis server returned an error. Try again.",cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
+      const m={timeout:"The read took too long or the connection was cut off. Check your signal and tap Analyze ECG again.",bad_code:"Access code incorrect. Tap Analyze ECG to enter it again.",no_key:"The server has no API key. Add ANTHROPIC_API_KEY in Netlify site settings.",no_function:"The analysis server isn't deployed yet (netlify/edge-functions/read.js). Check the files on GitHub.",network:"No connection to the analysis server. Check signal and try again.",server:"The analysis server returned an error. Try again.",cancelled:"Analysis stopped.",not_granted:"Allow Claude access when asked, then analyze again.",sampling_disabled:"Claude isn't available for this account.",images_unavailable:"Your Claude account doesn't support image input for published apps yet. Upload the photo in a Claude chat instead.",image_rejected:"That image couldn't be read. Retake it as a JPEG or PNG under 20 MB.",rate_limited:"Too many requests. Wait a minute, then analyze again.",too_long:"The reader ran out of answer space before it wrote the report (thinking level too high for this model). Tap Analyze ECG again, or lower CLAUDE_EFFORT in Netlify.",session_expired:"Your Claude session expired. Sign in again.",refused:"The image couldn't be analyzed. Check it shows an ECG.",invalid_json:"The report came back incomplete. Analyze again.",empty_completion:"No report came back. Try a clearer, closer photo.",prompt_too_large:"Notes are too long. Shorten them and try again."};
       setStatus(((c==="upstream"||c==="server")&&e.message)?e.message:(m[c]||"The analysis was interrupted. Check your connection and analyze again."),{err:c!=="cancelled"});
       if(c==="images_unavailable")imagesOK=false;
     }finally{sessPend(null);monStop();busy=false;ctl=null;stopBtn.hidden=true;refresh();}
   }
   // Turn the AI's raw answer(s) into the report (also used when picking up a read after the app was closed).
   // Did this one read, on its own, find modified Sgarbossa (numbers + named)? Used to require 2 reads.
-  function readCands(d){try{const c=JSON.parse(JSON.stringify(d));applyMonitorSTJ(c);applyDevice(c);return evaluate(c,{age:parseInt($("age").value,10),sex:$("sex").value}).cands||[];}catch(e){return [];}}
+  function readCands(d){try{const c=JSON.parse(JSON.stringify(d));applyMonitorSTJ(c);applyMonitorStatement(c);applyDevice(c);return evaluate(c,{age:parseInt($("age").value,10),sex:$("sex").value}).cands||[];}catch(e){return [];}}
   function sgbCand(d){return readCands(d).some(n=>/Sgarbossa/.test(n));}
   async function settleReads(raws,mode,t0){let data;
     if(raws.length>1){const a=applyVisible(expandCompact(raws[0])),b=applyVisible(expandCompact(raws[1]));const ca=readCands(a),cb=readCands(b);data=mergeReads(a,b);data._votesOther=ca.filter(n=>cb.includes(n));
@@ -3778,7 +3965,7 @@ ${dyn}`;}
     if(raws.length>1){try{const a=expandCompact(raws[0]),b=expandCompact(raws[1]);if(lookFromReads(out,a,b,"double"))out._conf=computeConfidence(out);}catch(e){}
     if(applyCutoffRule(out))out._conf=computeConfidence(out);
     if(raws.length>1&&out.stemi&&out.stemi.decision==="not_met"){try{const pt={age:parseInt($("age").value,10),sex:$("sex").value};
-      const one=r=>{const c=applyVisible(Object.assign(expandCompact(r),{_inv:out._inv,_stjv:out._stjv}));applyPaper(c);applyMonitorSTJ(c);applyDevice(c);c.stemi=evaluate(c,pt);applyCutoffRule(c);return c.stemi;};
+      const one=r=>{const c=applyVisible(Object.assign(expandCompact(r),{_inv:out._inv,_stjv:out._stjv}));applyPaper(c);applyMonitorSTJ(c);applyMonitorStatement(c);applyDevice(c);c.stemi=evaluate(c,pt);stjAltDecide(c);applyCutoffRule(c);monitorGuard(c);return c.stemi;};
       const hit=[one(raws[0]),one(raws[1])].find(x=>x.decision!=="not_met");if(hit)safestOfTwo(out,hit,"One of the two reads");}catch(e){}}}
     return out;}
 
@@ -3802,7 +3989,7 @@ ${dyn}`;}
     for(;;){await sleep(1000,signal);if(signal&&signal.aborted)throw{code:"cancelled"};if(document.visibilityState!=="visible")continue;
       let st;try{const g=await fetch(q,{headers:H,cache:"no-store",signal});if(g.status===401)throw{code:"bad_code"};st=await g.json();fails=0;}
       catch(e){if(e&&e.code)throw e;if(signal&&signal.aborted)throw{code:"cancelled"};if(++fails>60)throw{code:"network"};continue;}
-      if(st.status==="done"){fetch(q,{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});return parseReport(st.text||"");}
+      if(st.status==="done"){fetch(q,{method:"DELETE",headers:H,keepalive:true}).catch(()=>{});return withSrv(parseReport(st.text||""),st);}
       if(st.status==="lost"||st.status==="error")throw{code:"resume_failed"};
       if(Date.now()-t0>420000)throw{code:"timeout"};}}
   async function restoreSession(){
@@ -3880,6 +4067,49 @@ ${dyn}`;}
   // Only the admin's phone shows the usage box (name + live view button). Other phones get one short privacy line.
   // A phone becomes the admin phone after the admin code is entered once; on a new phone, tap
   // "Built by JPS" in the Update log 5 times to open the admin login.
+  // ---------- 6.6: System check ----------
+  const SRV_NEED="6.5";let srvOld="";
+  const verNum=v=>{const m=String(v||"").match(/^(\d+)\.(\d+)/);return m?Number(m[1])*1000+Number(m[2]):0;};
+  // On opening: are the server files new enough for this app? (A partial upload to GitHub leaves old ones in place.)
+  function srvVerCheck(){if(!isNetlify||navigator.onLine===false)return;fetch("/api/read?ver=1",{cache:"no-store"}).then(async r=>{let v="";if(r.ok&&/json/.test(r.headers.get("content-type")||""))v=String((await r.json()).v||"");
+      if(r.status===404)srvOld="⚠ The analysis server is not deployed on this site (the netlify folder is missing on GitHub). Readings can't run.";
+      else if(verNum(v)<verNum(SRV_NEED))srvOld="⚠ The server files are older than this app (app v"+APP_VERSION+" needs server v"+SRV_NEED+" or newer). Upload netlify/edge-functions/read.js and netlify/functions/read-background.mjs to GitHub; until then the safety checks do not run.";
+      if(srvOld&&!busy&&report.hidden)setStatus(srvOld,{err:true});}).catch(()=>{});}
+  const FIX_KEY="Create a new API key at platform.claude.com with Expires set to 'Never', put it in ANTHROPIC_API_KEY in Netlify (Site configuration → Environment variables), then Deploys → Trigger deploy. Never send the key in a chat.";
+  function pingFix(p){const w=String(p.why||"");if(p.http===401)return FIX_KEY;if(/credit|billing|balance/i.test(w))return "Add credit at platform.claude.com (Billing).";
+    if(p.http===404)return "Check the model name in Netlify (CLAUDE_MODEL / CLAUDE_FAST_MODEL / CLAUDE_ORIENT_MODEL), or remove the variable to use the built-in model.";
+    if(p.http===429||p.http===529)return "Wait a minute and run the check again.";return "Run the check again. If it stays, show this line to the developer.";}
+  async function sysCheck(){const rows=[];const add=(ok,t,fix)=>rows.push({ok,t,fix:fix||""});
+    add(true,"App version "+APP_VERSION);
+    if(navigator.onLine===false){add(false,"No internet connection","ECG analysis needs internet. Reference pages still work.");return rows;}
+    let ver="";try{const r=await fetch("/api/read?ver=1",{cache:"no-store"});if(r.status===404)ver="none";else if(r.ok&&/json/.test(r.headers.get("content-type")||""))ver=String((await r.json()).v||"");else ver="old";}
+    catch(e){add(false,"The analysis server could not be reached","Check the signal and try again.");return rows;}
+    if(ver==="none"){add(false,"The analysis server is not deployed on this site","Upload the netlify folder (edge-functions and functions, keeping the folders) to GitHub.");return rows;}
+    if(ver==="old"||verNum(ver)<verNum(SRV_NEED)){add(false,"Server files are old"+(ver==="old"?"":" (v"+ver+")")+": this app needs v"+SRV_NEED+" or newer","Upload netlify/edge-functions/read.js and netlify/functions/read-background.mjs from this version to GitHub.");return rows;}
+    add(true,"Server files v"+ver);
+    const code=store.get("eqg-code");if(!code){add(null,"Team access code not entered on this phone yet","Tap Analyze ECG once and enter the code, then run the check again.");return rows;}
+    let j=null,st=0;try{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),45000);const r=await fetch("/api/read",{method:"POST",headers:{"content-type":"application/json","x-access-code":code},body:'{"selftest":true}',signal:ctl.signal});clearTimeout(t);st=r.status;j=await r.json().catch(()=>null);}
+    catch(e){add(false,"The system check did not finish","Check the signal and try again.");return rows;}
+    if(st===401){add(false,"Access code not accepted","Enter the team access code again (tap Analyze ECG).");return rows;}
+    if(!j||st!==200||!j.models){add(false,"The server answered "+st,"Try again in a minute.");return rows;}
+    add(true,"Access code accepted");
+    if(!j.key)add(false,"No API key on the server","Add ANTHROPIC_API_KEY in Netlify (Site configuration → Environment variables), then trigger a deploy.");
+    const sOk=!!(j.store&&j.store.ok),bOk=!!(j.background&&j.background.ok);
+    add(sOk,sOk?"Storage works":"Storage is not working"+(j.store&&j.store.why?" ("+j.store.why+")":""),sOk?"":"Run the check again. If it stays, trigger a new deploy in Netlify.");
+    add(bOk,bOk?"Background reader is deployed":"Background reader is missing"+(j.background&&j.background.status?" (server "+j.background.status+")":""),bOk?"":"Upload netlify/functions/read-background.mjs to GitHub.");
+    const role=m=>[m===j.models.main?"reads the ECG":"",m===j.models.first&&j.models.first!==j.models.main?"first read":"",m===j.models.help?"side checks":""].filter(Boolean).join(", ");
+    (j.pings||[]).forEach(p=>{if(p.ok)add(true,"Model "+p.model+" answers ("+role(p.model)+", "+(Math.round(p.ms/100)/10)+" s)");else add(false,"Model "+p.model+" ("+role(p.model)+"): "+helpWhy({err:p.http,why:p.why,model:p.model}),pingFix(p));});
+    if(j.key&&(j.pings||[]).length&&j.pings.every(p=>p.ok))add(true,"Thinking level: first read "+j.effort.fast+", thorough read "+j.effort.thorough);
+    return rows;}
+  window.__sysCheck=sysCheck;
+  function renderSysCheck(){if(!isNetlify)return document.createDocumentFragment();const w=el("div","usagebox syschk");w.appendChild(el("h3",null,"System check"));
+    w.appendChild(el("p","lbl","Tests everything a reading depends on: server files, access code, API key, the reading models, storage and the background reader. No photo and no patient data are used. It costs a fraction of a cent."));
+    const out=el("div","sysrows"),b=el("button","btn ghost","Run system check");b.type="button";
+    b.onclick=async()=>{b.disabled=true;b.textContent="Checking…";out.textContent="";let rows;try{rows=await sysCheck();}catch(e){rows=[{ok:false,t:"The check could not run",fix:"Try again."}];}
+      rows.forEach(r=>{const d=el("div","sysrow "+(r.ok===true?"ok":r.ok===false?"bad":"na"));d.appendChild(el("b",null,r.ok===true?"✓":r.ok===false?"✗":"•"));const tx=el("span");tx.appendChild(el("span",null,r.t));if(r.fix)tx.appendChild(el("small",null,r.fix));d.appendChild(tx);out.appendChild(d);});
+      const bad=rows.filter(r=>r.ok===false).length;out.appendChild(el("p","lbl",bad?bad+" problem"+(bad>1?"s":"")+" found. Fix the first one, then run the check again.":rows.some(r=>r.ok===null)?"Enter the access code, then run the check again.":"Everything a reading needs is working."));
+      b.disabled=false;b.textContent="Run again";};
+    w.append(b,out);return w;}
   function renderUsage(){
     if(store.get("eqg-isadmin")!=="1")return document.createDocumentFragment();
     const w=el("div","usagebox");w.appendChild(el("h3",null,"Usage log"));
@@ -3971,8 +4201,8 @@ ${dyn}`;}
           else if(exc){cls+=" ste";badge="ST/S ≥25%";}
           else if(disc&&Math.abs(j)>=0.5){cls+=" disc";badge="expected";bcls="need dexp";}
         }else{
-          if(j>=thr(k))cls+=(r.edge||[]).includes(k)?" edge":" ste";else if(j<=-0.5)cls+=" std";else if(j>0)cls+=" sub";
-          if(k==="V2"||k==="V3"||j>0)badge="needs ≥"+thr(k);
+          if(j>=thr(k))cls+=(r.edge||[]).includes(k)?" edge":" ste";else if(j<=-0.5)cls+=" std";else if(j>=0.5)cls+=" sub";
+          if(k==="V2"||k==="V3"||j>=0.5)badge="needs ≥"+thr(k);
           if(o.stj_exact&&j<thr(k)&&j>=thr(k)-0.1){badge="just below ≥"+thr(k);bcls="need nearb";}
         }}
       const tx=tExpected(d,k);const tAbn=j!==null&&["inverted","biphasic","hyperacute"].includes(t)&&!tx;
@@ -3993,7 +4223,7 @@ ${dyn}`;}
       if(o.stj_check)box.appendChild(el("span","chkline","⚠ check paper"));
       if(o.stj_unclear)box.appendChild(el("span","chkline","STJ unclear · photo value"));
       if(o.note)box.title=S(o.note);
-      {const px=d._pix&&d._pix.leads&&d._pix.leads[k];if(px&&j!==null){const ok=px.ok&&typeof px.st==="number";const diff=ok?Math.abs(px.st-j):null;
+      {const px=isOn("pix")&&d._pix&&d._pix.leads&&d._pix.leads[k];if(px&&j!==null){const ok=px.ok&&typeof px.st==="number";const diff=ok?Math.abs(px.st-j):null;
         const sp=el("span","pxl"+(!ok?" pxun":diff<=0.5?" pxok":" pxno"),"px "+(ok?(px.st>0?"+":px.st<0?"−":"")+Math.abs(px.st)+(diff<=0.5?" ✓":" ≠"):"?"));
         sp.title=ok?"Pixel measure (test mode): median of "+px.used+" beats":"Pixel measure: fewer than two clean, agreeing beats in this lead";box.appendChild(sp);}}
       box.onclick=()=>window.__lvOpen&&window.__lvOpen(k);box.setAttribute("role","button");box.tabIndex=0;
@@ -4006,7 +4236,7 @@ ${dyn}`;}
     items.forEach(([c,t])=>{const s=el("span");const i=el("i");i.style.background=c;s.append(i,t);lg.appendChild(s);});
     {const s=el("span");s.append(el("em","tkey","T"),"Blue T label = abnormal T wave");lg.appendChild(s);}
     wrap.appendChild(lg);
-    {const P=d._pix;let t=null;
+    if(isOn("pix")){const P=d._pix;let t=null;
       if(P&&P.skip)t="Pixel measure (test mode): "+P.skip;
       else if(P&&P.leads){const ks=order.filter(k=>J(k)!==null&&P.leads[k]);const okk=ks.filter(k=>P.leads[k].ok);const agree=okk.filter(k=>Math.abs(P.leads[k].st-J(k))<=0.5);
         t="Pixel measure (test mode, does not change the decision): measured from the photo's pixels, same photo gives the same numbers. "+(okk.length?"Within 0.5 mm of this reading in "+agree.length+" of "+okk.length+" leads"+(okk.length-agree.length?" (≠ marks the others: check them on the paper)":"")+".":"No lead had two clean, agreeing beats.")+(ks.length-okk.length?" "+(ks.length-okk.length)+" lead"+(ks.length-okk.length>1?"s":"")+" not measurable (?).":"");
@@ -4048,9 +4278,10 @@ ${dyn}`;}
     ["omilist","AI-named OMI patterns",""],
     ["diff","Differential",""],
     ["quality","Image quality and limits",""],
-    ["review","Review this reading","Reviewer feedback for the Learning page."]];
+    ["review","Review this reading","Reviewer feedback for the Learning page."],
+    ["pix","Pixel measure (test mode)","Small 'px' numbers on the lead boxes, measured from the photo's pixels. Not validated yet: off until you switch it on. Never changes a decision."]];
   let secOn={};try{secOn=JSON.parse(localStorage.getItem("eqg-sections")||"{}")||{};}catch(e){secOn={};}
-  const isOn=k=>secOn[k]!==false;
+  const isOn=k=>k==="pix"?secOn[k]===true:secOn[k]!==false; // the pixel measure is the one part that is off unless switched on
   function saveSec(){try{localStorage.setItem("eqg-sections",JSON.stringify(secOn));}catch(e){}}
   const TITLE_KEY=[["Protocol check","protocol"],["Why this reading","why"],["Lead-by-lead","leads"],["Monitor printout","printout"],["OMI patterns present","omilist"],["Measured parameters","params"],["Field actions","actions"],["Differential","diff"],["Image quality","quality"]];
   function secKey(n){const c=n.classList;if(!c)return null;
@@ -4075,6 +4306,33 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"7.1",d:"19 Nov 2026",t:"The header line agrees with the final numbers",i:[
+      "Fix: the line at the top of the report was the reader's own wording, written before the app replaced photo values with the monitor's confirmed STJ numbers. So the header could say 'ST elevation V4-V5' above a result of NO. Now, when the final answer is NO but the wording says ST elevation or STEMI (or the answer is YES and the wording says there is none), the header is written from the final numbers, and the reader's wording is shown underneath as what it was. Confidence drops 10 points when this happens, and says why.",
+      "When the photo read and the monitor's own statement disagree, a line under the header says the header is the photo read's wording and names what the monitor printed."]},
+    {v:"7.0",d:"19 Nov 2026",t:"A calmer result screen",i:[
+      "Fix: a J-point under half a millimetre is shown as flat (grey), not as 'elevated, below threshold'. With the monitor's exact STJ numbers, values like +0.04 or +0.15 mm made most leads of a normal ECG show purple with a 'needs ≥1' badge. 'ST elevation below threshold' in 'Why this reading' now also starts at 0.5 mm.",
+      "The pixel measure (test mode) no longer shows on the lead boxes unless you switch it on in Settings. On this service's own full-page photos it could measure every lead on only some of them, so it is not ready to sit next to the result. It still runs quietly, and on printouts with a confirmed STJ table its numbers are compared with the monitor's and logged (no photo, no patient details), so its real accuracy builds up before it is trusted. Server file lessons.mjs."]},
+    {v:"6.9",d:"19 Nov 2026",t:"Sharper pictures for the reader",i:[
+      "The zoomed parts of the photo go to the reader about 30% larger and are compressed once instead of twice, so small waves and printed numbers are clearer. Uploads are a little bigger.",
+      "Photo upload uses less server time: the photos are stored as they arrive. Server file read.js."]},
+    {v:"6.8",d:"19 Nov 2026",t:"The monitor's own statement as a cross-check",i:[
+      "New: the monitor's printed statement is compared with the result. A YES from a photo read on a printout the monitor itself calls 'Normal ECG' becomes 'consult: check these leads on the paper' (unless the monitor's own printed STJ numbers meet the criteria). A NO on a printout where the monitor reports STEMI becomes 'consult: check the paper and call UMOC'. The monitor measures the real signal; a photo read can be out by half a millimetre or more.",
+      "LBBB, paced rhythm, RBBB and LV hypertrophy stated plainly by the monitor are treated as present even when the photo read missed them, because the protocol's standard criteria only apply without them. Wording such as 'possible' or 'consider' is shown as a note only. The monitor's statement never activates or cancels anything by itself.",
+      "The monitor's STEMI banners ('MEETS ST ELEVATION MI CRITERIA', 'ACUTE MI SUSPECTED') count as plain statements. The statement is understood whether the reader returns it as a list or as one block of text."]},
+    {v:"6.7",d:"19 Nov 2026",t:"Printed STJ numbers checked by arithmetic",i:[
+      "New: the six limb-lead STJ numbers must add up (Einthoven's law: III = II − I, and aVR, aVL, aVF follow from I and II). One misread digit breaks the sum, so the app catches it and corrects it from the other numbers. Both misreads seen on this service's own printouts are caught: II 0.04 read as 0.84, and aVF −0.07 read as −0.97.",
+      "A printed STJ number that could not be confirmed (by two readers from a close-up, or by the arithmetic) is no longer treated as the monitor's exact number: it counts as a photo value and gets a second look. If the answer would be different with the trace value than with the unconfirmed printed number (either way round, and also when the two are close but sit on opposite sides of a threshold), the result is 'consult: read the STJ table on the paper'.",
+      "The close-up of the STJ table is enlarged up to 4× (was 2×) before it is read, with a wider margin around it.",
+      "A printed number keeps its sign however the minus is written (-, −, –), so a depression can't turn into an elevation; lead names are matched in any letter case. Server file read.js.",
+      "New: on a printout with a confirmed STJ table, the 'Monitor printout' card shows how far the photo read was from the monitor's own numbers (average and largest difference). It is logged with the read (no photo, no patient details), so the app's real accuracy on your printouts builds up by itself. Server file lessons.mjs."]},
+    {v:"6.6",d:"19 Nov 2026",t:"System check",i:[
+      "New in Settings: 'Run system check' tests the server files, access code, API key, reading models, storage and background reader in a few seconds, and gives the fix for anything that fails (for example an expired API key). No photo and no patient data are used. The link under the Settings title starts it with one tap.",
+      "On opening, the app checks that the server files are new enough for it, and warns when only part of an update reached GitHub."]},
+    {v:"6.5",d:"19 Nov 2026",t:"Safety checks back on; clear error reasons",i:[
+      "Fix: since v5.9 the server sent the AI a setting (temperature) that the model reading the ECG answers with an error (Anthropic's documentation for the current models). The main reading tried again without it and recovered, but the two side checks had no second try: 'which leads are really in the photo' and 'read the printed STJ table from a close-up, two readers must agree' could not do their job, and the app carried on without saying so. The setting is gone and both checks work again. Server files read.js and read-background.mjs.",
+      "The side checks give the model room to think before it answers, and say why when they can't run (expired key, model not available, service busy). The report shows when a check did not run, instead of carrying on silently.",
+      "Clearer errors: an expired or wrong API key, no credit, a model the key can't use and an answer cut short each get their own message with the fix.",
+      "Under the read number the report now shows which model read the ECG, the thinking level, the tokens used and about what that read cost at list prices (the short side checks are not counted). If the model set in Netlify isn't available on the key, the built-in model reads instead and the report says so. New optional setting CLAUDE_FAST_MODEL (model of the first read)."]},
     {v:"6.4",d:"23 Oct 2026",t:"Pixel measure (test mode)",i:[
       "New, in test mode: after each reading the app measures the ST level at the J-point straight from the photo's pixels: it removes the paper grid, follows the trace, finds each complete beat and takes the median. The same photo always gives the same numbers, and it works offline with no credits.",
       "Each lead box shows 'px' with that number: ✓ when it is within 0.5 mm of the reading, ≠ when it is not (check that lead on the paper), ? when fewer than two clean beats agree. It does not change any decision yet: it will only be used once it has been checked against the monitor's printed STJ numbers on enough of your printouts.",
@@ -4354,8 +4612,12 @@ ${dyn}`;}
       const ul=el("ul","chitems");c.i.forEach((t,k)=>{const li=el("li");li.append(el("span","chcode",c.v+String.fromCharCode(97+k)),el("span",null,t));ul.appendChild(li);});
       det.appendChild(ul);w.appendChild(det);});
     return w;}
-  $("settingsBtn").onclick=()=>{renderSettings();$("setList").appendChild(renderUsage());$("setList").appendChild(renderChangelog());sheetOpen("setSheet");};
-  $("setAll").onclick=()=>{secOn={};saveSec();renderSettings();$("setList").appendChild(renderUsage());$("setList").appendChild(renderChangelog());if(lastReport&&!report.hidden)applySections(lastReport);};
+  // Settings always opens at the top of the list (sheetOpen focuses the first button, which would scroll the list down to it).
+  $("settingsBtn").onclick=()=>{renderSettings();$("setList").appendChild(renderSysCheck());$("setList").appendChild(renderUsage());$("setList").appendChild(renderChangelog());sheetOpen("setSheet");
+    try{$("setAll").focus({preventScroll:true});}catch(e){}$("setList").scrollTop=0;$("setChk").hidden=!$("setList").querySelector(".syschk");};
+  // The link under the Settings title: jump to the System check box (below the switches) and start it.
+  $("setChk").onclick=()=>{const c=$("setList").querySelector(".syschk");if(!c)return;c.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});const b=c.querySelector("button");if(b&&!b.disabled)b.click();};
+  $("setAll").onclick=()=>{secOn={};saveSec();renderSettings();$("setList").appendChild(renderSysCheck());$("setList").appendChild(renderUsage());$("setList").appendChild(renderChangelog());if(lastReport&&!report.hidden)applySections(lastReport);};
 
   function render(d){
     report.textContent="";
@@ -4414,7 +4676,13 @@ ${dyn}`;}
     if(d._stjFixed&&d._stjFixed.length)st.warnings=(st.warnings||[]).concat(["The AI's copy of the printed STJ table had "+d._stjFixed.length+" misread number"+(d._stjFixed.length>1?"s":"")+" ("+d._stjFixed.join(", ")+"); the close-up read by two readers was used instead."]);
     {const v=d._stjv,nAi=(d._stjUsed!==undefined&&d.printed&&d.printed.stj)?Object.keys(d.printed.stj).filter(k=>typeof d.printed.stj[k]==="number").length:0;
       if(nAi&&!(d._stjVerified||[]).length){const why=v&&v.old?"the server file netlify/edge-functions/read.js is still the old version (upload the 5.2+ file)":v&&v.reason?v.reason:"the check did not finish in time";
-        st.warnings=["⚠ The printed STJ numbers could NOT be verified from a close-up ("+why+"). The numbers shown are the main read's copy, which can misread the LP15's slashed zeros (0.04 as 0.84). Check them against the STJ table on the paper."].concat(st.warnings||[]);}}
+        const w="⚠ The printed STJ numbers could NOT be confirmed ("+why+"). They are the main read's copy, which can misread the LP15's slashed zeros (0.04 as 0.84), so the app treats them as photo values, not as the monitor's exact numbers. Check them against the STJ table on the paper.";if(!(st.warnings||[]).includes(w))st.warnings=[w].concat(st.warnings||[]);}}
+    if(d._stjMathFixed&&d._stjMathFixed.length){const w="Printed limb-lead STJ numbers that did not add up were corrected by Einthoven's law (III = II − I): "+d._stjMathFixed.join(", ")+". Check them against the paper.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}
+    if(d._stjMath==="inconsistent"){const w="⚠ The printed limb-lead STJ numbers, as read from the photo, do not add up (Einthoven's law), so at least one was probably misread. None of them is treated as exact: read the STJ table on the paper.";if(!(st.warnings||[]).includes(w))st.warnings=[w].concat(st.warnings||[]);}
+    if(d._monNote&&!(st.warnings||[]).includes(d._monNote))st.warnings=[d._monNote].concat(st.warnings||[]);
+    if(d._invFail){const w="The separate check of which leads are in the photo did not run ("+d._invFail+"). The reading's own lead list was used.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}
+    {const sv=d._srv;if(sv&&sv.note&&sv.note.includes("model_fallback")){const w="The reading model set in Netlify ("+sv.asked+") is not available on this API key, so "+sv.model+" read this ECG. Check CLAUDE_MODEL in Netlify.";if(!(st.warnings||[]).includes(w))st.warnings=(st.warnings||[]).concat([w]);}}
+    if(srvOld&&!(st.warnings||[]).includes(srvOld))st.warnings=[srvOld].concat(st.warnings||[]);
     if(d._stjUnclear&&d._stjUnclear.length)st.warnings=(st.warnings||[]).concat(["Printed STJ unclear in "+d._stjUnclear.join(", ")+": three readers gave three different numbers, so the photo value is used there. Read "+(d._stjUnclear.length>1?"those numbers":"that number")+" on the paper."]);
     if(d._rotNote){const n=el("p","lbl");n.textContent="↻ "+d._rotNote;n.style.margin="2px 6px 8px";report.appendChild(n);}
     st.warnings=[...new Set(st.warnings||[])];st.warnings.forEach(w=>{const n=el("div","notice");n.textContent=w;report.appendChild(n);});
@@ -4432,7 +4700,7 @@ ${dyn}`;}
       report.appendChild(card("Protocol check (ESC 2023 activation criteria)",u));}
 
     const p=d.primary||{};const h=el("div","card head");
-    h.appendChild(el("p","k","Primary interpretation"+(d._mode==="fast"?" · fast read":d._mode==="thorough"?" · thorough read":"")));h.appendChild(el("div","r",S(p.rhythm)||"Interpretation unavailable"));
+    h.appendChild(el("p","k","Primary interpretation"+(d._mode==="fast"?" · fast read":d._mode==="thorough"?" · thorough read":"")));const hl=headline(d);h.appendChild(el("div","r",hl.text||"Interpretation unavailable"));if(hl.note)h.appendChild(el("p","hl-note",hl.note));
     if(p.summary)h.appendChild(el("p",null,S(p.summary)));
     h.appendChild(glanceRows(d));
     const cc=d._conf;if(cc){h.appendChild(el("span","pill"+(cc.level==="Low"?" low":""),"Confidence: "+cc.level+" ("+cc.score+"%)"));
@@ -4464,8 +4732,9 @@ ${dyn}`;}
     if(pi.length||stj.length||pm.length){const w=el("div");
       if(pm.length)w.appendChild(el("p",null,pm.map(x=>x[0]+" "+S(x[1])).join(" · ")));
       if(pi.length)w.appendChild(list(pi));
-      if(stj.length){const t=el("div","ltags");t.style.marginTop="8px";stj.forEach(([k,v])=>t.appendChild(el("span",null,k+" "+S(v))));const nv=(d._stjVerified||[]).length;
-        w.appendChild(el("p","lbl","Printed STJ level (mm)"+(nv>=6?" · verified by two readers from a close-up":nv?" · "+nv+" verified by two readers":" · as copied by the AI, NOT verified"+(d._stjv&&d._stjv.old?": server file read.js is old":d._stjv&&d._stjv.reason?": "+d._stjv.reason:""))));w.appendChild(t);}
+      if(stj.length){const t=el("div","ltags");t.style.marginTop="8px";const unv=d._stjUnverified||[];stj.forEach(([k,v])=>t.appendChild(el("span",null,k+" "+S(v)+(unv.includes(k)?" ?":""))));const nv=(d._stjVerified||[]).length;
+        w.appendChild(el("p","lbl","Printed STJ level (mm)"+(nv&&!unv.length?" · confirmed"+(d._stjv&&d._stjv.found?" from a close-up by two readers":"")+(d._stjMath==="ok"?" · limb leads add up (Einthoven)":""):nv?" · "+nv+" confirmed"+(d._stjMath==="ok"?" (limb leads add up)":"")+", "+unv.length+" NOT confirmed (marked ?)":" · as copied by the AI, NOT confirmed"+(d._stjv&&d._stjv.old?": server file read.js is old":d._stjv&&d._stjv.reason?": "+d._stjv.reason:""))));w.appendChild(t);}
+      if(d._photoVs){const pv=d._photoVs;const x=el("p","lbl","Photo read against the monitor's confirmed STJ numbers on this printout: average difference "+pv.mean+" mm over "+pv.n+" leads, largest "+pv.max+" mm ("+pv.lead+"). The monitor's numbers are the ones used.");x.style.marginTop="8px";w.appendChild(x);}
       const n=el("p","lbl","The monitor's automatic statement is unconfirmed. Your own reading and UMOC decide.");n.style.marginTop="8px";w.appendChild(n);
       report.appendChild(card("Monitor printout",w));}
 

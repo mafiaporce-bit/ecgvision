@@ -1077,6 +1077,12 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 .lnotes summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--accent)}
 .lnotes ul{margin-top:8px;font-size:.84rem;color:var(--soft)}
 .why li.ck-no .claim{font-weight:500;color:var(--soft)}
+/* ---- 7.4: ECG strip on the Learn ECG page; New patient in the Patient card ---- */
+.lx-strip{background:radial-gradient(120% 90% at 85% 0%,rgba(173,196,219,.3) 0%,rgba(173,196,219,0) 55%),linear-gradient(165deg,#141D27 0%,#24323F 45%,#4A6178 100%)!important;border:0!important;padding:10px 0 10px!important;overflow:hidden}
+.lx-strip .ecgstrip.glow{display:block!important;margin:0!important;height:92px!important}
+.lx-strip .lx-strip-cap{margin:8px 16px 0!important;padding:0!important;font-size:.8rem;line-height:1.35;color:rgba(255,255,255,.82)}
+.np-btn{width:100%;min-height:40px!important;margin-top:8px;font-size:.88rem;border-width:1.5px}
+#page-analyze .actions .btn{flex:1}
 </style>
 </head>
 <body>
@@ -1093,9 +1099,6 @@ nav.bottom button[aria-current="page"]{font-weight:700}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
         </button>
       </div>
-    </div>
-    <div class="ecgstrip glow" id="ecgStrip" aria-hidden="true">
-      <canvas id="stripCv"></canvas>
     </div>
     <div class="subbar" id="subBar" hidden>
       <button class="back" id="backBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Back</button>
@@ -1115,6 +1118,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
       <div><div class="lbl">Sex</div><button type="button" class="field pick" id="sexBtn" aria-haspopup="dialog"><span class="pi" id="sexIc"></span><span class="pv" id="sexVal">Select</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button><input type="hidden" id="sex"></div>
     </div>
     <div class="thr" id="thr"></div>
+    <button type="button" class="btn ghost np-btn" id="clearBtn" hidden>New patient</button>
   </div>
   <div class="card">
     <h2>Quick actions</h2>
@@ -1133,7 +1137,6 @@ nav.bottom button[aria-current="page"]{font-weight:700}
   <div class="sec-title"><h2>12-lead ECG</h2><span id="imgCount">No image yet</span></div>
   <div class="card">
     <div class="drop" id="drop">
-      <p>Lay the tracing flat, fill the frame, avoid glare. Keep lead labels and the calibration pulse in view.</p>
       <button type="button" class="laychip" id="layBtn" aria-haspopup="dialog"><span class="li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 12h18M12 4v16M6 8.5h2.5M6 15.5h2.5M15 8.5h2.5M15 15.5h2.5"/></svg></span><span class="lt"><b id="layTitle">Choose your printout layout</b><small id="laySub">Pages, lead order, paper speed and gain</small></span><span class="lc" id="layChange">Choose</span></button>
       <div class="btn-row">
         <button type="button" class="stamp" id="stamp"><span class="st-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg></span><span class="st-tx"><b>Age and sex required</b><small>Tap to enter patient details</small></span><svg class="st-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
@@ -1163,7 +1166,6 @@ nav.bottom button[aria-current="page"]{font-weight:700}
     <div class="actions">
       <button class="btn" id="analyzeBtn" disabled><span class="ab-up" id="abUp" hidden></span><span class="ab-main">Analyze ECG</span></button>
       <button class="btn ghost" id="stopBtn" hidden>Stop</button>
-      <button class="btn ghost" id="clearBtn" hidden>New patient</button>
     </div>
     <p class="status" id="status" role="status" aria-live="polite">Enter age and sex, then add an ECG image.</p>
     <div id="readMon" hidden></div>
@@ -1318,6 +1320,10 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 
 <!-- LEARN ECG -->
 <section id="page-learnecg" class="ref stack float" hidden>
+  <div class="card lx-strip">
+    <div class="ecgstrip glow" id="ecgStrip" aria-hidden="true"><canvas id="stripCv"></canvas></div>
+    <p class="lx-strip-cap">Live monitor: the rhythms from this guide, one after another. Watch the ST segment rise when it turns red (STEMI).</p>
+  </div>
   <div class="card lx-intro">
     <h3>Learn ECG the easy way</h3>
     <p>15 small steps. Read one step, look at the picture, tap <b>Got it</b>. That's it. No step is hard on its own.</p>
@@ -1662,7 +1668,7 @@ nav.bottom button[aria-current="page"]{font-weight:700}
 (function(){
   // ===== Protocol version stamp: edit these three lines when the protocol is reviewed =====
   const PROTOCOL={name:"STEMI PPCI Pathway V1.0 – 03/2025 (UMOC & ADCDA) · ESC 2023 activation criteria",reviewedBy:"Not yet signed off",reviewDate:""};
-  const APP_VERSION="7.3";
+  const APP_VERSION="7.4";
   const $=id=>document.getElementById(id);
   let refreshHook=null,reEvalHook=null;const lastReportRef=()=>{try{return lastReport;}catch(e){return null;}};
   const root=document.documentElement;
@@ -4426,6 +4432,10 @@ ${dyn}`;}
       sw.append(inp,el("i"));r.append(tx,sw);L.appendChild(r);});}
   // ---------- Update log (shown under Settings) ----------
   const CHANGELOG=[
+    {v:"7.4",d:"20 Nov 2026",t:"Cleaner Analyze page",i:[
+      "The moving ECG strip moved from the top of the Analyze page to the top of the Learn ECG page, where it plays the rhythms from the guide.",
+      "New patient moved into the Patient card, under the age-and-sex note. Analyze ECG now has the full width.",
+      "The photo tip above the layout chip is gone (the step-by-step camera guide still shows how to take the photo)."]},
     {v:"7.3",d:"19 Nov 2026",t:"Result screen, part 2: clearer leads, sections that fold",i:[
       "The lead boxes start with a count ('2 leads meet threshold', '2 elevated, below threshold', 'to check on the paper'), and the number in each box is larger than the lead name. The long list of where each number came from folds under the grid.",
       "Protocol check, Why this reading, Monitor printout, Measured parameters, Field actions, Differential and Image quality now fold: tap the title to open or close. Field actions and Measured parameters start open; the Protocol check opens by itself when a criterion is met or needs checking; the Monitor printout opens by itself when it disagrees with the photo read or has unconfirmed numbers. The phone remembers what you opened or closed. The switches in Settings work as before.",
